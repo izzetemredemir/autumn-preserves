@@ -29,3 +29,13 @@ func goto(id: String, p: Dictionary = {}) -> void:
 	current = id
 	get_tree().change_scene_to_file(SCENES[id])
 	scene_changed.emit(id)
+
+
+## Global hotkey: the recipe book opens from any in-game scene (the open overlay closes itself first).
+func _unhandled_input(event: InputEvent) -> void:
+	if not event.is_action_pressed("book") or current in ["", "title"] or not GameState.has_game():
+		return
+	var path := "res://ui/book/book.gd"
+	if ResourceLoader.exists(path):
+		load(path).open()
+		get_viewport().set_input_as_handled()
