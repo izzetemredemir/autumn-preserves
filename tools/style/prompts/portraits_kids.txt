@@ -1,0 +1,6 @@
+Using the first reference image only as a style guide (same pixel art style, palette, thick dark brown outline, chunky shapes and lighting), draw a NEW 2x2 sheet of four square bust portraits (head and shoulders, facing the viewer, slightly three-quarter), each in its own equal square cell, on a fully flat plain cream background. Portraits designed to stay readable at a tiny 48x48 pixel size: BOLD SIMPLE chunky shapes, big clear eyes and a big clear smile, thick dark brown outline, 3-4 tone shading lit warmly from the upper left. Children are drawn with big round heads, small shoulders.
+Top-left: Mia, a 9 year old girl, two auburn braids with small ribbons, freckles, bright yellow raincoat with the hood down, wide cheerful grin.
+Top-right: Leo, a 7 year old boy, messy brown hair sticking up, a chunky green knitted scarf, rosy cheeks, gap-toothed grin.
+Bottom-left: the same Mia again, a second take. Bottom-right: the same Leo again, a second take.
+No text, no letters, no labels, no frames, no logos.
+No watermark, no brand names, no copyrighted characters, no blur, no soft gradients, no anti-aliasing, no photorealism, no 3D render look, no pure black, no neon colors.
