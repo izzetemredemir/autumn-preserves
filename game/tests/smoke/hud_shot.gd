@@ -42,6 +42,7 @@ func _run(hud: Node) -> void:
 		await process_frame
 	var dir := "user://shots"
 	DirAccess.make_dir_recursive_absolute(dir)
+	RenderingServer.force_draw(false)
 	root.get_texture().get_image().save_png(dir + "/hud.png")
 	print("saved ", ProjectSettings.globalize_path(dir + "/hud.png"))
 	quit()

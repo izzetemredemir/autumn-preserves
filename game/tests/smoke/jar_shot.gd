@@ -82,8 +82,9 @@ func _initialize() -> void:
 
 	for i in 90:
 		await process_frame
-	var img := root.get_texture().get_image()
 	DirAccess.make_dir_recursive_absolute("user://shots")
+	RenderingServer.force_draw(false)
+	var img := root.get_texture().get_image()
 	img.save_png("user://shots/jars.png")
 
 	# palette audit of the whole shot and every sample render

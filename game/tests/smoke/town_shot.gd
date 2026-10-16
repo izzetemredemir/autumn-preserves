@@ -1,5 +1,5 @@
 extends SceneTree
-## Smoke shot: town square with debug jars -> user://shots/town.png
+## Smoke shot: town square, one shot per tab -> user://shots/town_<tab>.png
 ## godot --path game -s res://tests/smoke/town_shot.gd
 
 
@@ -12,11 +12,13 @@ func _initialize() -> void:
 func _run(scene: Node) -> void:
 	for i in 3:
 		await process_frame
-	scene._on_tab("orders")
-	for i in 12:
-		await process_frame
 	var dir := "user://shots"
 	DirAccess.make_dir_recursive_absolute(dir)
-	root.get_texture().get_image().save_png(dir + "/town.png")
-	print("saved ", ProjectSettings.globalize_path(dir + "/town.png"))
+	for tab in ["grocer", "orders", "neighbours"]:
+		scene._on_tab(tab)
+		for i in 12:
+			await process_frame
+		RenderingServer.force_draw(false)  # macOS skips drawing a covered window
+		root.get_texture().get_image().save_png("%s/town_%s.png" % [dir, tab])
+		print("saved town_", tab)
 	quit()

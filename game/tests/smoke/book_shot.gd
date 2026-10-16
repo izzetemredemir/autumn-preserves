@@ -49,5 +49,6 @@ func _frames(n: int) -> void:
 func _save(nm: String) -> void:
 	DirAccess.make_dir_recursive_absolute("user://shots")
 	var p := "user://shots/%s.png" % nm
+	RenderingServer.force_draw(false)
 	root.get_texture().get_image().save_png(p)
 	print("saved ", ProjectSettings.globalize_path(p))

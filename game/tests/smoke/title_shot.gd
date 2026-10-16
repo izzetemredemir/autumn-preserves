@@ -66,6 +66,7 @@ func _run() -> void:
 	var dir := "user://shots"
 	DirAccess.make_dir_recursive_absolute(dir)
 	var file := dir + ("/title.png" if _view == "title" else "/title_%s.png" % _view)
+	RenderingServer.force_draw(false)
 	root.get_texture().get_image().save_png(file)
 	print("saved ", ProjectSettings.globalize_path(file))
 	quit()
