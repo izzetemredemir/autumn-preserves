@@ -7,7 +7,7 @@ extends Control
 ## jumps to the next step, Esc or the button skips to the end. "A | B" (C) puts the seed next to the previous one
 ## (same rules, different seed). Maps are generated with record_steps, so the replay works in release builds too.
 
-const BIOMES := ["forest"]  ## P1: vineyard, creek
+const BIOMES := ["forest", "vineyard", "creek"]  ## the lab shows every biome, locked or not
 const PAN_SPEED := 240.0
 const DAY := 1
 const LABEL_H := 18  ## step banner row above the overview (the banner overlaps the frame's top edge)
@@ -70,6 +70,7 @@ func _ready() -> void:
 	_build_overview()
 	_build_frame()
 	%Generate.pressed.connect(_generate)
+	biome_pick.item_selected.connect(func(_i: int) -> void: _generate())
 	%Random.pressed.connect(_random)
 	%Walk.pressed.connect(_walk)
 	%Back.pressed.connect(func() -> void: Router.goto("title"))
@@ -261,6 +262,7 @@ func _generate() -> void:
 	save_seed = s
 	seed_edit.text = str(save_seed)
 	_vars = VarietyGen.generate_all(save_seed, 0)
+	VarietyGen.ensure_types(_vars, save_seed)  # P1 types, exactly as a real save gets them
 	map = WildGen.generate(save_seed, DAY, biome(), "sunny", _vars, true)
 	view.show_map(map, _vars)
 	_pan = Vector2.ZERO
@@ -324,6 +326,7 @@ func _ensure_b() -> void:
 	if not map_b.is_empty() and int(map_b.get("save_seed", -1)) == s:
 		return
 	_vars_b = VarietyGen.generate_all(s, 0)
+	VarietyGen.ensure_types(_vars_b, s)
 	map_b = WildGen.generate(s, DAY, biome(), "sunny", _vars_b, true)
 	map_b["save_seed"] = s
 	_built_b = ""

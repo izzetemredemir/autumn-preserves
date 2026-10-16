@@ -20,7 +20,7 @@ const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 
 ## Per WildGen.T_* id: [low noise, high noise] tones (art-bible §1; warm and olive, water stays cold).
 const TONES := [["747c37", "9b8039"], ["b66813", "c94d2e"], ["50361e", "83571e"], ["415c5d", "415c5d"],
-	["c58845", "c58845"], ["b4b3a0", "b4b3a0"]]
+	["c58845", "c58845"], ["b4b3a0", "b4b3a0"], ["9b8039", "81746a"]]
 const CANOPY := {"maple": ["c94d2e", "a22512"], "birch": ["e5bd7f", "9b8039"], "oak": ["747c37", "53612e"]}
 const C_FRAME := Color("49423d")
 const C_CREAM := Color("f2d9c5")
