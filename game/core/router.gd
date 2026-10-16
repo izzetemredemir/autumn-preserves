@@ -11,6 +11,7 @@ const SCENES := {
 	"kitchen": "res://scenes/kitchen/kitchen.tscn",
 	"pantry": "res://scenes/pantry/pantry.tscn",
 	"town": "res://scenes/town/town.tscn",
+	"market": "res://scenes/market/market.tscn",
 }
 
 var params: Dictionary = {}

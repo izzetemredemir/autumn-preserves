@@ -19,6 +19,13 @@ const GOLD := Color("e5bd7f")
 const RED := Color("a22512")
 const GREEN := Color("4e7664")
 const BOARD_POS := Vector2(200, 78)
+const PAPER_INK := Color("50361e")
+## Letter paper: text left edge and width, column beside the child's drawing, ruled line pitch (18 px font + 3).
+const TEXT_X := 165
+const TEXT_W := 290
+const NARROW_W := 234
+const LINE_PITCH := 21
+const LINE_GAP := 3
 
 var _start_id := -1
 var _letter_id := -1
@@ -28,9 +35,13 @@ var _read_page: Control
 var _pack_page: Control
 # reader
 var _list: VBoxContainer
-var _love_rows: VBoxContainer
 var _paper_text: VBoxContainer
+var _top_text: VBoxContainer
+var _card: Control
 var _portrait: KidPortrait
+var _kid_name: Label
+var _hearts: HeartRow
+var _love_label: Label
 var _pack_btn: Button
 var _status: Label
 var _close_btn: Button
@@ -135,29 +146,16 @@ func _render_reader() -> void:
 		b.text = tr("LET_LIST_ITEM") % [Letters.kid_name(String(l.from)), int(l.day)]
 		b.icon = _envelope(l)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.custom_minimum_size = Vector2(118, 18)
+		b.custom_minimum_size = Vector2(0, 19)
 		b.toggle_mode = true
 		b.button_pressed = int(l.id) == _letter_id
-		if not bool(l.get("read", false)):
-			b.add_theme_color_override("font_color", GOLD)
+		_style_row(b, not bool(l.get("read", false)))
 		b.pressed.connect(_select.bind(int(l.id)))
 		_list.add_child(b)
-	_clear(_love_rows)
-	for kid in Letters.kids():
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 4)
-		var n := _label(Letters.kid_name(kid))
-		n.custom_minimum_size.x = 30
-		row.add_child(n)
-		var h := HeartIcon.new()
-		h.custom_minimum_size = Vector2(7, 6)
-		h.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		row.add_child(h)
-		row.add_child(_label(str(int(d.letters.love.get(kid, 0)))))
-		_love_rows.add_child(row)
 	_clear(_paper_text)
+	_top_text = null
 	var letter := Letters.find_letter(d, _letter_id)
-	_portrait.visible = not letter.is_empty()
+	_card.visible = not letter.is_empty()
 	_pack_btn.visible = false
 	_status.text = _flash
 	_status.add_theme_color_override("font_color", GOLD)
@@ -167,7 +165,27 @@ func _render_reader() -> void:
 		return
 	var kid := String(letter.from)
 	_portrait.kid = kid
-	_portrait.queue_redraw()
+	_kid_name.text = Letters.kid_name(kid)
+	var love := int(d.letters.love.get(kid, 0))
+	_hearts.love = love
+	_hearts.queue_redraw()
+	_love_label.text = "%s %d" % [tr("LET_LOVE_HEAD"), love]
+	# Greeting and note run beside the child's drawing, the rest uses the full width. The top block is a whole
+	# number of ruled lines tall, so every line below it still sits on a rule.
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 4)
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_top_text = VBoxContainer.new()
+	_top_text.add_theme_constant_override("separation", LINE_GAP)
+	_top_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_top_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(_top_text)
+	var sheet := DrawingSheet.new()
+	sheet.texture = ImageTexture.create_from_image(KidDrawing.render(_drawing_seed(letter), _drawing_subject(d, letter)))
+	sheet.custom_minimum_size = Vector2(52, LINE_PITCH * 3 - LINE_GAP)
+	sheet.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(sheet)
+	_paper_text.add_child(top)
 	_paper(tr("LET_DEAR"), false)
 	_paper(tr(String(letter.note)), false)
 	if String(letter.kind) == "request":
@@ -200,21 +218,46 @@ func _render_reader() -> void:
 	_paper(tr("LET_SIGN") % Letters.kid_name(kid))
 
 
+## Seed of a letter's drawing: the same letter always shows the same picture.
+func _drawing_seed(letter: Dictionary) -> int:
+	return Hash.fnv1a31("%d|%s" % [int(letter.id), String(letter.from)])
+
+
+## What the child drew: the jars from Granny's parcel (reply) or what they wish for (request).
+func _drawing_subject(d: Dictionary, letter: Dictionary) -> Dictionary:
+	var items: Array = []
+	if String(letter.kind) == "request":
+		for req in letter.get("request", []):
+			var vessel := String(Data.recipes().get(String(req.get("recipe", "")), {}).get("vessel", "jam_jar"))
+			items.append(KidDrawing.wish(vessel, String(req.get("taste", ""))))
+	else:
+		var parcel := Letters.parcel_for(d, int(letter.get("re", -1)))
+		for key in parcel.get("keys", []):
+			var look: Dictionary = ProductGen.describe(String(key), d.get("varieties", {})).appearance
+			var lids: Array = look.get("lid_colors", ["9b8039"])
+			items.append({"vessel": String(look.vessel), "fill": look.fill, "lid": String(lids[0]),
+				"label": String(look.label_color)})
+	return {"kind": String(letter.kind), "kid": String(letter.from), "care": bool(letter.get("care", false)),
+		"items": items}
+
+
 func _select(letter_id: int) -> void:
 	if letter_id != _letter_id:
 		_sfx("sfx_page_turn")
 	show_letter(letter_id)
 
 
-## `wide` = full paper width; false = beside the portrait (greeting and note).
+## `wide` = full paper width; false = beside the child's drawing (greeting and note).
 func _paper(text: String, wide := true) -> void:
 	var l := _label(text)
 	l.theme_type_variation = &"PaperLabel"
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.custom_minimum_size.x = 292 if wide else 236
-	if not wide:
-		l.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_paper_text.add_child(l)
+	if wide or _top_text == null:
+		l.custom_minimum_size.x = TEXT_W
+		_paper_text.add_child(l)
+	else:
+		l.custom_minimum_size.x = NARROW_W
+		_top_text.add_child(l)
 
 
 ## "something sweet", "a jar of pickles", "a jar of jam, nice and sour".
@@ -417,37 +460,53 @@ func _build_reader() -> void:
 	head.theme_type_variation = &"Heading"
 	head.position = Vector2(18, 13)
 	_read_page.add_child(head)
+	# Letter list: envelopes on a sheet of note paper, the open one marked like a bookmark.
+	_paper_sheet(_read_page, Vector2(14, 30), Vector2(130, 108))
 	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(16, 34)
-	scroll.size = Vector2(126, 148)
+	scroll.position = Vector2(19, 35)
+	scroll.size = Vector2(120, 98)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_style_scrollbar(scroll.get_v_scroll_bar())
 	_read_page.add_child(scroll)
 	_list = VBoxContainer.new()
-	_list.add_theme_constant_override("separation", 2)
+	_list.add_theme_constant_override("separation", 0)
+	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(_list)
-	var love := _label(tr("LET_LOVE_HEAD"))
-	love.theme_type_variation = &"Heading"
-	love.position = Vector2(18, 188)
-	_read_page.add_child(love)
-	_love_rows = VBoxContainer.new()
-	_love_rows.position = Vector2(18, 208)
-	_love_rows.add_theme_constant_override("separation", 0)
-	_read_page.add_child(_love_rows)
-	var paper := PanelContainer.new()
-	paper.theme_type_variation = &"PaperPanel"
-	paper.position = Vector2(150, 12)
-	paper.size = Vector2(316, 212)
-	paper.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_read_page.add_child(paper)
-	_paper_text = VBoxContainer.new()
-	_paper_text.position = Vector2(161, 18)
-	_paper_text.size = Vector2(292, 200)
-	_paper_text.add_theme_constant_override("separation", 3)
-	_read_page.add_child(_paper_text)
+	# Sender card: the grandchild's portrait, name and love hearts (10 hearts = every family recipe).
+	_card = Control.new()
+	_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_read_page.add_child(_card)
+	_paper_sheet(_card, Vector2(14, 144), Vector2(130, 80))
 	_portrait = KidPortrait.new()
-	_portrait.position = Vector2(408, 22)
+	_portrait.position = Vector2(21, 160)
 	_portrait.size = Vector2(48, 48)
-	_read_page.add_child(_portrait)
+	_card.add_child(_portrait)
+	_kid_name = _label("")
+	_kid_name.theme_type_variation = &"PaperLabel"
+	_kid_name.position = Vector2(76, 152)
+	_card.add_child(_kid_name)
+	_hearts = HeartRow.new()
+	_hearts.position = Vector2(77, 176)
+	_hearts.size = Vector2(HeartRow.SIZE)
+	_card.add_child(_hearts)
+	_love_label = _label("")
+	_love_label.theme_type_variation = &"PaperLabel"
+	_love_label.position = Vector2(76, 194)
+	_card.add_child(_love_label)
+	# Letter: ruled note paper with a red margin line; text lines sit on the rules.
+	_paper_sheet(_read_page, Vector2(150, 12), Vector2(316, 212))
+	var rules := RuledLines.new()
+	rules.position = Vector2(155, 17)
+	rules.size = Vector2(306, 202)
+	rules.first = 18 + 15 - 17  # text top + font ascent, in the rules' own coordinates
+	rules.margin_x = TEXT_X - 4 - 155
+	_read_page.add_child(rules)
+	_paper_text = VBoxContainer.new()
+	_paper_text.position = Vector2(TEXT_X, 18)
+	_paper_text.size = Vector2(TEXT_W, 200)
+	_paper_text.add_theme_constant_override("separation", LINE_GAP)
+	_paper_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_read_page.add_child(_paper_text)
 	_pack_btn = _button(tr("LET_PACK"), open_pack)
 	_pack_btn.position = Vector2(150, 236)
 	_pack_btn.size = Vector2(104, 20)
@@ -546,6 +605,70 @@ func _page() -> Control:
 	return c
 
 
+## A UI-kit paper panel (mouse passes through).
+func _paper_sheet(parent: Control, pos: Vector2, sz: Vector2) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.theme_type_variation = &"PaperPanel"
+	p.position = pos
+	p.size = sz
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(p)
+	return p
+
+
+## Letter list row on paper: ruled underline, gold fill with a red bookmark edge when open, red text while unread.
+func _style_row(b: Button, unread: bool) -> void:
+	var normal := _row_box(false, Color("e5bd7f"))
+	normal.border_width_bottom = 1
+	var hover := _row_box(true, Color("c58845"))
+	hover.bg_color = Color("dbcc83")
+	hover.border_width_bottom = 1
+	var open := _row_box(true, Color("c94d2e"))
+	open.bg_color = Color("e5bd7f")
+	open.border_width_left = 2
+	open.content_margin_left = 2
+	for st in ["normal", "disabled"]:
+		b.add_theme_stylebox_override(st, normal)
+	b.add_theme_stylebox_override("hover", hover)
+	for st in ["pressed", "hover_pressed"]:
+		b.add_theme_stylebox_override(st, open)
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	var ink := RED if unread else PAPER_INK
+	for c in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
+		b.add_theme_color_override(c, ink)
+	b.add_theme_constant_override("h_separation", 4)
+
+
+func _row_box(fill: bool, border: Color) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.draw_center = fill
+	s.border_color = border
+	s.anti_aliasing = false
+	s.content_margin_left = 4
+	s.content_margin_right = 2
+	s.content_margin_top = 0
+	s.content_margin_bottom = 0
+	return s
+
+
+## Thin palette scrollbar for the letter list (shows once the letters outgrow the sheet).
+func _style_scrollbar(bar: ScrollBar) -> void:
+	var track := StyleBoxFlat.new()
+	track.bg_color = Color("e5bd7f")
+	track.anti_aliasing = false
+	track.content_margin_left = 2
+	track.content_margin_right = 2
+	bar.add_theme_stylebox_override("scroll", track)
+	bar.add_theme_stylebox_override("scroll_focus", track)
+	for pair in [["grabber", "c58845"], ["grabber_highlight", "b66813"], ["grabber_pressed", "83571e"]]:
+		var g := StyleBoxFlat.new()
+		g.bg_color = Color(String(pair[1]))
+		g.anti_aliasing = false
+		g.content_margin_left = 2
+		g.content_margin_right = 2
+		bar.add_theme_stylebox_override(String(pair[0]), g)
+
+
 func _label(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
@@ -616,23 +739,29 @@ func _ui(id: String) -> void:
 
 # --- palette drawings --------------------------------------------------------------------------------------------
 
-## Grandchild portrait: portrait_<kid>.png when ART has made it, else a 48x48 placeholder from palette rects.
+## Grandchild portrait on a framed backdrop: portrait_<kid>.png, else a 48x48 placeholder from palette rects.
+## The texture is loaded when `kid` is set, not inside _draw (a texture first loaded mid-draw renders white).
 class KidPortrait:
 	extends Control
 	const LOOKS := {
 		"mia": {"bg": "738c7a", "hair": "c94d2e", "shirt": "dbcc83", "extra": "a22512"},
 		"leo": {"bg": "567c7d", "hair": "50361e", "shirt": "a22512", "extra": "275e4c"},
 	}
-	var kid := "mia"
+	var kid := "mia":
+		set(v):
+			kid = v
+			var path := LettersUI.PORTRAIT % kid
+			_tex = load(path) as Texture2D if ResourceLoader.exists(path) else null
+			queue_redraw()
+	var _tex: Texture2D
 
 	func _draw() -> void:
-		var path := LettersUI.PORTRAIT % kid
-		draw_rect(Rect2(-1, -1, 50, 50), Color("50361e"))
-		if ResourceLoader.exists(path):
-			draw_texture(load(path), Vector2.ZERO)
-			return
 		var look: Dictionary = LOOKS.get(kid, LOOKS.mia)
+		draw_rect(Rect2(-1, -1, 50, 50), Color("50361e"))
 		_r(0, 0, 24, 24, look.bg)
+		if _tex != null:
+			draw_texture(_tex, Vector2.ZERO)
+			return
 		if kid == "mia":
 			_r(3, 7, 3, 7, look.hair)
 			_r(18, 7, 3, 7, look.hair)
@@ -658,15 +787,64 @@ class KidPortrait:
 		draw_rect(Rect2(x * 2, y * 2, w * 2, h * 2), Color(c))
 
 
-class HeartIcon:
+## Love meter: 10 hearts in two rows of five, filled up to the kid's love, the rest drawn as empty outlines.
+class HeartRow:
 	extends Control
 	const PATTERN := [".XX.XX.", "XXXXXXX", "XXXXXXX", ".XXXXX.", "..XXX..", "...X..."]
+	const SIZE := Vector2i(43, 14)
+	var love := 0
 
 	func _draw() -> void:
-		for y in PATTERN.size():
-			for x in 7:
-				if PATTERN[y][x] == "X":
-					draw_rect(Rect2(x, y, 1, 1), Color("c94d2e"))
+		for i in 10:
+			var o := Vector2i((i % 5) * 9, floori(i / 5.0) * 8)
+			var full := i < love
+			for y in PATTERN.size():
+				for x in 7:
+					if PATTERN[y][x] != "X":
+						continue
+					if full:
+						draw_rect(Rect2(o.x + x, o.y + y, 1, 1), Color("c94d2e"))
+					elif _edge(x, y):
+						draw_rect(Rect2(o.x + x, o.y + y, 1, 1), Color("b9a697"))
+
+	func _edge(x: int, y: int) -> bool:
+		for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var nx: int = x + d.x
+			var ny: int = y + d.y
+			if nx < 0 or ny < 0 or nx >= 7 or ny >= PATTERN.size() or PATTERN[ny][nx] != "X":
+				return true
+		return false
+
+
+## Ruled note paper: a rule under every text line (`first`, then every LINE_PITCH) and a red margin line.
+class RuledLines:
+	extends Control
+	var first := 16
+	var margin_x := 6
+
+	func _draw() -> void:
+		var y := first
+		while y < int(size.y) - 1:
+			draw_rect(Rect2(0, y, size.x, 1), Color("e5bd7f"))
+			y += LettersUI.LINE_PITCH
+		draw_rect(Rect2(margin_x, 0, 1, size.y), Color("e19064"))
+
+
+## The child's drawing tucked into the letter: own sheet with a shadow, held on by a strip of tape.
+class DrawingSheet:
+	extends Control
+	var texture: Texture2D
+
+	func _draw() -> void:
+		if texture == null:
+			return
+		var o := Vector2(1, 5)
+		draw_rect(Rect2(o.x, o.y + 49, 50, 1), Color("b9a697"))
+		draw_rect(Rect2(o.x + 49, o.y, 1, 50), Color("b9a697"))
+		draw_rect(Rect2(o.x - 1, o.y - 1, 50, 50), Color("c58845"))
+		draw_texture(texture, o)
+		draw_rect(Rect2(o.x + 16, o.y - 4, 16, 6), Color("e5bd7f"))
+		draw_rect(Rect2(o.x + 17, o.y - 3, 14, 4), Color("dbcc83"))
 
 
 class CheckIcon:

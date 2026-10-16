@@ -30,7 +30,7 @@ static func shake_tree(state: Dictionary, tree_index: int) -> Dictionary:
 static func plant(state: Dictionary, bed_index: int, crop: String, use_fertilizer: bool = false) -> Dictionary:
 	var beds: Array = state.garden.beds
 	var seeds: Dictionary = Data.shop().seeds
-	if bed_index < 0 or bed_index >= beds.size() or not seeds.has(crop) or int(seeds[crop].get("priority", 0)) > Economy.MAX_PRIORITY:
+	if bed_index < 0 or bed_index >= beds.size() or not seeds.has(crop) or not Economy.on_sale(crop, seeds[crop]):
 		return {"ok": false, "reason": "UI_NOT_AVAILABLE"}
 	if String(beds[bed_index].crop) != "":
 		return {"ok": false, "reason": "UI_BED_BUSY"}

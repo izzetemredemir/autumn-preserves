@@ -2,8 +2,12 @@ class_name Economy
 extends RefCounted
 ## SIM-04 · Energy, grocer buy/sell, friendship (spec §4, §7.8, §8). All numbers from Data.rules()/Data.shop().
 
-## Highest shop/seed/upgrade priority on sale (P0 = 0). Raise it when the P1 features land.
+## Highest shop/seed/upgrade priority on sale by default (P0 = 0).
 const MAX_PRIORITY := 0
+## P1 rows go on sale one by one as their feature lands (tech-spec §16): shop.json buy/seed/upgrade id -> true.
+## Seeds use their bare id ("cabbage"). One line per id so parallel cards merge cleanly.
+const LIVE := {
+}
 
 
 static func energy_cost(action: String) -> int:
@@ -27,22 +31,23 @@ static func price(state: Dictionary, shop_id: String, qty: int = 1) -> int:
 	if shop.buy.has(shop_id):
 		var row: Variant = shop.buy[shop_id]
 		if typeof(row) == TYPE_DICTIONARY:
-			if int(row.get("priority", 0)) > MAX_PRIORITY:
+			if not on_sale(shop_id, row):
 				return -1
 			total = int(row.price) * qty
 		else:
 			total = int(row) * qty
 	elif shop_id.begins_with("seed_") and shop.seeds.has(shop_id.substr(5)):
 		var seed_row: Dictionary = shop.seeds[shop_id.substr(5)]
-		if int(seed_row.get("priority", 0)) > MAX_PRIORITY:
+		if not on_sale(shop_id.substr(5), seed_row):
 			return -1
 		total = int(seed_row.price) * qty
-	elif shop_id == "pantry_row":
-		var up: Dictionary = shop.upgrades.pantry_row
-		var level := int(state.upgrades.get("pantry_row", 0))
-		if int(up.get("priority", 0)) > MAX_PRIORITY or level >= up.prices.size():
+	elif shop.upgrades.has(shop_id):
+		var up: Dictionary = shop.upgrades[shop_id]
+		var level := int(state.upgrades.get(shop_id, 0))
+		var prices: Array = up.prices if up.has("prices") else [up.price]
+		if not on_sale(shop_id, up) or level >= prices.size():
 			return -1
-		total = int(up.prices[level])
+		total = int(prices[level])
 	if total < 0:
 		return -1
 	return floori(total * (1.0 - discount(state)) + 0.000001)
@@ -66,9 +71,12 @@ static func buy(state: Dictionary, shop_id: String, qty: int = 1) -> Dictionary:
 	if int(state.coins) < cost:
 		return {"ok": false, "reason": "UI_NO_COINS", "coins_left": int(state.coins)}
 	state.coins = int(state.coins) - cost
-	if shop_id == "pantry_row":
-		state.upgrades.pantry_row = int(state.upgrades.get("pantry_row", 0)) + 1
-		PantryRules.add_shelf(state.pantry)
+	if Data.shop().upgrades.has(shop_id):
+		state.upgrades[shop_id] = int(state.upgrades.get(shop_id, 0)) + 1
+		if shop_id == "pantry_row":
+			PantryRules.add_shelf(state.pantry)
+		else:
+			unlock(state, shop_id)
 	else:
 		state.cupboard[shop_id] = int(state.cupboard.get(shop_id, 0)) + qty
 	return {"ok": true, "reason": "", "coins_left": int(state.coins), "spent": cost}
@@ -167,3 +175,19 @@ static func valid_ref(state: Dictionary, ref: Dictionary) -> bool:
 		"pantry":
 			return i >= 0 and i < state.pantry.items.size()
 	return false
+
+
+## A shop row is on sale when it is P0 content or its id is in LIVE.
+static func on_sale(row_id: String, row: Dictionary) -> bool:
+	return int(row.get("priority", 0)) <= MAX_PRIORITY or LIVE.has(row_id)
+
+
+## P1 feature gates (tech-spec §16): "press", "knead", "vineyard", "boots" ... set by a purchase or a heart reward.
+static func unlocked(state: Dictionary, id: String) -> bool:
+	return bool(state.get("unlocks", {}).get(id, false))
+
+
+static func unlock(state: Dictionary, id: String) -> void:
+	var u: Dictionary = state.get("unlocks", {})
+	u[id] = true
+	state["unlocks"] = u

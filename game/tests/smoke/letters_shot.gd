@@ -1,6 +1,7 @@
 extends SceneTree
 ## Smoke shot (P1-LETTERS): town with a letter from Mia, jars in the inbox -> user://shots/letters.png (reader),
-## letters_parcel.png (box packed with care, straw in the gaps), letters_reply.png (thank-you note).
+## letters_parcel.png (box packed with care, straw in the gaps), letters_reply.png (thank-you note with the child's
+## drawing of the jars), letters_many.png (long inbox that scrolls, a request from Leo with his wish drawing).
 ## godot --path game --rendering-driver opengl3 --audio-driver Dummy -s res://tests/smoke/letters_shot.gd
 
 
@@ -67,6 +68,13 @@ func _run() -> void:
 	await _frames(6)
 	_save("letters_reply")
 	print("letters: ", gs.data.letters.love, " unlocked ", gs.data.letters.unlocked_recipes)
+	# A long inbox: the list scrolls on its paper sheet; the newest is a request from Leo (his wish drawing).
+	var s: Dictionary = gs.data
+	for i in 5:
+		s.letters.inbox.append(Letters.make_request(s, "mia" if i % 2 == 1 else "leo", Seeds.rng(42, "letters", 10 + i)))
+	ui.show_letter(-1)
+	await _frames(6)
+	_save("letters_many")
 	quit()
 
 
