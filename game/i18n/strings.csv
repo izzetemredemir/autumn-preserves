@@ -48,3 +48,5 @@ MG_PACK_HINT_PACK,Move: A/D or mouse. Rotate: R or right click. Drop: S or click
 MG_PACK_HINT_BRINE,Hold Space or mouse to pour brine up to the line.
 MG_PACK_HINT_LID,Click 3 times or circle the lid.
 MG_PACK_HINT_DONE,Sealed!
+UI_DAY,Day
+UI_BAG,Bag
