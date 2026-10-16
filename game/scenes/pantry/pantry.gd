@@ -50,7 +50,7 @@ var _bubble_tween: Tween
 
 func _ready() -> void:
 	if not GameState.has_game():
-		GameState.start_new(1)
+		GameState.start_temp(1)
 		GameState.data.inbox.append_array(sample_items())
 	var data: Dictionary = GameState.data
 	var pantry: Dictionary = data.pantry

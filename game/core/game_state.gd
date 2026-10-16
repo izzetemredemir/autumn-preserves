@@ -23,6 +23,14 @@ func start_new(save_seed: int) -> void:
 	day_started.emit(int(data.day))
 
 
+## A throwaway game (Seed Lab walks, scenes run alone): never written to disk, so it can't overwrite a real save.
+func start_temp(save_seed: int) -> void:
+	data = State.new_game(save_seed)
+	data.flags["temp"] = true
+	changed.emit(PackedStringArray(["*"]))
+	day_started.emit(int(data.day))
+
+
 func load_saved() -> bool:
 	var d := Save.load_game()
 	if d.is_empty():

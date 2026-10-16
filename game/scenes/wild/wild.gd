@@ -19,7 +19,7 @@ var _leaving := false
 func _ready() -> void:
 	biome = String(Router.params.get("biome", "forest"))
 	if not GameState.has_game():
-		GameState.start_new(int(Router.params.get("seed", Seeds.random_save_seed())))
+		GameState.start_temp(int(Router.params.get("seed", Seeds.random_save_seed())))
 	var s: Dictionary = GameState.data
 	map = WildGen.generate(int(s.save_seed), int(s.day), biome, String(s.weather), s.varieties)
 	if map.is_empty():

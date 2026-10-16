@@ -9,6 +9,8 @@ func has_save(path: String = PATH) -> bool:
 
 
 func save_game(state: Dictionary, path: String = PATH) -> bool:
+	if state.get("flags", {}).get("temp", false):
+		return true  # temporary games (GameState.start_temp) are never saved
 	var f := FileAccess.open(path, FileAccess.WRITE)
 	if f == null:
 		push_error("Save: cannot write " + path)

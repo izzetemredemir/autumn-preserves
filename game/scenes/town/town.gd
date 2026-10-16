@@ -20,7 +20,7 @@ var _icon_size := Vector2(16, 16)
 
 func _ready() -> void:
 	if not GameState.has_game():
-		GameState.start_new(1)
+		GameState.start_temp(1)
 		_debug_fill()
 	Forage.empty_bag_to_inbox(GameState.data)
 	_load_icons()
