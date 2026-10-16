@@ -262,6 +262,40 @@ UI_DEV_GAVE,Added %d stacks.
 UI_DEV_DAY,Day %d
 UI_DEV_SEED_COPIED,Seed %d copied.
 UI_DEV_DEMO_BAD,No demo save at res://dev/demo_save.json
+KITCHEN_STOVE,Stove
+KITCHEN_COUNTER,Jar counter
+KITCHEN_CUPBOARD,Cupboard
+KITCHEN_BED_CAPTION,Bed
+KITCHEN_HINT,Click the stove or the jar counter to cook.
+KITCHEN_STOVE_HINT,"Stove: jam, fruit butter and chutney."
+KITCHEN_COUNTER_HINT,Jar counter: pickles and brined mushrooms.
+KITCHEN_BOOK_HINT,Recipe book (B)
+KITCHEN_CUPBOARD_HINT,"Jars, sugar, salt, vinegar and spices. The grocer in town sells more."
+KITCHEN_PANTRY_HINT,Pantry: shelves and the basket of new things (%d).
+KITCHEN_GARDEN_HINT,Out to the garden.
+KITCHEN_BED_HINT,Bed: sleep and start a new day.
+KITCHEN_DOOR_LATER,This door is stuck for now.
+KITCHEN_BOOK_LATER,The recipe book isn't here yet.
+KITCHEN_JAR_INBOX,The jar went to the basket in the pantry.
+KITCHEN_BED_ASK,Go to bed? The day will end.
+KITCHEN_SLEEP,Sleep
+KITCHEN_NOT_YET,Not yet
+KITCHEN_DAYS_LEFT,%dd
+KITCHEN_WAITING_TIP,%s: %d days to go
+KITCHEN_MORE,+%d
+KITCHEN_STOCK,Inbox and pantry
+KITCHEN_NONE,None
+KITCHEN_LIST_EMPTY,Nothing fresh here. Forage in the woods or pick in the garden.
+KITCHEN_EMPTY_SLOT,Pick from the list
+KITCHEN_FILL_SLOTS,Fill the slots: click or drag from the list.
+KITCHEN_NOTHING_FITS,Nothing here fits this recipe yet.
+KITCHEN_READY,Ready to cook!
+KITCHEN_COOK_COST,Cook (%d energy)
+KITCHEN_SLEEP_HINT,Sleep to get your energy back.
+KITCHEN_GROCER_HINT,The grocer in town sells more.
+KITCHEN_FORAGE_HINT,Find more in the woods or the garden.
+KITCHEN_SLOT_MAIN,Main
+KITCHEN_SLOT_SECOND,Second
 LET_POST_OFFICE,Post office
 LET_TITLE,Letters
 LET_EMPTY,No letters yet. Mia and Leo write every few days.
