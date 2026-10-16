@@ -305,3 +305,9 @@ icon_elderberry,game/assets/sprites/icons/elderberry.png,icons,procedural,,,,202
 icon_hazelnut,game/assets/sprites/icons/hazelnut.png,icons,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
 icon_chestnut,game/assets/sprites/icons/chestnut.png,icons,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
 icon_oyster_mushroom,game/assets/sprites/icons/oyster_mushroom.png,icons,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+critter_sparrow,game/assets/sprites/critters/critter_sparrow.png,critters,hand-drawn,,,,2026-10-17T12:00:00Z,bash tools/sprites/critters/build.sh (source tools/sprites/critters/sparrow.txt),n,,WILD-LIFE
+critter_robin,game/assets/sprites/critters/critter_robin.png,critters,hand-drawn,,,,2026-10-17T12:00:00Z,bash tools/sprites/critters/build.sh (source tools/sprites/critters/robin.txt),n,,WILD-LIFE
+critter_squirrel,game/assets/sprites/critters/critter_squirrel.png,critters,hand-drawn,,,,2026-10-17T12:00:00Z,bash tools/sprites/critters/build.sh (source tools/sprites/critters/squirrel.txt),n,,WILD-LIFE
+critter_hedgehog,game/assets/sprites/critters/critter_hedgehog.png,critters,hand-drawn,,,,2026-10-17T12:00:00Z,bash tools/sprites/critters/build.sh (source tools/sprites/critters/hedgehog.txt),n,,WILD-LIFE
+critter_frog,game/assets/sprites/critters/critter_frog.png,critters,hand-drawn,,,,2026-10-17T12:00:00Z,bash tools/sprites/critters/build.sh (source tools/sprites/critters/frog.txt),n,,WILD-LIFE
+critter_ring,game/assets/sprites/critters/critter_ring.png,critters,hand-drawn,,,,2026-10-17T12:00:00Z,bash tools/sprites/critters/build.sh (source tools/sprites/critters/fish_ring.txt),n,,WILD-LIFE

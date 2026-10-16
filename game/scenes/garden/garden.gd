@@ -41,6 +41,7 @@ func _ready() -> void:
 	granny.stepped.connect(_on_stepped)
 	granny.interact_requested.connect(_on_interact)
 	_build_cat()
+	_build_critters()
 	camera.target = granny
 	camera.bounds = Rect2i(0, 0, Layout.W * Layout.TILE, Layout.VIEW_H)
 	camera.snap()
@@ -393,6 +394,22 @@ func _build_cat() -> void:
 	objects.add_child(cat)
 	cat.setup(Seeds.seed_for(int(GameState.data.save_seed), "cat_walk", int(GameState.data.day)), spot.cell)
 	cat.wander_walkable = _cat_may_walk
+
+
+## WILD-LIFE: a robin on the fence and a sparrow or two on the lawn (cosmetic, not saved).
+func _build_critters() -> void:
+	var s: Dictionary = GameState.data
+	var weather := String(s.get("weather", "sunny"))
+	var lawn := func(c: Vector2i) -> bool: return _walkable(c) and not spot_blocks(c)
+	CritterLayer.attach(objects, CritterRules.garden(int(s.save_seed), int(s.day), weather, lawn), granny, weather)
+
+
+## A cell a garden thing (bed, sign, tree) stands on or reaches over, for the critters' sake.
+func spot_blocks(c: Vector2i) -> bool:
+	for sp in spots:
+		if c in sp.cells:
+			return true
+	return false
 
 
 func cat_cell() -> Vector2i:

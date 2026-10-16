@@ -45,6 +45,8 @@ func _ready() -> void:
 	camera.bounds = Rect2i(Vector2i.ZERO, view.size_px())
 	camera.snap()
 	add_child(WildWeather.make(String(s.weather), granny))  # windy leaves / fog around Granny (P1 weather)
+	CritterLayer.attach(view.objects, CritterRules.wild(map, int(s.save_seed), int(s.day), String(s.weather)), granny,
+		String(s.weather), map)  # WILD-LIFE: ambient critters
 	seed_label.text = "%s %d" % [tr("UI_SEED"), int(map.seed)]
 	Audio.play_music("mus_forest")
 	for id in _ambient():
