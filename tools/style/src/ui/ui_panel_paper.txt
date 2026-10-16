@@ -1,4 +1,4 @@
-# ui_panel_paper 9-slice 16x16, margin 5
+# ui_panel_paper 9-slice 16x16, margin 5: wood frame, corner nails, cream paper inset
 legend . transparent
 legend k ink
 legend r leaf_red_500
@@ -26,19 +26,19 @@ legend e wine_700
 legend h sage_400
 legend 2 slate_900
 frame
-.kkkkkkkkkkkkkk.
-kkbbbbbbbbbbbbkk
-kbBBBBBBBBBBBBBk
-kbBCCCCCCCCCCDBk
-kbBCccccccccCDBk
-kbBCccccccccCDBk
-kbBCccccccccCDBk
-kbBCccccccccCDBk
-kbBCccccccccCDBk
-kbBCccccccccCDBk
-kbBCccccccccCDBk
-kbBCccccccccCDBk
-kbBCCCCCCCCCCDBk
-kbBDDDDDDDDDDDBk
-kkBBBBBBBBBBBBkk
-.kkkkkkkkkkkkkk.
+..kkkkkkkkkkkk..
+.kbbbbbbbbbbbbk.
+kbcgBBBBBBBBcgBk
+kbgyDDDDDDDDgyBk
+kbBDCCCCCCCCDBBk
+kbBDCccccccCDBBk
+kbBDCccccccCDBBk
+kbBDCccccccCDBBk
+kbBDCccccccCDBBk
+kbBDCccccccCDBBk
+kbBDCccccccCDBBk
+kbBDCCCCCCCCDBBk
+kbcgDDDDDDDDcgBk
+kbgyBBBBBBBBgyBk
+.kBBBBBBBBBBBBk.
+..kkkkkkkkkkkk..

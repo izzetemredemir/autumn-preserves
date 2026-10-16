@@ -1,4 +1,4 @@
-# ui_panel_dark 9-slice 16x16, margin 5
+# ui_panel_dark 9-slice 16x16, margin 5: dark wood frame, warm plum interior
 legend . transparent
 legend k ink
 legend r leaf_red_500
@@ -26,19 +26,19 @@ legend e wine_700
 legend h sage_400
 legend 2 slate_900
 frame
-.kkkkkkkkkkkkkk.
-kkBBBBBBBBBBBBkk
-kBDDDDDDDDDDDD2k
-kBDDDDDDDDDDDW2k
-kBDD22222222DW2k
-kBDD22222222DW2k
-kBDD22222222DW2k
-kBDD22222222DW2k
-kBDD22222222DW2k
-kBDD22222222DW2k
-kBDD22222222DW2k
-kBDD22222222DW2k
-kBDDDDDDDDDDDW2k
-kBDWWWWWWWWWWW2k
-kk222222222222kk
-.kkkkkkkkkkkkkk.
+..kkkkkkkkkkkk..
+.kBBBBBBBBBBBBk.
+kBgaDDDDDDDDgaDk
+kBayDDDDDDDDayDk
+kBDDkkkkkkkekDDk
+kBDDkWWWWWWekDDk
+kBDDkWWWWWWekDDk
+kBDDkWWWWWWekDDk
+kBDDkWWWWWWekDDk
+kBDDkWWWWWWekDDk
+kBDDkWWWWWWekDDk
+kBDDkeeeeeeekDDk
+kBgakkkkkkkkgaDk
+kBayDDDDDDDDayDk
+.kDDDDDDDDDDDDk.
+..kkkkkkkkkkkk..

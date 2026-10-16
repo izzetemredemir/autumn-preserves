@@ -1,4 +1,4 @@
-# ui_panel_card 9-slice 16x16, margin 5
+# ui_panel_card 9-slice 16x16, margin 5: gold-trimmed card, cream paper inset
 legend . transparent
 legend k ink
 legend r leaf_red_500
@@ -26,19 +26,19 @@ legend e wine_700
 legend h sage_400
 legend 2 slate_900
 frame
-.kkkkkkkkkkkkkk.
-kkggggggggggggkk
-kgaaaaaaaaaaaayk
-kgaCCCCCCCCCCyyk
-kgaCccccccccCyyk
-kgaCccccccccCyyk
-kgaCccccccccCyyk
-kgaCccccccccCyyk
-kgaCccccccccCyyk
-kgaCccccccccCyyk
-kgaCccccccccCyyk
-kgaCccccccccCyyk
-kgaCCCCCCCCCCyyk
-kgayyyyyyyyyyyyk
-kkyyyyyyyyyyyykk
-.kkkkkkkkkkkkkk.
+..kkkkkkkkkkkk..
+.kGGGGGGGGGGGGk.
+kGcbggggggggcbgk
+kGbDaaaaaaaabDgk
+kGgaCCCCCCCCyagk
+kGgaCccccccCyagk
+kGgaCccccccCyagk
+kGgaCccccccCyagk
+kGgaCccccccCyagk
+kGgaCccccccCyagk
+kGgaCccccccCyagk
+kGgaCCCCCCCCyagk
+kGcbyyyyyyyycbgk
+kGbDaaaaaaaabDgk
+.kggggggggggggk.
+..kkkkkkkkkkkk..
