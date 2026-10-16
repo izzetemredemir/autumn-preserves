@@ -12,6 +12,7 @@ signal closed
 
 const LEFT_W := 210
 const RIGHT_W := 224
+const PANEL_PAPER := preload("res://assets/sprites/ui/ui_panel_paper.png")
 const LINE_GAP := -4  ## 18 px labels on a 14 px pitch: the glyphs are 11 px tall
 
 var key := ""
@@ -23,12 +24,14 @@ func build(book: Book, p_key: String, varieties: Dictionary, rec: Dictionary) ->
 	_book = book
 	key = p_key
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Book.PAPER
-	sb.border_color = Book.FRAME
-	sb.set_border_width_all(3)
-	sb.set_content_margin_all(6)
-	sb.anti_aliasing = false
+	var sb := StyleBoxTexture.new()  # UI-kit paper panel: wood frame, paper fill
+	sb.texture = PANEL_PAPER
+	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+		sb.set_texture_margin(side, 5)
+	sb.content_margin_left = 8
+	sb.content_margin_right = 8
+	sb.content_margin_top = 5
+	sb.content_margin_bottom = 4
 	add_theme_stylebox_override("panel", sb)
 	custom_minimum_size = Vector2(456, 256)
 
@@ -63,6 +66,10 @@ func build(book: Book, p_key: String, varieties: Dictionary, rec: Dictionary) ->
 	_taste_lines(right, p, desc, mains)
 	_harmony_lines(right, desc, rec)
 	_look_lines(right, desc)
+	var foot := _book._label(Book.FONT_BODY, 18, Book.FRAME)  # the raw recipe key, small, at the bottom
+	foot.text = "%s: %s" % [tr("BOOK_HOW_KEY"), key]
+	foot.clip_text = true
+	vb.add_child(foot)
 	_close.grab_focus()
 
 
@@ -96,20 +103,12 @@ func _header(vb: VBoxContainer, desc: Dictionary) -> void:
 	names.add_theme_constant_override("separation", 0)
 	names.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(names)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	names.add_child(row)
 	var title := _book._label(Book.FONT_TITLE, 18, Book.GOLD_DK)
 	title.text = tr("BOOK_HOW_TITLE")
-	row.add_child(title)
-	var key_l := _book._label(Book.FONT_BODY, 18, Book.PAPER_DK)
-	key_l.text = key
-	key_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	key_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	key_l.clip_text = true
-	row.add_child(key_l)
+	names.add_child(title)
 	var name_l := _book._label(Book.FONT_TITLE, 18, Book.TEXT)
 	name_l.text = String(desc.name)
+	name_l.clip_text = true
 	names.add_child(name_l)
 	_close = _book._button(tr("BOOK_CLOSE"))
 	_close.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
@@ -260,7 +259,11 @@ func _column(width: int) -> VBoxContainer:
 
 
 func _head(box: Control, text: String) -> void:
-	var l := _book._label(Book.FONT_BODY, 18, Book.GOLD_DK)
+	var l := Head.new()
+	l.add_theme_font_override("font", Book.FONT_BODY)
+	l.add_theme_font_size_override("font_size", 18)
+	l.add_theme_color_override("font_color", Book.GOLD_DK)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	l.text = text
 	box.add_child(l)
 
@@ -333,6 +336,14 @@ static func _join(words: Array) -> String:
 		if String(w) != "":
 			kept.append(w)
 	return " ".join(kept)
+
+
+## Section heading: gold text and a thin rule running to the column edge.
+class Head extends Label:
+	func _draw() -> void:
+		var w := int(get_theme_font("font").get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x)
+		if size.x - w > 8:
+			draw_rect(Rect2(w + 4, 8, size.x - w - 4, 1), Book.GOLD)
 
 
 ## Five 6-px bars (0..9, 2 px a step) with the value under each.

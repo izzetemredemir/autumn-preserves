@@ -10,7 +10,14 @@ extends Control
 const BIOMES := ["forest"]  ## P1: vineyard, creek
 const PAN_SPEED := 240.0
 const DAY := 1
-const LABEL_H := 20  ## step label row above the overview
+const LABEL_H := 18  ## step banner row above the overview (the banner overlaps the frame's top edge)
+const FRAME_PX := 5  ## width of the paper frame around the map (UI kit 9-slice margin)
+const FONT := preload("res://assets/fonts/m6x11plus.ttf")
+const BG_TEX := preload("res://assets/sprites/scenes/bg_title.png")
+const PANEL_PAPER := preload("res://assets/sprites/ui/ui_panel_paper.png")
+const PANEL_CARD := preload("res://assets/sprites/ui/ui_panel_card.png")
+const DITHER_DARK := Color("23282a")  ## palette colour of the dither overlay
+const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]  ## 4x4 ordered-dither matrix
 const CAPTION_H := 18  ## seed caption under each A | B map (one map: the caption goes to the info bar)
 const GAP := 8  ## between the A and B maps
 
@@ -36,6 +43,7 @@ var _cap_a: Label
 var _cap_b: Label
 var _step_panel: PanelContainer
 var _step_label: Label
+var _frame: Panel
 
 @onready var seed_edit: LineEdit = %SeedEdit
 @onready var biome_pick: OptionButton = %Biome
@@ -57,7 +65,10 @@ func _ready() -> void:
 		sb.content_margin_top = 3
 		sb.content_margin_bottom = 3
 		bar.add_theme_stylebox_override("panel", sb)
+	_style_title()
+	%Bg.texture = dithered_bg()
 	_build_overview()
+	_build_frame()
 	%Generate.pressed.connect(_generate)
 	%Random.pressed.connect(_random)
 	%Walk.pressed.connect(_walk)
@@ -71,6 +82,59 @@ func _ready() -> void:
 		seed_edit.text = str(int(Router.params.seed))
 	_generate()
 	Audio.play_music("mus_seedlab")
+
+
+## The painted title scene, darkened by an ordered dither of one palette colour (no alpha, whole pixels).
+static func dithered_bg() -> ImageTexture:
+	var img := BG_TEX.get_image()
+	img.convert(Image.FORMAT_RGBA8)
+	for y in img.get_height():
+		for x in img.get_width():
+			if BAYER[(y & 3) * 4 + (x & 3)] < 11:  # 11 of 16 pixels covered
+				img.set_pixel(x, y, DITHER_DARK)
+	return ImageTexture.create_from_image(img)
+
+
+func _style_title() -> void:
+	var t: Label = %Title
+	t.add_theme_font_override("font", FONT)
+	t.add_theme_font_size_override("font_size", 36)
+	t.add_theme_color_override("font_color", Color("e5bd7f"))
+	t.add_theme_color_override("font_shadow_color", Color("3d1f29"))
+	t.add_theme_constant_override("shadow_offset_x", 2)
+	t.add_theme_constant_override("shadow_offset_y", 2)
+	t.add_theme_constant_override("line_spacing", 0)
+	t.custom_minimum_size = Vector2(0, 26)
+	t.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	t.text = tr("TITLE_SEED_LAB")
+	$Layout/TitleRow.add_theme_constant_override("separation", 4)
+	var pad := Control.new()  # left margin
+	pad.custom_minimum_size = Vector2(6, 0)
+	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	$Layout/TitleRow.add_child(pad)
+	$Layout/TitleRow.move_child(pad, 0)
+
+
+## Wooden/paper UI-kit frame (border only) around the map, on top of it; follows the overview rect or the pan area.
+func _build_frame() -> void:
+	_frame = Panel.new()
+	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxTexture.new()
+	sb.texture = PANEL_PAPER
+	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+		sb.set_texture_margin(side, FRAME_PX)
+	sb.draw_center = false
+	_frame.add_theme_stylebox_override("panel", sb)
+	area.add_child(_frame)
+	area.move_child(_frame, 1)  # above the pan view, under the overview box
+	_frame.size = area.size
+
+
+func _place_frame(r: Rect2i) -> void:
+	if _frame == null:
+		return
+	_frame.position = Vector2(r.position - Vector2i(FRAME_PX, FRAME_PX))
+	_frame.size = Vector2(r.size + Vector2i(FRAME_PX * 2, FRAME_PX * 2))
 
 
 func _build_overview() -> void:
@@ -87,15 +151,17 @@ func _build_overview() -> void:
 		_box.add_child(n)
 	_step_panel = PanelContainer.new()
 	_step_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()  # slim: label + 1 px frame fits LABEL_H, so the map keeps 6 px tiles
-	sb.bg_color = Color("3d1f29")
-	sb.border_color = Color("c58845")
-	sb.set_border_width_all(1)
-	sb.content_margin_left = 6
-	sb.content_margin_right = 6
-	sb.anti_aliasing = false
+	var sb := StyleBoxTexture.new()  # gold-trimmed card banner
+	sb.texture = PANEL_CARD
+	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+		sb.set_texture_margin(side, 5)
+	sb.content_margin_left = 8
+	sb.content_margin_right = 8
+	sb.content_margin_top = 4
+	sb.content_margin_bottom = 4
 	_step_panel.add_theme_stylebox_override("panel", sb)
 	_step_label = Label.new()
+	_step_label.add_theme_color_override("font_color", Color("50361e"))
 	_step_panel.add_child(_step_label)
 	_box.add_child(_step_panel)
 
@@ -237,6 +303,8 @@ func _apply_pan() -> void:
 	_pan = _pan.clamp(Vector2.ZERO, lim)
 	var centre := ((view_size - map_size) * 0.5).max(Vector2.ZERO).floor()
 	view.position = (centre - _pan).round()
+	if not _overview:
+		_place_frame(Rect2i(FRAME_PX, FRAME_PX, int(view_size.x) - FRAME_PX * 2, int(view_size.y) - FRAME_PX * 2))
 
 
 func _on_area_resized() -> void:
@@ -321,6 +389,8 @@ func _set_overview(on: bool) -> void:
 	_overview = on
 	view.visible = not on
 	_box.visible = on
+	if not on:
+		_apply_pan()
 	if on:
 		_layout_overview()
 		_apply_time()
@@ -349,6 +419,7 @@ func _layout_overview() -> void:
 	if key_a != _built_a:
 		_grow_a.setup(map, _vars, ts)
 		_built_a = key_a
+	_place_frame(Rect2i(x0, y0, total_w, ph))
 	_place(_grow_a, _cap_a, Vector2i(x0, y0), Vector2i(pw, ph))
 	_grow_b.visible = two
 	_cap_a.visible = two
@@ -364,7 +435,7 @@ func _layout_overview() -> void:
 
 func _place(g: GrowView, cap: Label, at: Vector2i, size_px: Vector2i) -> void:
 	g.position = Vector2(at)
-	cap.position = Vector2(at.x, at.y + size_px.y + 2)
+	cap.position = Vector2(at.x, at.y + size_px.y + FRAME_PX + 1)
 	cap.size = Vector2(size_px.x, CAPTION_H)
 
 

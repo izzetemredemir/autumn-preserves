@@ -453,3 +453,4 @@ LET_RECIPE_CHILI_PICKLES,Chili Pickles
 LET_RECIPE_SALTED_PORCINI,Salted Porcini
 UI_NIGHT_LETTER,A letter from %s arrived!
 BOOK_FOUND,%d/%d varieties found
+BOOK_HOW_KEY,seed key
