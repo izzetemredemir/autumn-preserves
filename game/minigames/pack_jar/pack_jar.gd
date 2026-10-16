@@ -290,7 +290,7 @@ func _drop_piece() -> void:
 	_fall = {"x": x, "w": w, "h": h, "row": row, "id": id, "t": 0.0}
 	_piece = {}
 	_pending_drop = -1.0
-	Audio.play_sfx("sfx_jar_piece")
+	Audio.play_sfx("sfx_jar_piece_drop")
 	_update_fill_label()
 	queue_redraw()
 

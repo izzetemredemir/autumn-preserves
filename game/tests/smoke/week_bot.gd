@@ -419,7 +419,7 @@ func _letters() -> bool:
 	if _first_letter == 0:
 		_first_letter = _day()
 		if _first_letter < 7:
-			_problem("low", "spec", "the first grandchild letter comes on day %d; spec 8.4 brings it on day 7 (Letters.FIRST_GAP 2-3 days)" % _first_letter, "game/sim/letters.gd:46")
+			_problem("low", "spec", "the first grandchild letter comes on day %d; spec 8.4 brings it on day 7 (Letters.FIRST_DAY)" % _first_letter, "game/sim/letters.gd:46")
 	_note_day("letter from %s (%s)" % [letter.get("from", "?"), letter.get("kind", "?")])
 	_notes.append("Day %d: a %s letter from %s came; read in the mailbox." % [_day(), letter.get("kind", "?"), letter.get("from", "?")])
 	_expect(not letter.is_empty() and bool(letter.get("read", false)), "medium", "letters", "the opened letter is not marked read")

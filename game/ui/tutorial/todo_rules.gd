@@ -44,10 +44,12 @@ static func close(bits: int) -> int:
 	return bits | (1 << CLOSED_BIT)
 
 
-## Bits with every step of today's list that is now done switched on. Bits never switch off.
+## Bits with every step of today's (and yesterday's) list that is now done switched on. Bits never switch off.
+## Yesterday's list counts too, so the last step of a day ("go to bed") ticks once the new day starts.
 static func evaluate(state: Dictionary, bits: int, ctx: Dictionary = {}) -> int:
 	var out := bits
-	for step in steps_for_day(int(state.get("day", 1))):
+	var day := int(state.get("day", 1))
+	for step in steps_for_day(day) + steps_for_day(day - 1):
 		if not is_done(out, step) and step_done(state, step, ctx):
 			out |= 1 << int(BITS[step])
 	return out

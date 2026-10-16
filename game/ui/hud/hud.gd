@@ -139,6 +139,8 @@ func show_toast(key: String, args := []) -> void:
 	panel.add_child(label)
 	_toast_holder.add_child(panel)
 	await get_tree().process_frame
+	if not is_instance_valid(panel) or panel.is_queued_for_deletion():
+		return  # a newer toast replaced this one within the same frame
 	var vp := get_viewport().get_visible_rect().size
 	panel.position = Vector2(int((vp.x - panel.size.x) / 2.0), 40)
 	panel.pivot_offset = (panel.size / 2.0).floor()

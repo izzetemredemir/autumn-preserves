@@ -36,18 +36,18 @@ func _box(s: Dictionary, items: Array) -> Array:
 	return entries
 
 
-func test_letter_arrives_within_four_days_on_every_seed() -> void:
+func test_first_letter_arrives_on_day_seven_on_every_seed() -> void:
 	for opened_on_day_one in [false, true]:
 		for sd in SEEDS:
 			var s := State.new_game(sd)
 			if opened_on_day_one:
 				Letters.ensure(s)  # the post office was visited before the first night
-			var got := false
-			for n in 4:
+			var got_day := -1
+			for n in 8:
 				for e in DayEnd.run(s):
-					if e.type == "letter" and String(e.letter.kind) == "request":
-						got = true
-			assert_true(got, "seed %d (ensure on day 1: %s)" % [sd, opened_on_day_one])
+					if e.type == "letter" and String(e.letter.kind) == "request" and got_day < 0:
+						got_day = int(s.day)
+			assert_eq(got_day, Letters.FIRST_DAY, "seed %d (ensure on day 1: %s)" % [sd, opened_on_day_one])
 			assert_eq(Letters.open_requests(s).size(), 1, "one letter so far, seed %d" % sd)
 
 

@@ -13,8 +13,8 @@ extends RefCounted
 
 ## Days between request letters (the postman's reward shortens the upper end).
 const GAP := [3, 4]
-## Days from the first ensure() to the first letter (ensure runs on day 1 or in the first night at the latest).
-const FIRST_GAP := [2, 3]
+## The first letter comes with the first market, on day 7 (spec §8.4); a save that is already past it gets one tomorrow.
+const FIRST_DAY := 7
 const REQUEST_SIZE := [2, 3]
 const REPLY_DAYS := 2
 const CARE_HEARTS := 2
@@ -41,9 +41,8 @@ const REQUEST_TRIES := 10
 ## Creates state.letters (and any key an older version lacked). Returns it.
 static func ensure(state: Dictionary) -> Dictionary:
 	if typeof(state.get("letters")) != TYPE_DICTIONARY:
-		var r := Seeds.rng(int(state.save_seed), "letters", 0, "first")
 		state["letters"] = {"inbox": [], "sent": [], "love": {}, "unlocked_recipes": [], "next_id": 1,
-			"next_day": int(state.day) + r.randi_range(FIRST_GAP[0], FIRST_GAP[1]), "last_from": ""}
+			"next_day": maxi(FIRST_DAY, int(state.day) + 1), "last_from": ""}
 	var l: Dictionary = state.letters
 	for k in ["inbox", "sent", "unlocked_recipes"]:
 		if typeof(l.get(k)) != TYPE_ARRAY:

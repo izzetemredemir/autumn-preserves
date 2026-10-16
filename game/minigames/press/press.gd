@@ -135,7 +135,7 @@ func _play() -> void:
 	var k := int(floor((now / 1000.0 - LEAD_IN) / INTERVAL))
 	if k >= 0 and k < BEATS and k > _last_click:
 		_last_click = k
-		Audio.play_sfx("sfx_press_beat", false)
+		Audio.play_sfx("sfx_piece_rotate", false)  # a light wooden tick on each beat
 	if grades[BEATS - 1] != "" and phase == Phase.PLAY:
 		_finish()
 

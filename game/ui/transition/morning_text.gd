@@ -5,6 +5,10 @@ extends RefCounted
 ## (week name and what is in season from day 8, "Market today!" on market days), then weather and energy.
 
 const MAX_NOTABLE := 6
+## Text rows that fit the card on the 270 px screen; a long line (the week's "in season" list, compost lines) wraps
+## onto two rows, so the notable lines are capped by rows, not by count (QA-WEEK: the day-8 card was 283 px).
+const MAX_ROWS := 10
+const ROW_CHARS := 32  ## about the card's 236 px at 18 px text, with room for word wrap
 const NOTABLE := ["matured", "grown", "tree_refilled", "order_new", "spoiled", "fertilizer"]
 const MANY := ["UI_NIGHT_GROWN", "UI_NIGHT_MATURED"]
 
@@ -26,8 +30,16 @@ static func lines(events: Array, state: Dictionary) -> Array:
 			if not l.is_empty():
 				tail.append(l)
 	notable = merge(notable)
-	# calendar lines take room from the notable ones, so the card keeps its height (it must fit the 270 px screen)
-	var cap := MAX_NOTABLE - calendar_lines(state).size()
+	# calendar, weather and energy lines take room from the notable ones, so the card fits the 270 px screen
+	var budget := MAX_ROWS - 1  # one row kept for "...and N more"
+	for l in tail:
+		budget -= rows(l)
+	var max_n := MAX_NOTABLE - calendar_lines(state).size()  # and never more lines than before, whatever the text
+	var cap := 0
+	var used := 0
+	while cap < mini(notable.size(), max_n) and used + rows(notable[cap]) <= budget:
+		used += rows(notable[cap])
+		cap += 1
 	var out: Array = []
 	if notable.is_empty():
 		out.append({"key": "UI_NIGHT_QUIET", "args": []})
@@ -37,6 +49,15 @@ static func lines(events: Array, state: Dictionary) -> Array:
 			out.append({"key": "UI_NIGHT_MORE", "args": [notable.size() - cap]})
 	out.append_array(tail)
 	return out
+
+
+## Rows a line takes on the card (its translated text wraps at about ROW_CHARS characters).
+static func rows(l: Dictionary) -> int:
+	var t := String(TranslationServer.translate(String(l.key)))
+	var args: Array = l.get("args", [])
+	if not args.is_empty() and t.contains("%"):
+		t = t % args
+	return maxi(1, ceili(float(t.length()) / ROW_CHARS))
 
 
 ## One event -> {"key", "args"}; {} for events the card does not show (e.g. "day").

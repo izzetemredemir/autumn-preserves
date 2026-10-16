@@ -18,7 +18,10 @@ static func shake_tree(state: Dictionary, tree_index: int) -> Dictionary:
 		return {"ok": false, "reason": "UI_TIRED", "items": []}
 	var y: Array = rules.forage.tree_yield
 	var r := Seeds.rng(int(state.save_seed), "garden", int(state.day), "tree%d" % tree_index)
-	var item := _crop_item(tree.type, tree.variety, r.randi_range(int(y[0]), int(y[1])))
+	var n := r.randi_range(int(y[0]), int(y[1]))
+	if int(state.day) == 1:
+		n = int(y[1])  # the first morning the trees are heavy: one shake is enough for the To-Do's first jam (3 fruit)
+	var item := _crop_item(tree.type, tree.variety, n)
 	tree.fruit = false
 	tree.refill_in = int(rules.garden.tree_refill_days)
 	add_to_bag(state, item)
