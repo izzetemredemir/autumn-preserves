@@ -190,3 +190,15 @@ PANTRY_BONUS_NONE,Tidy shelves give energy
 PANTRY_LIKES,Likes: %s
 PANTRY_HINT,Drag things onto the shelves. R turns pies.
 WILD_NEW_VARIETY,New find: %s
+MG_KNEAD_TITLE,Dough and Crust
+MG_KNEAD_PART1,Knead the dough
+MG_KNEAD_PART2,Crimp the crust
+MG_KNEAD_HINT1,A / D or tap left and right on the beat
+MG_KNEAD_HINT2,Drag along the dots (or press Space over each one)
+MG_KNEAD_READY,Get ready
+MG_KNEAD_GO,Crimp!
+MG_KNEAD_TIME,Time %d
+MG_KNEAD_PERFECT,Perfect!
+MG_KNEAD_GOOD,Good
+MG_KNEAD_MISS,Miss
+MG_KNEAD_DONE,%d stars
