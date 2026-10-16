@@ -14,9 +14,14 @@ const NOW := Color("a22512")
 const FRAME := Color("83571e")
 const HIDDEN_IN := ["", "title", "seed_lab"]
 const CELEBRATE_SEC := 2.5
+const POPUP_LAYERS := Vector2i(12, 60)  # CanvasLayers in this range with visible content hide the note
+const NOTE_W := 150
 
 var _panel: PanelContainer
 var _header: Label
+var _root: Control
+var _close: Control
+var _hover := false
 var _rows: VBoxContainer
 var _bits := -1
 var _step := ""
@@ -48,8 +53,8 @@ static func current_step() -> String:
 
 
 func _ready() -> void:
-	# Indoors the note starts folded so it doesn't cover the scene; a click unfolds it.
-	_collapsed = Router.current in ["kitchen", "pantry", "town"]
+	# Always a one-line note; hover peeks at the list, a click pins it open.
+	_collapsed = true
 	layer = 11
 	add_to_group("granny_todo")
 	_build()
@@ -61,6 +66,7 @@ func _ready() -> void:
 
 func _build() -> void:
 	var root := Control.new()
+	_root = root
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.theme = load("res://ui/theme/theme.tres")
@@ -71,8 +77,8 @@ func _build() -> void:
 	_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_panel.offset_left = -4
 	_panel.offset_right = -4
-	_panel.offset_top = 30
-	_panel.custom_minimum_size = Vector2(156, 0)
+	_panel.offset_top = 4
+	_panel.custom_minimum_size = Vector2(NOTE_W, 0)
 	root.add_child(_panel)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 0)
@@ -81,12 +87,15 @@ func _build() -> void:
 	box.add_child(head)
 	_header = _label(tr("TUT_TITLE"), FRAME)
 	_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_header.clip_text = true
+	_header.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_header.custom_minimum_size = Vector2(40, 0)
 	_header.mouse_filter = Control.MOUSE_FILTER_STOP
 	_header.gui_input.connect(_on_header_input)
 	head.add_child(_header)
-	var close := CloseCross.new()
-	close.pressed.connect(_on_close)
-	head.add_child(close)
+	_close = CloseCross.new()
+	_close.pressed.connect(_on_close)
+	head.add_child(_close)
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", 0)
 	box.add_child(_rows)
@@ -171,7 +180,7 @@ func _refresh(pop_new: bool) -> void:
 		step_changed.emit(step)
 	for c in _rows.get_children():
 		c.queue_free()
-	_rows.visible = not _collapsed
+	_apply_fold()
 	if not visible:
 		return
 	for s in TodoRules.steps_for_day(int(d.day)):
@@ -188,6 +197,7 @@ func _refresh(pop_new: bool) -> void:
 			box.pop()
 	if TodoRules.day_finished(d, _bits):
 		_rows.add_child(_label(tr("TUT_ALL_DONE"), FRAME))
+	_apply_fold()
 
 
 ## The most recently finished step of today's list (the last done one in list order).
@@ -199,13 +209,66 @@ func _last_done(d: Dictionary) -> String:
 	return last
 
 
+## Folded: "n/5 <current step>" on one line. Open (hover or pinned): title, counter, full list.
+func _apply_fold() -> void:
+	var open := not _collapsed or _hover
+	var d: Dictionary = GameState.data
+	var total := 0
+	var done := 0
+	if not d.is_empty():
+		for s in TodoRules.steps_for_day(int(d.get("day", 1))):
+			total += 1
+			if TodoRules.is_done(_bits, s):
+				done += 1
+	var count := "%d/%d" % [done, total]
+	if open:
+		_header.text = "%s %s" % [tr("TUT_TITLE"), count]
+	elif _step != "":
+		_header.text = "%s %s" % [count, tr(TodoRules.key_of(_step))]
+	else:
+		_header.text = "%s %s" % [count, tr("TUT_ALL_DONE")]
+	_rows.visible = open
+	_close.visible = open
+	_panel.reset_size()
+
+
+func _process(_delta: float) -> void:
+	if _root == null or not visible:
+		return
+	var hide_now := _popup_open()
+	if _root.visible == hide_now:
+		_root.visible = not hide_now
+	if hide_now:
+		_hover = false
+		return
+	var over := _panel.get_global_rect().has_point(_panel.get_viewport().get_mouse_position())
+	if over != _hover:
+		_hover = over
+		_apply_fold()
+
+
+## True while a popup/overlay (plant menu, cook panel, book, letters, card) shows content.
+func _popup_open() -> bool:
+	var tree := get_tree()
+	var nodes: Array[Node] = tree.root.get_children()
+	if tree.current_scene != null:
+		nodes.append_array(tree.current_scene.get_children())
+	for n in nodes:
+		var cl := n as CanvasLayer
+		if cl == null or cl == self or cl.layer < POPUP_LAYERS.x or cl.layer > POPUP_LAYERS.y or not cl.visible:
+			continue
+		for c in cl.get_children():
+			if c is CanvasItem and c.visible:
+				return true
+	return false
+
+
 func _on_header_input(event: InputEvent) -> void:
 	var tap: bool = event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
 	if tap:
 		_collapsed = not _collapsed
-		_rows.visible = not _collapsed
 		Audio.play_ui("ui_click")
-		_panel.reset_size()
+		_apply_fold()
 
 
 func _on_close() -> void:

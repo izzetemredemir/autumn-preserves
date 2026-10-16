@@ -35,7 +35,6 @@ func _initialize() -> void:
 
 func _run(hud: Node) -> void:
 	await process_frame
-	hud._seed_btn.set_pressed_no_signal(true)
 	hud._refresh()
 	hud.show_toast("UI_TIRED")
 	for i in 14:

@@ -1,6 +1,6 @@
 class_name Hud
 extends CanvasLayer
-## Always-on HUD (GD-HUD): energy, bag, coins, day, weather, seed toggle, toasts.
+## Always-on HUD (GD-HUD): energy, bag, coins, day, weather, toasts (the seed label is drawn by the garden/wild scenes).
 ## Any scene can call `Hud.toast("UI_KEY")`; the HUD node joins group "hud".
 
 const TOAST_SECONDS := 2.0
@@ -27,8 +27,6 @@ var _bag_label: Label
 var _coins_label: Label
 var _day_label: Label
 var _weather: TextureRect
-var _seed_btn: Button
-var _seed_label: Label
 var _toast_holder: Control
 var _toast_tween: Tween
 
@@ -84,21 +82,6 @@ func _build() -> void:
 	_weather = _icon("icon_weather_sun")
 	row.add_child(_weather)
 
-	_seed_btn = Button.new()
-	_seed_btn.text = "UI_SEED"
-	_seed_btn.toggle_mode = true
-	_seed_btn.focus_mode = Control.FOCUS_NONE
-	_seed_btn.position = Vector2(4, 28)
-	var settings_path := "res://scenes/title/game_settings.gd"
-	if ResourceLoader.exists(settings_path):
-		_seed_btn.button_pressed = bool(load(settings_path).show_seed())  # player setting (GD-META)
-	_seed_btn.toggled.connect(func(_on: bool) -> void: _refresh())
-	root.add_child(_seed_btn)
-	_seed_label = Label.new()
-	_seed_label.position = Vector2(4, 52)
-	_seed_label.visible = false
-	root.add_child(_seed_label)
-
 	var cursor := load(ICON_DIR + "ui_cursor.png") as Texture2D
 	if cursor != null:
 		Input.set_custom_mouse_cursor(cursor, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
@@ -128,8 +111,6 @@ func _refresh() -> void:
 	_coins_label.text = str(int(d.get("coins", 0)))
 	_day_label.text = "%s %d" % [tr("UI_DAY"), int(d.get("day", 1))]
 	_weather.texture = load(ICON_DIR + WEATHER_ICONS.get(String(d.get("weather", "sunny")), "icon_weather_sun") + ".png")
-	_seed_label.visible = _seed_btn.button_pressed
-	_seed_label.text = "%s %d" % [tr("UI_SEED"), int(d.get("save_seed", 0))]
 
 
 func show_toast(key: String, args := []) -> void:
