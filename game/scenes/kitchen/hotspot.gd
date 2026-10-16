@@ -6,7 +6,6 @@ extends Button
 
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const ANIMATED := ["stove"]
-const FLOOR_Y := 198
 
 var kind := ""
 ## Live numbers the art shows: {"cupboard": {...}} or {"inbox": int}.
@@ -26,14 +25,26 @@ func setup(kind_id: String, rect: Rect2i, caption_text: String) -> void:
 	flat = true
 	for st in ["normal", "hover", "pressed", "disabled", "focus", "hover_pressed"]:
 		add_theme_stylebox_override(st, StyleBoxEmpty.new())
-	if caption_text != "":
+	if caption_text != "":  # a small tag, shown only on hover / focus / glow so captions never collide
 		caption = Label.new()
 		caption.text = caption_text
-		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		caption.size = Vector2(maxi(int(size.x), 70), 18)
-		caption.position = Vector2(int((size.x - caption.size.x) / 2.0), FLOOR_Y - rect.position.y + 2)
+		caption.visible = false
 		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var tag := StyleBoxFlat.new()
+		tag.bg_color = Art.PLUM
+		tag.border_color = Art.GOLD
+		tag.set_border_width_all(1)
+		tag.set_content_margin_all(2)
+		tag.content_margin_left = 5
+		tag.content_margin_right = 5
+		tag.anti_aliasing = false
+		caption.add_theme_stylebox_override("normal", tag)
 		add_child(caption)
+		var cs := caption.get_minimum_size()
+		caption.size = cs
+		var cx := clampi(int(rect.position.x + (size.x - cs.x) / 2.0), 2, 478 - int(cs.x)) - int(rect.position.x)
+		var below := rect.end.y + cs.y + 4 <= 238
+		caption.position = Vector2(cx, size.y + 2 if below else -cs.y - 2)
 	for sig: Signal in [mouse_entered, mouse_exited, focus_entered, focus_exited]:
 		sig.connect(_on_state)
 	set_process(kind in ANIMATED)
@@ -63,7 +74,8 @@ func _process(delta: float) -> void:
 func _on_state() -> void:
 	var lit := has_focus() or is_hovered() or (glow and int(_t * 3.0) % 2 == 0)
 	if caption != null:
-		caption.add_theme_color_override("font_color", Art.GOLD if lit else Art.CREAM)
+		caption.visible = lit
+		caption.add_theme_color_override("font_color", Art.GOLD)
 	queue_redraw()
 
 

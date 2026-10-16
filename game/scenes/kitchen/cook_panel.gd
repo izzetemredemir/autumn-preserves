@@ -150,6 +150,9 @@ func refresh() -> void:
 func _build() -> void:
 	size = Vector2(W, H)
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	# recipe card: dark card with a cream paper edge
+	var card := _box(Art.PLUM, Art.CREAM_LO, 2, 6)
+	add_theme_stylebox_override("panel", card)
 	_title = Label.new()
 	_title.theme_type_variation = &"Heading"
 	_title.position = Vector2(8, 3)
@@ -207,13 +210,13 @@ func _build() -> void:
 	var stock_label := _label(self, Vector2(RIGHT_X, 74), 176)
 	stock_label.text = tr("KITCHEN_STOCK")
 	_cook = Button.new()
-	_cook.position = Vector2(RIGHT_X, 204)
+	_cook.position = Vector2(RIGHT_X, 198)
 	_cook.size = Vector2(176, 26)
 	_cook.pressed.connect(_on_cook)
 	add_child(_cook)
 	_scroll = ScrollContainer.new()
 	_scroll.position = Vector2(RIGHT_X - 2, 94)
-	_scroll.size = Vector2(180, 106)
+	_scroll.size = Vector2(180, 98)
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	var bar := _scroll.get_v_scroll_bar()
 	bar.add_theme_stylebox_override("scroll", _box(Art.IRON_DK, Art.IRON_DK, 0, 3))

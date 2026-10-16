@@ -13,6 +13,7 @@ const TRANSITION_GD := "res://ui/transition/transition.gd"
 const TODO_GD := "res://ui/tutorial/granny_todo.gd"
 const MINIGAME := "res://minigames/%s/%s.tscn"
 const BACKGROUNDS := ["res://assets/sprites/backgrounds/bg_kitchen.png", "res://assets/sprites/scenes/bg_kitchen.png"]
+const GRANNY_IDLE := "res://assets/sprites/granny/granny_idle.png"
 const PANEL_POS := Vector2(8, 30)
 const STICKY_MS := 4000
 ## Granny's To-Do steps that happen at a kitchen object; steps elsewhere light the door that leads there.
@@ -84,6 +85,7 @@ func _setup_background() -> void:
 			if ResourceLoader.exists(p):
 				bg.texture = load(p)
 				break
+	Art.painted = bg.texture != null
 	if bg.texture == null:
 		bg.texture = Art.background()
 
@@ -93,6 +95,17 @@ func _build_room() -> void:
 	_room.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_room.size = Vector2(480, 270)
 	add_child(_room)
+	if Art.painted and ResourceLoader.exists(GRANNY_IDLE):  # Granny at the stove, for life
+		var g := TextureRect.new()
+		var at := AtlasTexture.new()  # first idle frame (the sheet holds two 16x32 frames)
+		at.atlas = load(GRANNY_IDLE)
+		at.region = Rect2(0, 0, 16, 32)
+		g.texture = at
+		g.stretch_mode = TextureRect.STRETCH_KEEP
+		g.position = Vector2(90, 172)
+		g.size = Vector2(16, 32)
+		g.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_room.add_child(g)
 	var captions := {
 		"garden": tr("KITCHEN_TO_GARDEN"), "stove": tr("KITCHEN_STOVE"), "counter": tr("KITCHEN_COUNTER"),
 		"cupboard": tr("KITCHEN_CUPBOARD"), "pantry": tr("KITCHEN_TO_PANTRY"), "bed": tr("KITCHEN_BED_CAPTION"),

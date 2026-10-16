@@ -34,18 +34,15 @@ func show_items(items: Array) -> void:
 		jar.view = "icon"
 		slot.add_child(jar)
 		jar.show_product(it.desc)
-		var days := Label.new()
-		days.text = tr("KITCHEN_DAYS_LEFT") % int(it.wait_left)
-		days.position = Vector2(0, 19)
-		days.size = Vector2(PITCH - 1, 18)
-		days.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		days.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		slot.add_child(days)
+		var wl := int(it.wait_left)
+		slot.tooltip_text = tr("KITCHEN_DAYS_TIP") % wl  # "3 days"
+		slot.set_meta("days", wl)
 		var line := tr("KITCHEN_WAITING_TIP") % [str(it.desc.get("name", "?")), int(it.wait_left)]
 		slot.mouse_entered.connect(func() -> void: hovered.emit(line))
 		slot.mouse_exited.connect(func() -> void: hovered.emit(""))
 		add_child(slot)
 		_slots.append(slot)
+	queue_redraw()
 	if items.size() > n:
 		var more := Label.new()
 		more.text = tr("KITCHEN_MORE") % (items.size() - n)
@@ -59,3 +56,7 @@ func _draw() -> void:
 	draw_rect(Rect2(0, 17, size.x, 4), Art.TAN)
 	draw_rect(Rect2(0, 17, size.x, 1), Art.GOLD)
 	draw_rect(Rect2(0, 21, size.x, 1), Art.BARK)
+	for s: Control in _slots:  # one gold pip per day left (max 5) on the sill under each waiting jar
+		if s.has_meta("days"):
+			for i in mini(int(s.get_meta("days")), 5):
+				draw_rect(Rect2(s.position.x + 1 + i * 3, 24, 2, 2), Art.GOLD)

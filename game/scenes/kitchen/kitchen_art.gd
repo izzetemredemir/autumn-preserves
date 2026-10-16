@@ -35,16 +35,21 @@ const FOREST := Color("314524")
 ## (x >= 250, y < 150) on days 1-2, so everything with numbers on it sits left of x=250; the doors and the bed
 ## on the right are tall enough to stay visible and clickable under the note.
 const OBJECTS := {
-	"cupboard": Rect2i(6, 100, 68, 98),
-	"stove": Rect2i(78, 84, 84, 114),
-	"counter": Rect2i(168, 136, 80, 62),
-	"book": Rect2i(220, 116, 26, 20),
-	"garden": Rect2i(258, 96, 36, 102),
-	"pantry": Rect2i(304, 96, 40, 102),
-	"bed": Rect2i(354, 112, 118, 86),
+	"stove": Rect2i(4, 64, 76, 136),
+	"pantry": Rect2i(88, 100, 78, 56),
+	"counter": Rect2i(170, 100, 78, 56),
+	"book": Rect2i(254, 80, 26, 20),
+	"cupboard": Rect2i(288, 40, 72, 52),
+	"garden": Rect2i(430, 70, 48, 134),
+	"bed": Rect2i(392, 204, 70, 32),
 }
-## Window sill over the counter where the waiting jars stand (WaitingShelf).
-const SILL := Rect2i(168, 80, 80, 38)
+## Hotspots sit on the painted bg_kitchen.png: stove (left), bench drawers (pantry, jar counter), recipe book on
+## the bench end, tall cupboard, front door (garden), rug by the door (bed). Their art is the painting; only the
+## book and the pantry's inbox tag are drawn. When no painting loads, Kitchen sets `painted = false` and the
+## placeholder objects below draw instead.
+static var painted := true
+## Window sill over the bench where the waiting jars stand (WaitingShelf).
+const SILL := Rect2i(124, 66, 76, 38)
 const ICONS_JSON := "res://assets/sprites/icons/icons.json"
 const ICONS_PNG := "res://assets/sprites/icons/icons.png"
 ## The theme font at its native size (the only size besides 36 that stays crisp).
@@ -206,6 +211,12 @@ static func _r(img: Image, x: int, y: int, w: int, h: int, c: Color) -> void:
 
 ## Draws object `kind` into `ci` in its local space. `t` = seconds (animation), `info` = live numbers.
 static func draw_object(ci: CanvasItem, kind: String, t: float, info: Dictionary) -> void:
+	if painted:
+		if kind == "book":
+			_book(ci)
+		elif kind == "pantry" and int(info.get("inbox", 0)) > 0:
+			_tag(ci, 28, 8, int(info.inbox))
+		return
 	match kind:
 		"garden":
 			_door_garden(ci)
@@ -382,6 +393,13 @@ static func _door_pantry(ci: CanvasItem, inbox: int) -> void:
 		_d(ci, 10, 60, 22, 16, BARK)
 		_d(ci, 11, 61, 20, 14, CREAM)
 		ci.draw_string(FONT, Vector2(11, 73), str(inbox) if inbox < 10 else "9+", HORIZONTAL_ALIGNMENT_CENTER, 20, FONT_SIZE, BARK)
+
+
+## Paper tag with the number of things in the pantry basket.
+static func _tag(ci: CanvasItem, x: int, y: int, n: int) -> void:
+	_d(ci, x, y, 22, 16, BARK)
+	_d(ci, x + 1, y + 1, 20, 14, CREAM)
+	ci.draw_string(FONT, Vector2(x + 1, y + 13), str(n) if n < 10 else "9+", HORIZONTAL_ALIGNMENT_CENTER, 20, FONT_SIZE, BARK)
 
 
 static func _bed(ci: CanvasItem, w: int) -> void:
