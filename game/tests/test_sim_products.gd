@@ -257,7 +257,7 @@ func test_cook_consumes_exact_inputs() -> void:
 	assert_eq(res.item, State.product("jam|crabapple_4|cinnamon", 3, 0, -1))
 	assert_eq(s.inbox[s.inbox.size() - 1], res.item, "product lands in the inbox")
 	assert_eq(res.desc.name, "Cinnamon Ember Crabapple Jam")
-	assert_eq(s.book.variants["jam|crabapple_4|cinnamon"], {"best_q": 3, "best_stars": 5, "count": 1, "first_day": 1})
+	assert_eq(s.book.variants["jam|crabapple_4|cinnamon"], {"best_q": 3, "best_stars": 5, "count": 1, "first_day": 1, "good": 1})
 	assert_eq(int(s.stats.jars_made), 1)
 
 

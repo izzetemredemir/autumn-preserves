@@ -5,8 +5,11 @@ extends Panel
 ## this panel only routes picks into the slot they belong to and shows what Kitchen.check() answers.
 ## P1: stations "press" and "knead"; a recipe slot (syrup: 2 juices) lists matured products of that recipe by their
 ## fruit variety (Kitchen.product_stock); a recipe without slots (bread) only needs the cupboard.
+## KITCHEN-P1B: a row above Cook holds the big pot's x1/x2 toggle (stove recipes once "big_pot" is bought; `mult`)
+## and "Batch cook" once the recipe has a Mastered variant (ready only when the picked variant is Mastered).
 
 signal cook_requested(recipe_id: String, main_variety: String, second_variety: String, addin_id: String)
+signal batch_requested(recipe_id: String, main_variety: String, second_variety: String, addin_id: String)
 signal close_requested
 
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
@@ -20,12 +23,17 @@ const ROW_W := 168
 const RIGHT_X := 280
 const DRAG_KEY := "kitchen_variety"
 const SLOTS := ["main", "second"]
+const LIST_H := 98
+const EXTRAS_Y := 170
+const MULT_W := 26
 
 var station := ""
 var recipe := ""
 var picks := {"main": "", "second": ""}
 var addin := ""
 var home := Vector2(8, 30)
+## Pots per cook: 2 once the big pot is bought and x2 is picked (stove recipes only).
+var mult := 1
 
 var _recipes: Array = []
 var _title: Label
@@ -46,6 +54,10 @@ var _cook: Button
 var _scroll: ScrollContainer
 var _list: VBoxContainer
 var _rows: Dictionary = {}  # variety id -> Button
+var _extras: Control
+var _mult_buttons: Dictionary = {}  # 1 / 2 -> Button
+var _batch: Button
+var _batch_ok := false
 var _ok := false
 var _tween: Tween
 var _product_icons := {}  # product key -> 16x16 JarIcon texture
@@ -137,6 +149,7 @@ func refresh() -> void:
 		return
 	var fk := _focus_key()
 	_update_tabs()
+	_update_extras()
 	_update_slots()
 	_build_addins()
 	_build_list()
@@ -215,7 +228,7 @@ func _build() -> void:
 	add_child(_cook)
 	_scroll = ScrollContainer.new()
 	_scroll.position = Vector2(RIGHT_X - 2, 94)
-	_scroll.size = Vector2(180, 98)
+	_scroll.size = Vector2(180, LIST_H)
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	var bar := _scroll.get_v_scroll_bar()
 	bar.add_theme_stylebox_override("scroll", _box(Art.IRON_DK, Art.IRON_DK, 0, 3))
@@ -228,6 +241,32 @@ func _build() -> void:
 	_list.add_theme_constant_override("separation", 1)
 	_list.custom_minimum_size = Vector2(ROW_W, 0)
 	_scroll.add_child(_list)
+	_build_extras()
+
+
+## The row above Cook: x1 / x2 (big pot) and Batch cook (Mastered variants). Shown by _update_extras().
+func _build_extras() -> void:
+	_extras = Control.new()
+	_extras.position = Vector2(RIGHT_X, EXTRAS_Y)
+	_extras.size = Vector2(176, 24)
+	_extras.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_extras.visible = false
+	add_child(_extras)
+	for n in [1, 2]:
+		var b := Button.new()
+		b.text = tr("UI_BATCH_TIMES") % n
+		b.position = Vector2((n - 1) * (MULT_W + 2), 0)
+		b.size = Vector2(MULT_W, 24)
+		b.tooltip_text = tr("UI_BATCH_POT_TIP")
+		b.pressed.connect(_select_mult.bind(n))
+		_extras.add_child(b)
+		_mult_buttons[n] = b
+	_batch = Button.new()
+	_batch.text = tr("UI_BATCH_COOK")
+	_batch.size = Vector2(176, 24)
+	_batch.tooltip_text = tr("UI_MASTERY_TIP")
+	_batch.pressed.connect(_on_batch)
+	_extras.add_child(_batch)
 
 
 func _make_slot(which: String, pos: Vector2) -> void:
@@ -388,6 +427,33 @@ func _update_tabs() -> void:
 		_style(_tabs[id], id == recipe)
 
 
+## Shows the x1/x2 toggle where the big pot applies and Batch cook once this recipe has a Mastered variant; the
+## stock list gives up one row for them.
+func _update_extras() -> void:
+	var d := GameState.data
+	var pot := Kitchen.max_mult(d, recipe) > 1
+	if not pot:
+		mult = 1
+	var batch := recipe_has_mastered(d, recipe)
+	_extras.visible = pot or batch
+	_scroll.size.y = LIST_H - 28 if _extras.visible else LIST_H
+	for n: int in _mult_buttons:
+		_mult_buttons[n].visible = pot
+		_style(_mult_buttons[n], n == mult)
+	_batch.visible = batch
+	_batch.position.x = 2 * (MULT_W + 2) + 2 if pot else 0
+	_batch.size.x = 176 - _batch.position.x
+
+
+## True when the book holds a Mastered variant of `recipe_id` (Batch cook belongs on its tab).
+static func recipe_has_mastered(d: Dictionary, recipe_id: String) -> bool:
+	var vs: Dictionary = d.get("book", {}).get("variants", {})
+	for key: String in vs:
+		if key.begins_with(recipe_id + "|") and Kitchen.entry_mastered(vs[key]):
+			return true
+	return false
+
+
 func _update_slots() -> void:
 	# Everything under the slots moves up one row per missing slot (one for jam, two for bread).
 	var y0 := 74 + _slot_count() * (SLOT_H + 2)
@@ -404,7 +470,7 @@ func _update_slots() -> void:
 		if spec == null:
 			continue
 		var vid: String = picks[which]
-		var need := int(spec.count)
+		var need := int(spec.count) * mult
 		var stock := _slot_stock(which)
 		s.caption.text = tr("KITCHEN_SLOT_MAIN") if which == "main" else tr("KITCHEN_SLOT_SECOND")
 		if vid == "":
@@ -425,13 +491,15 @@ func _update_slots() -> void:
 func _update_check() -> void:
 	var d := GameState.data
 	var r: Dictionary = Data.recipes()[recipe]
-	_cook.text = tr("KITCHEN_COOK_COST") % Kitchen.energy_cost(String(r.method))
+	var cost := Kitchen.energy_cost(String(r.method))
+	_cook.text = tr("UI_BATCH_COOK_TWO") % cost if mult > 1 else tr("KITCHEN_COOK_COST") % cost
 	for c in _missing_row.get_children():
 		_missing_row.remove_child(c)
 		c.queue_free()
 	_preview_jar.visible = false
 	_preview_unknown.visible = true
 	_preview_name.text = ""
+	_batch_ok = false
 	if (_spec("main") != null and picks.main == "") or (_spec("second") != null and picks.second == ""):
 		_ok = false
 		var any_fit := false
@@ -440,9 +508,10 @@ func _update_check() -> void:
 		_set_feedback(tr("KITCHEN_FILL_SLOTS") if any_fit else tr(_nothing_fits_key()), Art.CREAM_LO)
 		_set_cook_look()
 		return
-	var c := Kitchen.check(d, recipe, _main(), _second(), addin)
+	var c := Kitchen.check_n(d, recipe, _main(), _second(), addin, mult)
 	var key := Kitchen.product_key(recipe, _main(), _second(), addin)
 	var known: bool = d.book.variants.has(key)
+	var mastered := Kitchen.is_mastered(d, key)
 	if known:
 		_preview_jar.show_product(ProductGen.describe(key, d.varieties))
 		_preview_jar.visible = true
@@ -450,8 +519,9 @@ func _update_check() -> void:
 	_preview_name.text = ProductGen.product_name(key, d.varieties) if known else tr("KITCHEN_NEW_VARIANT")
 	_preview_name.add_theme_color_override("font_color", Art.GOLD_PALE if known else Art.GOLD)
 	_ok = bool(c.ok)
+	_batch_ok = _ok and mastered
 	if _ok:
-		_set_feedback(tr("KITCHEN_READY"), Art.CREAM_LO)
+		_set_feedback(tr("UI_MASTERY_READY") if mastered else tr("KITCHEN_READY"), Art.CREAM_LO)
 	else:
 		var line := tr(String(c.reason))
 		var extra := _hint_for(c)
@@ -484,14 +554,19 @@ func _set_feedback(s: String, col: Color) -> void:
 
 ## Not ready: the button keeps taking presses (they answer with a shake and the reason) but looks disabled.
 func _set_cook_look() -> void:
+	_ready_look(_cook, _ok)
+	_ready_look(_batch, _batch_ok)
+
+
+func _ready_look(b: Button, can: bool) -> void:
 	for st in ["normal", "hover", "pressed", "hover_pressed"]:
-		_cook.remove_theme_stylebox_override(st)
-		if not _ok:
-			_cook.add_theme_stylebox_override(st, _cook.get_theme_stylebox("disabled"))
+		b.remove_theme_stylebox_override(st)
+		if not can:
+			b.add_theme_stylebox_override(st, b.get_theme_stylebox("disabled"))
 	for k in ["font_color", "font_hover_color", "font_focus_color", "font_pressed_color", "font_hover_pressed_color"]:
-		_cook.remove_theme_color_override(k)
-		if not _ok:
-			_cook.add_theme_color_override(k, Art.STONE)
+		b.remove_theme_color_override(k)
+		if not can:
+			b.add_theme_color_override(k, Art.STONE)
 
 
 # ---------------------------------------------------------------- picking
@@ -640,6 +715,25 @@ func _on_cook() -> void:
 	cook_requested.emit(recipe, _main(), _second(), addin)
 
 
+func _on_batch() -> void:
+	_update_check()
+	if not _batch_ok:
+		Audio.play_ui("ui_error")
+		_shake(_batch)
+		if _ok:  # everything is there, the picked variant is just not Mastered yet
+			_set_feedback(tr(Kitchen.R_NOT_MASTERED), Art.PEACH)
+		return
+	batch_requested.emit(recipe, _main(), _second(), addin)
+
+
+func _select_mult(n: int) -> void:
+	mult = clampi(n, 1, Kitchen.max_mult(GameState.data, recipe))
+	Audio.play_ui("ui_click")
+	refresh()
+	if _mult_buttons.has(mult):
+		_pop(_mult_buttons[mult])
+
+
 func _row_drag(_at: Vector2, vid: String, row: Button) -> Variant:
 	var prev := TextureRect.new()
 	prev.texture = row.icon
@@ -678,6 +772,11 @@ func _focus_key() -> String:
 	for id in _tabs:
 		if _tabs[id] == f:
 			return "tab:" + id
+	for n in _mult_buttons:
+		if _mult_buttons[n] == f:
+			return "mult:%d" % n
+	if f == _batch:
+		return "batch:"
 	return ""
 
 
@@ -696,6 +795,12 @@ func _restore_focus(key: String) -> void:
 			target = _slots[parts[1]].button
 		"tab":
 			target = _tabs.get(parts[1])
+		"mult":
+			target = _mult_buttons.get(int(parts[1]))
+		"batch":
+			target = _batch
+	if target != null and not target.is_visible_in_tree():
+		target = null
 	if target == null and not _rows.is_empty():
 		target = _rows.values()[0]
 	if target != null:

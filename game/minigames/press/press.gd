@@ -35,6 +35,8 @@ enum Phase { IDLE, PLAY, DONE }
 var phase := Phase.IDLE
 var autoplay := false
 var fill_color := C_JUICE
+## Juice tones dark, mid, light (ProductGen.describe() fill): shade at the bottom, body, surface.
+var fill_tones: Array[Color] = [C_JUICE, C_JUICE, C_JUICE]
 var grades: Array[String] = []  ## per beat, "" while unresolved
 var counts := {"perfect": 0, "good": 0, "miss": 0}
 var juice := 0.0
@@ -60,7 +62,7 @@ func _ready() -> void:
 	_l_msg.z_index = 10
 	await get_tree().create_timer(0.2).timeout
 	if phase == Phase.IDLE:
-		var ctx := {"seed": 7, "recipe": "juice", "desc": {"appearance": {"fill": "c94d2e"}}}
+		var ctx := {"seed": 7, "recipe": "juice", "desc": {"appearance": {"fill": ["a22512", "c94d2e", "e19064"]}}}
 		if "--autoplay" in OS.get_cmdline_user_args():
 			ctx["autoplay"] = true
 		start(ctx)
@@ -68,13 +70,10 @@ func _ready() -> void:
 
 func start(ctx: Dictionary) -> void:
 	autoplay = bool(ctx.get("autoplay", false))
-	var app = ctx.get("desc", {}).get("appearance", {})
-	if app is Dictionary and app.has("fill"):
-		var f = app["fill"]
-		if f is Color:
-			fill_color = f
-		elif f is String and Color.html_is_valid(f):
-			fill_color = Color(f)
+	var app: Variant = ctx.get("desc", {}).get("appearance", {})
+	var fill: Variant = app.get("fill") if app is Dictionary else null
+	fill_tones = PressRules.fill_tones(fill, C_JUICE)
+	fill_color = fill_tones[1]
 	grades.clear()
 	for i in BEATS:
 		grades.append("")
@@ -235,14 +234,16 @@ func _draw_press() -> void:
 	# drips from the spout while pressing
 	if juice > 0.0 and (_lever > 0.0 or _flash_t > 0.0):
 		draw_rect(Rect2(PRESS_POS.x + 73, 172, 2, 5), fill_color)
-	# bottle: dark inside, liquid in the fill colour (two tones), glass on top
+	# bottle: dark inside, liquid in the three fill tones (light surface, body, dark bottom), glass on top
 	var b := BOTTLE_POS
 	draw_rect(Rect2(b.x + 4, b.y + 21, 16, 34), C_BAR_BG)
 	draw_rect(Rect2(b.x + 9, b.y + 2, 6, 19), C_BAR_BG)
 	var h := roundf(34.0 * juice)
 	if h > 0.0:
-		draw_rect(Rect2(b.x + 4, b.y + 55 - h, 16, h), fill_color)
+		draw_rect(Rect2(b.x + 4, b.y + 55 - h, 16, h), fill_tones[1])
 		if h > 3.0:
-			draw_rect(Rect2(b.x + 4, b.y + 55 - h, 16, 2), fill_color.lightened(0.3))
-			draw_rect(Rect2(b.x + 4, b.y + 53, 16, 2), fill_color.darkened(0.3))
+			draw_rect(Rect2(b.x + 4, b.y + 55 - h, 16, 2), fill_tones[2])
+			draw_rect(Rect2(b.x + 4, b.y + 53, 16, 2), fill_tones[0])
+			if h > 8.0:
+				draw_rect(Rect2(b.x + 5, b.y + 57 - h, 2, h - 6), fill_tones[2])  # glint down the left side
 	draw_texture(T_BOTTLE, b)

@@ -8,25 +8,45 @@ extends RefCounted
 ## P1 (spec §6.3, §8.3): press and knead recipes need their station (Economy.unlocked "press" / "knead"); a recipe slot
 ## ({"recipe": "juice"}) takes matured products of that recipe whose main variety is `main_variety` (syrup); bread
 ## has no slot at all. A locked or unknown recipe answers UI_KITCHEN_WRONG.
+## P1 mastery (spec §7.2): a variant cooked MASTERY_COOKS times with >= MASTERY_MIN_Q quality stars becomes Mastered
+## (book.variants[key].mastered; "good" counts those cooks); batch_cook() then makes it without the mini-game, at its
+## best quality, for the same energy. P1 big pot (spec §8.3): once "big_pot" is unlocked, stir_pot recipes may cook
+## x2 (check_n / cook_n with mult 2): every input x2 -> 2 jars, one cook's energy, one mastery step.
 
 const R_WRONG := "UI_KITCHEN_WRONG"
 const R_MISSING := "UI_KITCHEN_MISSING"
 const R_SAME := "UI_KITCHEN_SAME_VARIETY"
 const R_TIRED := "UI_TIRED"
+const R_NOT_MASTERED := "UI_BATCH_NOT_MASTERED"
+const MASTERY_COOKS := 3
+const MASTERY_MIN_Q := 2
+const BIG_POT := "big_pot"
+const BIG_POT_METHOD := "stir_pot"
 ## Cooking method -> unlock id of the station it needs (tech-spec §16). Stove and jar counter are always there.
 const STATION_UNLOCK := {"press": "press", "knead": "knead"}
 
 
 ## {"ok": bool, "reason": i18n key ("" when ok), "missing": {id: count}}
 static func check(state: Dictionary, recipe_id: String, main_variety: String, second_variety: String, addin_id: String) -> Dictionary:
-	var plan := _plan(state, recipe_id, main_variety, second_variety, addin_id)
+	return check_n(state, recipe_id, main_variety, second_variety, addin_id, 1)
+
+
+## check() for `mult` pots at once (1, or 2 with the big pot at the stove): every input x mult.
+static func check_n(state: Dictionary, recipe_id: String, main_variety: String, second_variety: String, addin_id: String, mult: int) -> Dictionary:
+	var plan := _plan(state, recipe_id, main_variety, second_variety, addin_id, mult)
 	return {"ok": plan.ok, "reason": plan.reason, "missing": plan.missing}
 
 
 ## Consumes inputs and energy, puts the product in the inbox, updates book and stats.
-## {"ok": bool, "item": product item, "desc": ProductGen.describe(), "is_new": bool}
+## {"ok": bool, "item": product item, "desc": ProductGen.describe(), "is_new": bool} (+ the cook_n() extras)
 static func cook(state: Dictionary, recipe_id: String, main_variety: String, second_variety: String, addin_id: String, quality: int) -> Dictionary:
-	var plan := _plan(state, recipe_id, main_variety, second_variety, addin_id)
+	return cook_n(state, recipe_id, main_variety, second_variety, addin_id, quality, 1)
+
+
+## cook() for `mult` pots: inputs x mult -> `mult` jars of one quality, one cook's energy, one mastery step.
+## Adds "items" (every jar; "item" is the first), "quality" and "mastered" (true when this cook made it Mastered).
+static func cook_n(state: Dictionary, recipe_id: String, main_variety: String, second_variety: String, addin_id: String, quality: int, mult: int) -> Dictionary:
+	var plan := _plan(state, recipe_id, main_variety, second_variety, addin_id, mult)
 	if not plan.ok:
 		return {"ok": false, "reason": plan.reason, "missing": plan.missing}
 	if not _spend_energy(state, plan.action):
@@ -35,21 +55,68 @@ static func cook(state: Dictionary, recipe_id: String, main_variety: String, sec
 	var recipe: Dictionary = Data.recipes()[recipe_id]
 	var key := ProductGen.make_key(recipe_id, plan.varieties, addin_id)
 	var q := clampi(quality, 1, 3)
-	var item := State.product(key, q, int(recipe.get("wait_days", 0)), int(recipe.get("shelf_days", -1)))
-	state.inbox.append(item)
+	var items: Array = []
+	for i in int(plan.mult):
+		var item := State.product(key, q, int(recipe.get("wait_days", 0)), int(recipe.get("shelf_days", -1)))
+		state.inbox.append(item)
+		items.append(item)
 	var desc := ProductGen.describe(key, state.varieties)
 	var stars := ProductGen.total_stars(q, int(desc.harmony))
 	var book: Dictionary = state.book.variants
 	var is_new := not book.has(key)
+	var good := 1 if q >= MASTERY_MIN_Q else 0
+	var was_mastered := false
 	if is_new:
-		book[key] = {"best_q": q, "best_stars": stars, "count": 1, "first_day": int(state.day)}
+		book[key] = {"best_q": q, "best_stars": stars, "count": int(plan.mult), "first_day": int(state.day), "good": good}
 	else:
 		var e: Dictionary = book[key]
+		was_mastered = entry_mastered(e)
+		e.good = good_cooks(e) + good
 		e.best_q = maxi(int(e.best_q), q)
 		e.best_stars = maxi(int(e.best_stars), stars)
-		e.count = int(e.count) + 1
-	state.stats.jars_made = int(state.stats.jars_made) + 1
-	return {"ok": true, "item": item, "desc": desc, "is_new": is_new}
+		e.count = int(e.count) + int(plan.mult)
+	var entry: Dictionary = book[key]
+	var mastered_now := not was_mastered and entry_mastered(entry)
+	if mastered_now:
+		entry.mastered = true
+	state.stats.jars_made = int(state.stats.jars_made) + int(plan.mult)
+	return {"ok": true, "item": items[0], "items": items, "desc": desc, "is_new": is_new, "quality": q, "mastered": mastered_now}
+
+
+## Batch cook (spec §7.2): a Mastered variant without the mini-game, at its best quality, for the same energy.
+## Same result as cook_n(); "reason" is UI_BATCH_NOT_MASTERED while the variant is not Mastered.
+static func batch_cook(state: Dictionary, recipe_id: String, main_variety: String, second_variety: String, addin_id: String, mult: int = 1) -> Dictionary:
+	var key := product_key(recipe_id, main_variety, second_variety, addin_id)
+	if not is_mastered(state, key):
+		return {"ok": false, "reason": R_NOT_MASTERED, "missing": {}}
+	return cook_n(state, recipe_id, main_variety, second_variety, addin_id, best_quality(state, key), mult)
+
+
+## Cooks with >= MASTERY_MIN_Q quality stars. Entries from before mastery lack "good": a best_q >= 2 proves one.
+static func good_cooks(entry: Dictionary) -> int:
+	return int(entry.get("good", 1 if int(entry.get("best_q", 0)) >= MASTERY_MIN_Q else 0))
+
+
+static func entry_mastered(entry: Dictionary) -> bool:
+	return bool(entry.get("mastered", false)) or good_cooks(entry) >= MASTERY_COOKS
+
+
+## True when the book holds `key` as Mastered.
+static func is_mastered(state: Dictionary, key: String) -> bool:
+	return entry_mastered(state.get("book", {}).get("variants", {}).get(key, {}))
+
+
+## Quality stars a batch cook gives: the best this variant was ever cooked with.
+static func best_quality(state: Dictionary, key: String) -> int:
+	return clampi(int(state.get("book", {}).get("variants", {}).get(key, {}).get("best_q", 1)), 1, 3)
+
+
+## Pots one cook may make: 2 for stove (stir_pot) recipes once the big pot is bought, else 1.
+static func max_mult(state: Dictionary, recipe_id: String) -> int:
+	var recipe: Dictionary = Data.recipes().get(recipe_id, {})
+	if String(recipe.get("method", "")) == BIG_POT_METHOD and Economy.unlocked(state, BIG_POT):
+		return 2
+	return 1
 
 
 ## True when the recipe can be cooked in this save: P0 always; P1 once its station is unlocked and, for a recipe
@@ -118,12 +185,12 @@ static func energy_cost(action: String) -> int:
 	return int(Data.rules().energy.costs.get(action, 0))
 
 
-## Works out what a cook would take. {"ok","reason","missing","takes": [{where, index, count}],
-## "cupboard": {id: count}, "varieties": [ids for the key], "action": method}
-static func _plan(state: Dictionary, recipe_id: String, main_variety: String, second_variety: String, addin_id: String) -> Dictionary:
-	var out := {"ok": false, "reason": "", "missing": {}, "takes": [], "cupboard": {}, "varieties": [], "action": ""}
+## Works out what a cook of `mult` pots would take. {"ok","reason","missing","takes": [{where, index, count}],
+## "cupboard": {id: count}, "varieties": [ids for the key], "action": method, "mult": pots}
+static func _plan(state: Dictionary, recipe_id: String, main_variety: String, second_variety: String, addin_id: String, mult: int = 1) -> Dictionary:
+	var out := {"ok": false, "reason": "", "missing": {}, "takes": [], "cupboard": {}, "varieties": [], "action": "", "mult": mult}
 	var recipes := Data.recipes()
-	if not available(state, recipe_id):
+	if not available(state, recipe_id) or mult < 1 or mult > max_mult(state, recipe_id):
 		out.reason = R_WRONG
 		return out
 	var recipe: Dictionary = recipes[recipe_id]
@@ -139,7 +206,7 @@ static func _plan(state: Dictionary, recipe_id: String, main_variety: String, se
 			out.reason = R_WRONG
 			return out
 		out.varieties.append(vid)
-		var need := int(slot.count)
+		var need := int(slot.count) * mult
 		var got := _gather(state, slot, vid, need)
 		out.takes.append_array(got.takes)
 		if int(got.have) < need:
@@ -149,19 +216,19 @@ static func _plan(state: Dictionary, recipe_id: String, main_variety: String, se
 	var cup_need: Dictionary = {}
 	var base: Dictionary = recipe.get("base", {})
 	for id in base:
-		cup_need[id] = int(cup_need.get(id, 0)) + int(base[id])
+		cup_need[id] = int(cup_need.get(id, 0)) + int(base[id]) * mult
 	if addin_id != "":
 		var addins := Data.addins()
 		if not addins.has(addin_id):
 			out.reason = R_WRONG
 			return out
 		if addins[addin_id].kind == "nut":
-			var got := _gather(state, {"nut": addin_id}, addin_id, 1)
+			var got := _gather(state, {"nut": addin_id}, addin_id, mult)
 			out.takes.append_array(got.takes)
-			if int(got.have) < 1:
-				missing[addin_id] = 1
+			if int(got.have) < mult:
+				missing[addin_id] = mult - int(got.have)
 		else:
-			cup_need[addin_id] = int(cup_need.get(addin_id, 0)) + 1
+			cup_need[addin_id] = int(cup_need.get(addin_id, 0)) + mult
 	for id in cup_need:
 		var have := int(state.cupboard.get(id, 0))
 		if have < int(cup_need[id]):

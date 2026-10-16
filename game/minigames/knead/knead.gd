@@ -1,6 +1,9 @@
 class_name Knead
 extends MiniGame
 ## MG-KNEAD: knead the dough on the beat (A/D or left/right half), then crimp the pie edge (design 11.5).
+## Bread (ctx.recipe "bread") shapes a loaf instead: the same 12-dot trace around an oval, the dough stretching
+## from a ball to a scored loaf as the dots are hit. Colours come from ctx.desc.appearance.fill (three palette hex
+## tones, dark -> light): the pie's filling, the loaf's crust.
 ## Never touches GameState: only emits finished({"stars", "rhythm_stars", "trace_stars"}).
 
 const READY_TIME := 1.5
@@ -11,6 +14,8 @@ const FIRST_BEAT_MS := 800.0
 const RESULT_HOLD := 2.0
 const CENTER := Vector2(240, 140)
 const RING_R := 72.0
+const LOAF_RX := 96.0  ## the loaf's dotted outline
+const LOAF_RY := 44.0
 const JUDGE_KEYS := {"miss": "MG_KNEAD_MISS", "good": "MG_KNEAD_GOOD", "perfect": "MG_KNEAD_PERFECT"}
 
 const T_BG := preload("res://assets/sprites/minigames/knead/knead_bg.png")
@@ -34,14 +39,23 @@ const C_DONE := Color("4e7664")
 const C_CURSOR := Color("c94d2e")
 const C_TEXT := Color("f2d9c5")
 const C_BEAT := Color("e19064")
+const C_INK := Color("111010")
+const C_SHADOW := Color("83571e")
+## Filling sprite colours swapped for the fill tones: body -> mid, hatching -> light (upper left) / dark.
+const FILLING_BODY := Color("e5bd7f")
+const FILLING_HATCH := Color("c58845")
+## Bread without a desc: the bark ramp ProductGen gives a product without a variety.
+const BREAD_FILL := ["83571e", "c58845", "e5bd7f"]
 
 enum Phase { IDLE, READY, KNEAD, TRACE, DONE }
 
 var phase := Phase.IDLE
 var autoplay := false
+var bread := false
 var knead_time := KNEAD_TIME
 var trace_time := TRACE_TIME
 var crust := C_CRUST
+var fill_tones: Array[Color] = [C_DOUGH_D, C_DOUGH, C_POINT]
 var perfect := 0
 var good := 0
 var miss := 0
@@ -69,6 +83,8 @@ var _l_msg: Label
 var _l_title: Label
 var _l_hint: Label
 var _l_stat: Label
+var _filling: Texture2D = T_FILLING
+var _loaf_cache := {}  # "rx,ry,cuts" -> ImageTexture
 
 
 func _ready() -> void:
@@ -81,7 +97,9 @@ func _ready() -> void:
 	_l_msg.z_index = 10
 	await get_tree().create_timer(0.2).timeout
 	if phase == Phase.IDLE:
-		var ctx := {"seed": 7, "recipe": "pie", "desc": {"appearance": {"fill": "c58845"}}}
+		var ctx := {"seed": 7, "recipe": "pie", "desc": {"appearance": {"fill": ["a22512", "c94d2e", "e19064"]}}}
+		if "--bread" in OS.get_cmdline_user_args():
+			ctx = {"seed": 7, "recipe": "bread", "desc": {"appearance": {"fill": BREAD_FILL}}}
 		if "--autoplay" in OS.get_cmdline_user_args():
 			ctx["autoplay"] = true
 			ctx["knead_time"] = 6.0
@@ -94,18 +112,20 @@ func start(ctx: Dictionary) -> void:
 	autoplay = bool(ctx.get("autoplay", false))
 	knead_time = float(ctx.get("knead_time", KNEAD_TIME))
 	trace_time = float(ctx.get("trace_time", TRACE_TIME))
+	bread = String(ctx.get("recipe", "")) == "bread"
 	var desc: Dictionary = ctx.get("desc", {})
-	var app = desc.get("appearance", {})
-	if app is Dictionary and app.has("fill"):
-		var f = app["fill"]
-		if f is Color:
-			crust = f
-		elif f is String and Color.html_is_valid(f):
-			crust = Color(f)
+	var app: Variant = desc.get("appearance", {})
+	var fill: Variant = app.get("fill") if app is Dictionary else null
+	if fill == null:  # no desc: plain dough tones (pie) or the bark ramp (bread)
+		fill = BREAD_FILL if bread else [C_DOUGH_D, C_DOUGH, C_POINT]
+	fill_tones = PressRules.fill_tones(fill, C_DOUGH)
+	if not bread:
+		_filling = _tinted_filling(fill_tones)
+	_loaf_cache.clear()
 	perfect = 0
 	good = 0
 	miss = 0
-	points = KneadRules.ring_points(CENTER, RING_R)
+	points = KneadRules.ellipse_points(CENTER, LOAF_RX, LOAF_RY) if bread else KneadRules.ring_points(CENTER, RING_R)
 	hit_points.clear()
 	for i in points.size():
 		hit_points.append(false)
@@ -138,9 +158,9 @@ func _set_phase(p: Phase) -> void:
 			_l_title.text = "MG_KNEAD_PART1"
 			_l_hint.text = "MG_KNEAD_HINT1"
 		Phase.TRACE:
-			_l_title.text = "MG_KNEAD_PART2"
+			_l_title.text = "MG_KNEAD_PART2_BREAD" if bread else "MG_KNEAD_PART2"
 			_l_hint.text = "MG_KNEAD_HINT2"
-			_l_msg.text = tr("MG_KNEAD_GO")
+			_l_msg.text = tr("MG_KNEAD_GO_BREAD") if bread else tr("MG_KNEAD_GO")
 			_cursor_a = -PI / 2.0
 	queue_redraw()
 
@@ -220,7 +240,8 @@ func _trace_tick(delta: float) -> void:
 
 
 func _cursor_pos() -> Vector2:
-	return (CENTER + Vector2(cos(_cursor_a), sin(_cursor_a)) * RING_R).round()
+	var r := Vector2(LOAF_RX, LOAF_RY) if bread else Vector2(RING_R, RING_R)
+	return (CENTER + Vector2(cos(_cursor_a) * r.x, sin(_cursor_a) * r.y)).round()
 
 
 func _hit_count() -> int:
@@ -333,7 +354,10 @@ func _draw() -> void:
 	_box(Rect2(0, -6, 480, 48))  # title + timer strip
 	_box(Rect2(0, 248, 480, 28))  # hint strip
 	if phase == Phase.TRACE or phase == Phase.DONE:
-		_draw_pie()
+		if bread:
+			_draw_loaf()
+		else:
+			_draw_pie()
 	else:
 		_draw_dough()
 	if phase == Phase.DONE or phase == Phase.READY:
@@ -368,8 +392,21 @@ func _draw_dough() -> void:
 func _draw_pie() -> void:
 	draw_texture(T_PLATE, CENTER - Vector2(92, 92))
 	draw_circle(CENTER, RING_R + 12, crust)
-	draw_texture(T_FILLING, CENTER - Vector2(62, 62))
+	draw_texture(_filling, CENTER - Vector2(62, 62))
 	draw_texture(T_CRUST_FX, CENTER - Vector2(84, 84))
+	_draw_points()
+
+
+## Bread: the dough stretches from a ball to a long loaf (and gets its score marks) as the outline dots are hit.
+func _draw_loaf() -> void:
+	var hits := _hit_count()
+	var r := KneadRules.loaf_radii(hits, points.size())
+	var tex := _loaf_texture(r.x, r.y, KneadRules.loaf_cuts(hits, points.size()))
+	draw_texture(tex, (CENTER - Vector2(r.x, r.y)).round())
+	_draw_points()
+
+
+func _draw_points() -> void:
 	for i in points.size():
 		draw_texture_rect_region(T_POINT, Rect2(points[i] - Vector2(3, 3), Vector2(6, 6)), Rect2(6 if hit_points[i] else 0, 0, 6, 6))
 	if phase == Phase.TRACE and not autoplay:
@@ -377,3 +414,77 @@ func _draw_pie() -> void:
 		draw_texture_rect_region(T_POINT, Rect2(cp - Vector2(3, 3), Vector2(6, 6)), Rect2(12, 0, 6, 6))
 		if _dragging:
 			draw_texture_rect_region(T_POINT, Rect2(_pointer.round() - Vector2(3, 3), Vector2(6, 6)), Rect2(12, 0, 6, 6))
+
+
+func _loaf_texture(rx: int, ry: int, cuts: int) -> Texture2D:
+	var k := "%d,%d,%d" % [rx, ry, cuts]
+	if not _loaf_cache.has(k):
+		_loaf_cache[k] = ImageTexture.create_from_image(loaf_image(rx, ry, fill_tones, cuts))
+	return _loaf_cache[k]
+
+
+## The loaf as pixels (palette only, no partial alpha): an ellipse with radii (rx, ry) centred at (rx, ry), ink
+## outline, crust tones[2] with tones[1] on the lower part and a cream shine on the upper left, `cuts` diagonal
+## score marks in tones[0], and a 2 px board shadow under it.
+static func loaf_image(rx: int, ry: int, tones: Array[Color], cuts: int) -> Image:
+	var w := rx * 2 + 1
+	var img := Image.create(w, ry * 2 + 3, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for y in img.get_height():
+		for x in w:
+			if _in_loaf(x, y, rx, ry):
+				var edge := not (_in_loaf(x - 1, y, rx, ry) and _in_loaf(x + 1, y, rx, ry) \
+					and _in_loaf(x, y - 1, rx, ry) and _in_loaf(x, y + 1, rx, ry))
+				var u := float(x - rx) / rx
+				var v := float(y - ry) / ry
+				var c: Color = tones[2]
+				if edge:
+					c = C_INK
+				elif v > 0.35:
+					c = tones[1]
+				elif v < -0.2 - 0.5 * (u + 1.0):  # shine: the upper-left wedge, like the dough sprite
+					c = C_POINT
+				img.set_pixel(x, y, c)
+			elif y > ry and (_in_loaf(x, y - 1, rx, ry) or _in_loaf(x, y - 2, rx, ry)):
+				img.set_pixel(x, y, C_SHADOW)
+	# Score marks: short diagonals across the top, spread evenly, each with a cream lip on its right.
+	var n := maxi(roundi(ry * 0.7), 4)
+	var top := ry - roundi(ry * 0.5)
+	for i in cuts:
+		var cx := roundi(rx + (i - (cuts - 1) / 2.0) * rx * 0.5)
+		for t in n:
+			var px := cx - floori(n / 4.0) + floori(t / 2.0)
+			var py := top + t
+			if px + 1 < w and _in_loaf(px, py + 2, rx, ry) and _in_loaf(px, py - 2, rx, ry):
+				img.set_pixel(px, py, tones[0])
+				img.set_pixel(px + 1, py, C_POINT)
+	return img
+
+
+static func _in_loaf(x: int, y: int, rx: int, ry: int) -> bool:
+	var dx := float(x - rx) / rx
+	var dy := float(y - ry) / ry
+	return dx * dx + dy * dy <= 1.0
+
+
+## The pie filling sprite in the fill tones: body -> mid tone, hatching -> light on the upper left, dark elsewhere.
+static func _tinted_filling(tones: Array[Color]) -> Texture2D:
+	var img := T_FILLING.get_image()
+	if img == null:
+		return T_FILLING
+	img = img.duplicate()
+	if img.is_compressed():
+		img.decompress()
+	img.convert(Image.FORMAT_RGBA8)
+	var w := img.get_width()
+	for y in img.get_height():
+		for x in w:
+			var p := img.get_pixel(x, y)
+			if p.a < 0.5:
+				continue
+			var rgb := Color(p.r, p.g, p.b)
+			if rgb.is_equal_approx(FILLING_BODY):
+				img.set_pixel(x, y, tones[1])
+			elif rgb.is_equal_approx(FILLING_HATCH):
+				img.set_pixel(x, y, tones[2] if x + y < w else tones[0])
+	return ImageTexture.create_from_image(img)

@@ -469,7 +469,14 @@ func _variant_row(key: String, rec: Dictionary) -> Control:
 	var bq := clampi(int(rec.get("best_q", 0)), 0, 3)
 	var sr := ResultCard.StarRow.new()
 	sr.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	mid.add_child(sr)
+	if Kitchen.entry_mastered(rec):  # KITCHEN-P1B: gold "Mastered" tag after the stars
+		var line := HBoxContainer.new()
+		line.add_theme_constant_override("separation", 4)
+		line.add_child(sr)
+		line.add_child(MasteredBadge.new())
+		mid.add_child(line)
+	else:
+		mid.add_child(sr)
 	sr.set_stars(bq, clampi(bs - bq, 0, 2))
 	var pl := _label(FONT_BODY, 18, TEXT)
 	pl.text = "%s  x%d" % [desc.profile_label, int(rec.get("count", 1))]
@@ -676,6 +683,31 @@ class BarChart extends Control:
 			draw_rect(Rect2(i * 6 + 1, base - 19, 5, 19), ResultCard.EMPTY)
 			if v > 0:
 				draw_rect(Rect2(i * 6 + 1, base - v * 2 - 1, 5, v * 2 + 1), ResultCard.AXIS_COLORS[i])
+
+
+## "Mastered" tag (spec §7.2): a gold pill with the word in the book font, as tall as the star row (the glyphs are
+## 11 px, so the 18 px font fits a 14 px pill). Drawn, not a Label, so it never pushes the 68 px variant row.
+class MasteredBadge extends Control:
+	const H := 14
+	const PAD := 4
+	var text := ""
+
+	func _init() -> void:
+		text = tr("UI_MASTERY_BADGE")
+		tooltip_text = tr("UI_MASTERY_TIP")
+		var w := ceili(Book.FONT_BODY.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x)
+		custom_minimum_size = Vector2(w + PAD * 2, H)
+		size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		mouse_filter = Control.MOUSE_FILTER_PASS
+
+	func _draw() -> void:
+		var w := int(size.x)
+		draw_rect(Rect2(1, 0, w - 2, H), Book.GOLD_DK)  # 1 px cut corners
+		draw_rect(Rect2(0, 1, w, H - 2), Book.GOLD_DK)
+		draw_rect(Rect2(1, 1, w - 2, H - 2), Book.GOLD)
+		var font: Font = Book.FONT_BODY
+		var base := roundi((H + font.get_ascent(18) - font.get_descent(18)) / 2.0) - 1
+		draw_string(font, Vector2(PAD, base), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Book.TEXT)
 
 
 ## Three stacked fill tones of a variety (palette hex strings).

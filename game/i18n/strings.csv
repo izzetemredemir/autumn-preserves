@@ -618,3 +618,16 @@ UI_MEMORY_NEXT,Next
 UI_MEMORY_COUNT,%d of %d
 UI_DEV_DAY99,Day 99
 UI_DEV_DAY99_DONE,This save is already completed.
+UI_BATCH_COOK,Batch cook
+UI_BATCH_COOK_TWO,Cook 2 jars (%d energy)
+UI_BATCH_TIMES,x%d
+UI_BATCH_POT_TIP,"Big pot: twice the ingredients, two jars, same energy."
+UI_BATCH_NOT_MASTERED,Not mastered yet: cook it 3 times with 2 or more stars.
+UI_BATCH_TWO_JARS,Both jars went to the basket in the pantry.
+UI_MASTERY_BADGE,Mastered
+UI_MASTERY_BANNER,Mastered!
+UI_MASTERY_TIP,"Mastered: batch cook it without the mini-game, best stars, same energy."
+UI_MASTERY_READY,Mastered! Batch cook skips the mini-game.
+UI_MASTERY_NEW,Mastered! Next time you can batch cook it.
+MG_KNEAD_PART2_BREAD,Shape the loaf
+MG_KNEAD_GO_BREAD,Shape!

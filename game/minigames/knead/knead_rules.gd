@@ -63,11 +63,32 @@ static func segment_distance(p: Vector2, a: Vector2, b: Vector2) -> float:
 
 ## n integer points evenly around a circle, starting at the top.
 static func ring_points(center: Vector2, radius: float, n: int = POINTS) -> Array[Vector2]:
+	return ellipse_points(center, radius, radius, n)
+
+
+## n integer points evenly (by angle) around an ellipse, starting at the top: the bread loaf's outline.
+static func ellipse_points(center: Vector2, rx: float, ry: float, n: int = POINTS) -> Array[Vector2]:
 	var out: Array[Vector2] = []
 	for i in n:
 		var a := -PI / 2.0 + TAU * i / n
-		out.append((center + Vector2(cos(a), sin(a)) * radius).round())
+		out.append((center + Vector2(cos(a) * rx, sin(a) * ry)).round())
 	return out
+
+
+## Bread part 2 ("shape the loaf"): the dough's radii after `hits` of `total` outline points, from a round ball
+## (LOAF_START) to a long loaf (LOAF_END) that sits just inside the dotted outline.
+const LOAF_START := Vector2i(40, 34)
+const LOAF_END := Vector2i(86, 38)
+
+
+static func loaf_radii(hits: int, total: int = POINTS) -> Vector2i:
+	var t := clampf(float(hits) / maxf(total, 1), 0.0, 1.0)
+	return Vector2i(roundi(lerpf(LOAF_START.x, LOAF_END.x, t)), roundi(lerpf(LOAF_START.y, LOAF_END.y, t)))
+
+
+## Score marks on the loaf: one per third of the outline traced (0..3).
+static func loaf_cuts(hits: int, total: int = POINTS) -> int:
+	return clampi(floori(3.0 * hits / maxf(total, 1)), 0, 3)
 
 
 ## Dough squash step: one per good (Perfect/Good) press, capped.

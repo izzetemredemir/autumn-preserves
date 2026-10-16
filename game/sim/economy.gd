@@ -15,6 +15,7 @@ const LIVE := {
 	"pumpkin": true,
 	"bag": true,
 	"beds": true,
+	"big_pot": true,
 }
 
 

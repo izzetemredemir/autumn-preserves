@@ -33,6 +33,27 @@ static func stars_for(counts: Dictionary) -> int:
 	return 1
 
 
+## The three fill tones (dark, mid, light) from ctx.desc.appearance.fill: ProductGen.describe() gives three palette
+## hex strings dark -> light. A single hex / Color (old sample ctx) fills all three; anything else gives `fallback`.
+static func fill_tones(fill: Variant, fallback: Color) -> Array[Color]:
+	var src: Array = []
+	if fill is Array:
+		src = fill
+	elif fill is String or fill is Color:
+		src = [fill]
+	var out: Array[Color] = []
+	for v in src:
+		if v is Color:
+			out.append(v)
+		elif v is String and Color.html_is_valid(v):
+			out.append(Color.html(v))
+	if out.is_empty():
+		out.append(fallback)
+	while out.size() < 3:  # one tone -> [c, c, c]; two -> [dark, light, light]
+		out.append(out[out.size() - 1])
+	return out.slice(0, 3)
+
+
 ## Juice added to the bottle per hit (fraction of the bottle, 24 beats).
 static func juice_for(grade: String) -> float:
 	match grade:

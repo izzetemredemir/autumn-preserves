@@ -3,7 +3,9 @@ extends Control
 ## Stove = stir_pot recipes, jar counter = pack_jar recipes, P1 fruit press = press recipes and dough board = knead
 ## recipes (shown once Economy.unlocked "press" / "knead"), cupboard counts, recipe book, waiting jars on the
 ## window sill, doors to the garden and the pantry, the bed nook (Night). Cooking: CookPanel picks -> the
-## recipe's mini-game -> Kitchen.cook -> result card. Rules stay in res://sim; this scene shows and routes.
+## recipe's mini-game -> Kitchen.cook_n (x2 with the big pot) -> result card; a Mastered variant may skip the
+## mini-game (Batch cook -> Kitchen.batch_cook). Mastering plays jgl_level. Rules stay in res://sim; this scene
+## shows and routes.
 ## Run alone it starts a throwaway game (GameState.start_temp, never saved) with a debug inventory.
 
 const HUD := "res://ui/hud/hud.tscn"
@@ -44,6 +46,7 @@ var _todo_was_visible := false
 var _mg: Node = null
 var _card: Node = null
 var _cooking: Dictionary = {}
+var _after_card := "KITCHEN_JAR_INBOX"  ## message-bar key once the result card closes
 var _last_spot := "stove"
 var _sticky_until := 0
 var _glow := ""
@@ -155,6 +158,7 @@ func _build_panel() -> void:
 	_panel.position = PANEL_POS
 	_panel.home = PANEL_POS
 	_panel.cook_requested.connect(_on_cook_requested)
+	_panel.batch_requested.connect(_on_batch_requested)
 	_panel.close_requested.connect(_close_panel)
 
 
@@ -430,9 +434,10 @@ func _on_cook_requested(recipe_id: String, main_v: String, second_v: String, add
 	if _mg != null:
 		return
 	var d := GameState.data
-	if not Kitchen.check(d, recipe_id, main_v, second_v, addin_id).ok:
+	var mult: int = _panel.mult
+	if not Kitchen.check_n(d, recipe_id, main_v, second_v, addin_id, mult).ok:
 		return
-	_cooking = {"recipe": recipe_id, "main": main_v, "second": second_v, "addin": addin_id}
+	_cooking = {"recipe": recipe_id, "main": main_v, "second": second_v, "addin": addin_id, "mult": mult}
 	var key := Kitchen.product_key(recipe_id, main_v, second_v, addin_id)
 	var varieties: Array = ProductGen.parse_key(key).varieties  # bread has none, syrup the juice's fruit
 	var types: Array = []
@@ -480,7 +485,28 @@ func _on_minigame_done(result: Dictionary) -> void:
 	_set_world_visible(true)
 	var stars := clampi(int(result.get("stars", 1)), 1, 3)
 	var c := _cooking
-	var res := Kitchen.cook(GameState.data, c.recipe, c.main, c.second, c.addin, stars)
+	var res := Kitchen.cook_n(GameState.data, c.recipe, c.main, c.second, c.addin, stars, int(c.get("mult", 1)))
+	_show_result(res)
+
+
+## Batch cook (a Mastered variant): no mini-game, straight to the result card.
+func _on_batch_requested(recipe_id: String, main_v: String, second_v: String, addin_id: String) -> void:
+	if _mg != null or _card != null:
+		return
+	var res := Kitchen.batch_cook(GameState.data, recipe_id, main_v, second_v, addin_id, _panel.mult)
+	if not res.get("ok", false):  # the panel stays open and says why
+		Audio.play_ui("ui_error")
+		_panel.refresh()
+		return
+	Audio.play_ui("ui_confirm")
+	_panel.visible = false
+	_blocker.visible = false
+	_set_room_active(false)
+	_show_result(res)
+
+
+## Applies a cook result to the view: save, result card (Mastered banner + jgl_level when it was the third good cook).
+func _show_result(res: Dictionary) -> void:
 	GameState.notify(PackedStringArray(["inbox", "pantry", "cupboard", "energy", "book", "stats"]))
 	if not res.get("ok", false):
 		_say(tr(String(res.get("reason", "KITCHEN_COOK_FAILED"))), true)
@@ -488,16 +514,26 @@ func _on_minigame_done(result: Dictionary) -> void:
 		_focus_spot()
 		return
 	Save.save_game(GameState.data)
+	var stars := int(res.quality)
+	var mastered := bool(res.get("mastered", false))
+	_after_card = "UI_MASTERY_NEW" if mastered else ("UI_BATCH_TWO_JARS" if res.items.size() > 1 else "KITCHEN_JAR_INBOX")
 	var desc: Dictionary = res.desc.duplicate()
 	desc["value"] = ProductGen.value(String(res.item.key), GameState.data.varieties, stars)
+	if mastered:
+		Audio.play_jingle("jgl_level")
 	if not ResourceLoader.exists(RESULT_CARD):
 		_on_card_closed()
 		return
-	if not res.is_new:
+	if not res.is_new and not mastered:
 		Audio.play_sfx("sfx_star_pop")
 	_card = load(RESULT_CARD).instantiate()
 	_overlay.add_child(_card)
 	_card.show_result(desc, stars, bool(res.is_new))
+	if mastered:  # the card's "New recipe!" line announces mastery instead
+		var banner: Variant = _card.get("_banner")
+		if banner is Label:
+			(banner as Label).text = tr("UI_MASTERY_BANNER")
+			(banner as Label).visible = true
 	_card.closed.connect(_on_card_closed, CONNECT_ONE_SHOT)
 
 
@@ -508,7 +544,7 @@ func _on_card_closed() -> void:
 	Audio.play_ui("ui_click")
 	_set_room_active(true)
 	_focus_spot()
-	_say(tr("KITCHEN_JAR_INBOX"), true)
+	_say(tr(_after_card), true)
 
 
 # ---------------------------------------------------------------- bed
