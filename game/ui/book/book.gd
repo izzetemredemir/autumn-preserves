@@ -38,6 +38,7 @@ var _next: Button
 var _page_label: Label
 var _close: Button
 var _icon_names := {}
+var _how: HowMadeCard  ## P1-SEEDLAB: open "How it was made" card, or null
 
 
 ## Finds the open book or creates one under the scene root. Returns it.
@@ -83,6 +84,8 @@ func close_book() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not visible or not event.is_pressed() or event.is_echo():
 		return
+	if _how != null and is_instance_valid(_how) and not event.is_action("book"):
+		return  # the card takes Esc itself; no page flips under it
 	if event.is_action("cancel") or event.is_action("ui_cancel") or event.is_action("book"):
 		get_viewport().set_input_as_handled()
 		close_book()
@@ -333,7 +336,7 @@ func _fill_recipes() -> void:
 		return
 	var vs: Dictionary = _data().book.variants
 	for i in range(_page * VARIANTS_PER_PAGE, mini(keys.size(), (_page + 1) * VARIANTS_PER_PAGE)):
-		_right.add_child(_variant_row(keys[i], vs[keys[i]]))
+		_right.add_child(_variant_entry(keys[i], vs[keys[i]]))
 
 
 func _recipe_entry(id: String, r: Dictionary) -> Control:
@@ -433,6 +436,61 @@ func _variant_row(key: String, rec: Dictionary) -> Control:
 	ch.set_taste(desc.taste)
 	h.add_child(ch)
 	return h
+
+
+# --- "How it was made" (P1-SEEDLAB) ------------------------------------------------------------------------------
+
+## A variant row as a flat button (tap, click, or Tab + Enter) that opens its "How it was made" card.
+func _variant_entry(key: String, rec: Dictionary) -> Control:
+	var b := Button.new()
+	b.custom_minimum_size = Vector2(0, ROW_H)
+	b.tooltip_text = tr("BOOK_HOW_TITLE")
+	for st in ["normal", "hover", "pressed", "focus", "disabled"]:
+		var bs := StyleBoxFlat.new()
+		bs.draw_center = false
+		bs.bg_color = PAPER
+		bs.border_color = {"hover": PAPER_DK, "pressed": GOLD_DK, "focus": GOLD}.get(st, PAPER)
+		bs.set_border_width_all(0 if st in ["normal", "disabled"] else 1)
+		bs.anti_aliasing = false
+		b.add_theme_stylebox_override(st, bs)
+	var row := _variant_row(key, rec)
+	row.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_pass_mouse(row)
+	b.add_child(row)
+	b.pressed.connect(open_how.bind(key))
+	return b
+
+
+## Children let clicks through to the row button but keep their tooltips.
+func _pass_mouse(n: Node) -> void:
+	for c in n.get_children():
+		if c is Control and (c as Control).mouse_filter == Control.MOUSE_FILTER_STOP:
+			(c as Control).mouse_filter = Control.MOUSE_FILTER_PASS
+		_pass_mouse(c)
+	if n is Control and (n as Control).mouse_filter == Control.MOUSE_FILTER_STOP:
+		(n as Control).mouse_filter = Control.MOUSE_FILTER_PASS
+
+
+func open_how(key: String) -> void:
+	close_how()
+	var rec: Dictionary = _data().get("book", {}).get("variants", {}).get(key, {})
+	_how = HowMadeCard.new()
+	_how.position = _panel.position
+	_panel.get_parent().add_child(_how)
+	_how.build(self, key, _data().get("varieties", {}), rec)
+	_how.closed.connect(_on_how_closed)
+
+
+func close_how() -> void:
+	if _how != null and is_instance_valid(_how):
+		_how.queue_free()
+	_how = null
+
+
+func _on_how_closed() -> void:
+	_how = null
+	if visible and is_instance_valid(_close):
+		_close.grab_focus()
 
 
 # --- varieties tab -----------------------------------------------------------------------------------------------

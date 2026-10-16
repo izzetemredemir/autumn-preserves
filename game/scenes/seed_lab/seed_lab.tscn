@@ -65,10 +65,18 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "WILD_LAB_RANDOM"
 
-[node name="Walk" type="Button" parent="Layout/Top/Row"]
+[node name="Grow" type="Button" parent="Layout/Top/Row"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "WILD_LAB_WALK"
+tooltip_text = "WILD_LAB_GROW_TIP"
+text = "WILD_LAB_GROW"
+
+[node name="Compare" type="Button" parent="Layout/Top/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "WILD_LAB_COMPARE_TIP"
+toggle_mode = true
+text = "WILD_LAB_COMPARE"
 
 [node name="Spacer" type="Control" parent="Layout/Top/Row"]
 layout_mode = 2
@@ -103,5 +111,11 @@ size_flags_horizontal = 3
 clip_text = true
 
 [node name="Hint" type="Label" parent="Layout/Bottom/Row"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "WILD_LAB_PAN"
+
+[node name="Walk" type="Button" parent="Layout/Bottom/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "WILD_LAB_WALK"

@@ -4,13 +4,15 @@ extends RefCounted
 ## Map: {"seed", "biome", "w", "h", "ground": PackedByteArray (w*h, row-major, T_* ids),
 ##  "decor_trees": [{"x","y","kind"}], "fruit_trees": [{"id","x","y","type","variety"}],
 ##  "pickups": [{"id","x","y","kind": "bush"|"ground","type","variety"}], "special": {} or {"kind","x","y","w","h"},
-##  "entrance": Vector2i, "clearings": [Vector2i], "steps": {} (P1: per-step layers for the Seed Lab)}
+##  "entrance": Vector2i, "clearings": [Vector2i], "steps": {} or the per-step layers (see Builder.run)}
 ## Ids are stable indices assigned after validation. Coordinates are tiles (16 px).
 ## Extra fields (SIM-02): fruit_trees[i].yield (2-3 fruit when shaken), "special": true on special-place trees and
 ##  pickups, decor kind "maple"|"birch"|"oak", "solid": PackedByteArray (w*h, 1 = tree or bush stands there).
 ## Walkable = not water and not solid. Ground pickups are walkable; trees and bushes are used from a 4-neighbour tile.
 ## Each step draws from its own sub-stream (sub = step name); types and varieties come from sub "kinds", so weather
 ## and the varieties dict never move a tree, bush or pickup.
+## "steps" is filled in debug builds and whenever `record_steps` is true (the Seed Lab's step-by-step replay, any build).
+## Recording only copies layers and never draws from an RNG, so the map is the same either way.
 
 const T_GRASS := 0
 const T_LEAVES := 1
@@ -29,9 +31,10 @@ static func uncommon_spawn_weight() -> float:
 	return float(Data.rules().forage.get("uncommon_spawn_weight", 0.5))
 
 
-static func generate(save_seed: int, day: int, biome: String, weather: String, varieties: Dictionary) -> Dictionary:
+static func generate(save_seed: int, day: int, biome: String, weather: String, varieties: Dictionary,
+		record_steps := false) -> Dictionary:
 	var b := Builder.new()
-	b.setup(save_seed, day, biome, weather, varieties)
+	b.setup(save_seed, day, biome, weather, varieties, record_steps or OS.is_debug_build())
 	return b.run()
 
 
@@ -195,7 +198,7 @@ class Builder:
 	var stream := ""
 	var w := 0
 	var h := 0
-	var debug := false
+	var record := false  # fill `steps` (debug builds or record_steps)
 	var r_kind: RandomNumberGenerator
 
 	var ground := PackedByteArray()
@@ -213,8 +216,11 @@ class Builder:
 	var paths: Array = []
 	var moved: Array = []
 	var steps: Dictionary = {}
+	var stream_cells: Array[Vector2i] = []  # recording: water cells in random-walk order, each once
+	var flood_dist := PackedInt32Array()  # recording: first flood fill, steps from the entrance (-1 = not reached)
 
-	func setup(p_save_seed: int, p_day: int, p_biome: String, p_weather: String, p_varieties: Dictionary) -> void:
+	func setup(p_save_seed: int, p_day: int, p_biome: String, p_weather: String, p_varieties: Dictionary,
+			p_record := false) -> void:
 		save_seed = p_save_seed
 		day = p_day
 		biome = p_biome
@@ -224,7 +230,7 @@ class Builder:
 		stream = "wild:" + biome
 		w = int(wr.w)
 		h = int(wr.h)
-		debug = OS.is_debug_build()
+		record = p_record
 		r_kind = _rng("kinds")
 		ground.resize(w * h)
 		occ.resize(w * h)
@@ -234,26 +240,33 @@ class Builder:
 		on_path.fill(0)
 		clearing_mask.fill(0)
 
+	## steps (when recording): "1_ground" {ground, noise, entrance} · "2_stream" {ground, stream: [Vector2i] in walk order}
+	## · "3_decor" {decor_trees in placement order, poisson_r} · "4_paths" {ground, decor_trees, clearings, paths}
+	## · "5_pickups" {decor_trees, fruit_trees, pickups} · "6_special" {special, decor_trees, fruit_trees, pickups}
+	## · "7_validate" {moved: [{from, to}], fruit_trees, pickups, flood: first flood fill as steps from the entrance}.
+	## Item lists keep their order from step 5 on: index i in "6_special" (before the flood fill) is index i in the map.
 	func run() -> Dictionary:
 		_step_ground(_rng("ground"))
-		_snap("1_ground", {"ground": ground.duplicate()})
+		_snap("1_ground", {"ground": ground.duplicate(), "noise": noise.duplicate(), "entrance": entrance})
 		_step_stream(_rng("stream"))
-		_snap("2_stream", {"ground": ground.duplicate()})
+		_snap("2_stream", {"ground": ground.duplicate(), "stream": stream_cells.duplicate()})
 		_step_decor(_rng("decor"))
-		_snap("3_decor", {"decor_trees": _decor_list()})
+		_snap("3_decor", {"decor_trees": _decor_list(), "poisson_r": int(wr.poisson_r)})
 		_step_paths(_rng("paths"))
 		_snap("4_paths", {"ground": ground.duplicate(), "decor_trees": _decor_list(), "clearings": clearings.duplicate(),
 			"paths": paths.duplicate(true)})
 		_step_pickups(_rng("pickups"))
 		_snap("5_pickups", {"decor_trees": _decor_list(), "fruit_trees": fruit.duplicate(true), "pickups": pickups.duplicate(true)})
 		_step_special(_rng("special"))
-		_snap("6_special", {"special": special.duplicate(), "fruit_trees": fruit.duplicate(true), "pickups": pickups.duplicate(true)})
+		_snap("6_special", {"special": special.duplicate(), "decor_trees": _decor_list(), "fruit_trees": fruit.duplicate(true),
+			"pickups": pickups.duplicate(true)})
 		_step_validate()
 		for i in fruit.size():
 			fruit[i].id = i
 		for i in pickups.size():
 			pickups[i].id = i
-		_snap("7_validate", {"moved": moved.duplicate(true), "fruit_trees": fruit.duplicate(true), "pickups": pickups.duplicate(true)})
+		_snap("7_validate", {"moved": moved.duplicate(true), "fruit_trees": fruit.duplicate(true), "pickups": pickups.duplicate(true),
+			"flood": flood_dist})
 		var solid := PackedByteArray()
 		solid.resize(w * h)
 		for i in w * h:
@@ -353,6 +366,8 @@ class Builder:
 
 	func _water(x: int, y: int) -> void:
 		if x >= 0 and y >= 0 and x < w and y < h:
+			if record and ground[y * w + x] != WildGen.T_WATER:
+				stream_cells.append(Vector2i(x, y))
 			ground[y * w + x] = WildGen.T_WATER
 
 	# ---------- step 3: decor trees, Poisson-disk (r = rules.wild.poisson_r) ----------
@@ -668,6 +683,8 @@ class Builder:
 	# ---------- step 7: flood fill from the entrance; move what cannot be reached ----------
 
 	func _step_validate() -> void:
+		if record:
+			flood_dist = _flood_dist()
 		for pass_i in 6:
 			var all_ok := true
 			var reach := _flood()
@@ -764,13 +781,35 @@ class Builder:
 				queue.append(i + w)
 		return reach
 
+	## Recording only: BFS steps from the entrance over walkable tiles, -1 where the flood does not reach.
+	func _flood_dist() -> PackedInt32Array:
+		var dist := PackedInt32Array()
+		dist.resize(w * h)
+		dist.fill(-1)
+		var start := entrance.y * w + entrance.x
+		if not _walk(start):
+			return dist
+		var queue := PackedInt32Array([start])
+		dist[start] = 0
+		var head := 0
+		while head < queue.size():
+			var i := queue[head]
+			head += 1
+			var x := i % w
+			for j in [i - 1 if x > 0 else -1, i + 1 if x < w - 1 else -1, i - w, i + w]:
+				if j < 0 or j >= w * h or dist[j] != -1 or not _walk(j):
+					continue
+				dist[j] = dist[i] + 1
+				queue.append(j)
+		return dist
+
 	# ---------- helpers ----------
 
 	func _rng(sub: String) -> RandomNumberGenerator:
 		return Seeds.rng(save_seed, stream, day, sub)
 
 	func _snap(key: String, layers: Dictionary) -> void:
-		if debug:
+		if record:
 			steps[key] = layers
 
 	func _decor_list() -> Array:

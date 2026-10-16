@@ -296,6 +296,76 @@ KITCHEN_GROCER_HINT,The grocer in town sells more.
 KITCHEN_FORAGE_HINT,Find more in the woods or the garden.
 KITCHEN_SLOT_MAIN,Main
 KITCHEN_SLOT_SECOND,Second
+WILD_LAB_GROW,Watch it grow
+WILD_LAB_GROW_TIP,Replay the generation step by step (G)
+WILD_LAB_SKIP,Skip
+WILD_LAB_COMPARE,A | B
+WILD_LAB_COMPARE_TIP,This seed next to the previous one (C)
+WILD_LAB_GROW_HINT,Tap or E: next step  Esc: skip
+WILD_LAB_COMPARE_HINT,Generate again: A moves to B
+WILD_LAB_CAPTION,Seed %d
+WILD_LAB_CAPTION_A,A  %d
+WILD_LAB_CAPTION_B,B  %d
+WILD_LAB_SAME_RULES,"Same rules, different seed"
+WILD_STEP_NOISE,Value noise
+WILD_STEP_STREAM,Random-walk stream
+WILD_STEP_TREES,Poisson-disk trees
+WILD_STEP_PATHS,A* paths
+WILD_STEP_PICKUPS,Weighted pickups
+WILD_STEP_FLOOD,Flood-fill check
+WILD_STEP_COUNT,%d/%d
+WILD_STEP_DONE,Done
+WILD_STEP_NOTE_NOISE,two octaves
+WILD_STEP_NOTE_STREAM,%d tiles
+WILD_STEP_NOTE_NO_STREAM,none today (%d%% chance)
+WILD_STEP_NOTE_TREES,"%d trees, r = %d"
+WILD_STEP_NOTE_PATHS,%d clearings
+WILD_STEP_NOTE_PICKUPS,%d items
+WILD_STEP_NOTE_MOVED,%d moved
+WILD_STEP_NOTE_REACHED,all reachable
+BOOK_HOW_TITLE,How it was made
+BOOK_HOW_VARIETY,Variety
+BOOK_HOW_TRAITS,"%s size, %s"
+BOOK_HOW_SIZE_SMALL,small
+BOOK_HOW_SIZE_MEDIUM,medium
+BOOK_HOW_SIZE_LARGE,large
+BOOK_HOW_SHIFT_DOWN,darker colour
+BOOK_HOW_SHIFT_NONE,usual colour
+BOOK_HOW_SHIFT_UP,brighter colour
+BOOK_HOW_DELTA,Taste delta: %s
+BOOK_HOW_NONE,none
+BOOK_HOW_AVERAGE,Average
+BOOK_HOW_TASTE,Taste
+BOOK_HOW_BASE,Base
+BOOK_HOW_NO_ADDIN,none
+BOOK_HOW_FINAL,Final
+BOOK_HOW_CLAMPED,Each axis kept in %d-%d
+BOOK_HOW_PROFILE,Profile: %s
+BOOK_HOW_HARMONY,Harmony +%d
+BOOK_HOW_PAIR_YES,+1 liked pair: %s %d & %s %d
+BOOK_HOW_PAIR_NO,+0 top pair: %s %d & %s %d
+BOOK_HOW_BALANCE_YES,"+1 balance: %d axes %d+, none %d+"
+BOOK_HOW_BALANCE_HIGH,+0 balance: %s %d is %d+
+BOOK_HOW_BALANCE_FEW,+0 balance: only %d axes %d+
+BOOK_HOW_STARS,Stars: quality %d + harmony %d = %d
+BOOK_HOW_NAME,Name grammar
+BOOK_HOW_ADJ_ADDIN,Adjective: %s (add-in)
+BOOK_HOW_ADJ_PROFILE,Adjective: %s (top taste)
+BOOK_HOW_ADJ_MILD,Adjective: %s (mild)
+BOOK_HOW_ADJ_DROPPED,Adjective %s dropped: over %d
+BOOK_HOW_FEATURE,Feature: %s (variety)
+BOOK_HOW_FEATURE_NONE,Feature: none
+BOOK_HOW_FEATURE_REPEAT,Feature %s dropped: same root
+BOOK_HOW_FEATURE_LONG,Feature %s dropped: over %d
+BOOK_HOW_LENGTH,%d of %d letters
+BOOK_HOW_LOOK,Look
+BOOK_HOW_SEED,Seed fnv1a31(key) = %d
+BOOK_HOW_PARTS,"Label %d, %s, %s lid"
+BOOK_HOW_MOTIF_LEAF,leaf
+BOOK_HOW_MOTIF_STAR,star
+BOOK_HOW_MOTIF_STRIPE,stripe
+BOOK_HOW_LID_METAL,metal
+BOOK_HOW_LID_CLOTH,cloth
 LET_POST_OFFICE,Post office
 LET_TITLE,Letters
 LET_EMPTY,No letters yet. Mia and Leo write every few days.
