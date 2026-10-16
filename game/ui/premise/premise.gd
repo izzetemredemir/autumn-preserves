@@ -39,6 +39,7 @@ func _ready() -> void:
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		l.custom_minimum_size = Vector2(TEXT_WIDTH, 0)
+		l.visible_characters_behavior = TextServer.VC_CHARS_AFTER_SHAPING  # lay out the full text, reveal without reflow
 		l.visible_characters = 0
 		box.add_child(l)
 		_labels.append(l)
