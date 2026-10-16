@@ -10,7 +10,7 @@ const Layout := preload("res://scenes/garden/garden_layout.gd")
 const PlantMenu := preload("res://scenes/garden/plant_menu.gd")
 const GRANNY := preload("res://player/granny.tscn")
 const RETURN_META := &"garden_return"  ## on the root window: the exit Granny left by, for her way back
-const BIOME := "forest"  ## P0: the gate opens on the forest
+const BIOME := "forest"  ## the gate goes straight here until a second wild opens (vineyard key, rubber boots)
 const C_HUSK := Color("b7b768")  ## olive_300
 const FOREST_DB := -8.0  ## forest ambience in the background here; the wild plays it full
 
@@ -277,11 +277,30 @@ func _enter_house() -> void:
 	_leave("kitchen", {}, "door")
 
 
+## The gate: straight to the forest while it is the only open wild, else the "where to today?" card (BIOMES).
 func _go_wild() -> void:
-	if not _can_leave():
+	if not _can_leave() or menu != null:
 		return
+	var open_count := 0
+	for c in WildGen.biome_choices(GameState.data):
+		if bool(c.open):
+			open_count += 1
+	if open_count <= 1:
+		_go_biome(BIOME)
+		return
+	Audio.play_ui("ui_click")
+	granny.input_enabled = false
+	var p := BiomePicker.new()
+	menu = p
+	add_child(p)
+	p.chosen.connect(_go_biome)
+	p.closed.connect(_on_menu_closed)
+	p.open(GameState.data)
+
+
+func _go_biome(biome: String) -> void:
 	_stop_ambient()
-	_leave("wild", {"biome": BIOME, "seed": int(GameState.data.save_seed)}, "wild")
+	_leave("wild", {"biome": biome, "seed": int(GameState.data.save_seed)}, "wild")
 
 
 func _go_town() -> void:

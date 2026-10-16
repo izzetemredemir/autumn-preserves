@@ -18,6 +18,7 @@ func notify(keys: PackedStringArray) -> void:
 
 func start_new(save_seed: int) -> void:
 	data = State.new_game(save_seed)
+	VarietyGen.ensure_types(data.varieties, save_seed)
 	Save.save_game(data)
 	changed.emit(PackedStringArray(["*"]))
 	day_started.emit(int(data.day))
@@ -26,6 +27,7 @@ func start_new(save_seed: int) -> void:
 ## A throwaway game (Seed Lab walks, scenes run alone): never written to disk, so it can't overwrite a real save.
 func start_temp(save_seed: int) -> void:
 	data = State.new_game(save_seed)
+	VarietyGen.ensure_types(data.varieties, save_seed)
 	data.flags["temp"] = true
 	changed.emit(PackedStringArray(["*"]))
 	day_started.emit(int(data.day))
@@ -36,6 +38,7 @@ func load_saved() -> bool:
 	if d.is_empty():
 		return false
 	data = d
+	VarietyGen.ensure_types(data.varieties, int(data.save_seed))  # P1 types (cabbage, grape...) for older saves
 	changed.emit(PackedStringArray(["*"]))
 	return true
 
