@@ -359,8 +359,14 @@ func _build_tabs() -> void:
 			if typeof(spec) != TYPE_DICTIONARY:
 				continue
 			any_slot = true
-			if spec.has("recipe"):  # syrup: "2 Juice"
-				_icon_text(row, "%d %s" % [int(spec.count), tr("BOOK_RECIPE_" + String(spec.recipe).to_upper())], Art.CREAM)
+			if spec.has("recipe"):  # syrup: "2" + a little juice bottle (a word would not fit the tab in every language)
+				_icon_text(row, str(int(spec.count)), Art.CREAM)
+				var t := TextureRect.new()
+				t.texture = _recipe_icon(String(spec.recipe))
+				t.custom_minimum_size = Vector2(16, 16)
+				t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				t.tooltip_text = tr("BOOK_RECIPE_" + String(spec.recipe).to_upper())
+				row.add_child(t)
 				continue
 			_icon_text(row, str(int(spec.count)), Art.CREAM)
 			for ic in Art.slot_icon_ids(spec, 1 if compact else (2 if two else 3)):
@@ -669,6 +675,17 @@ func _empty_list_key() -> String:
 
 func _nothing_fits_key() -> String:
 	return "KITCHEN_NO_JUICE" if _is_product_slot("main") else "KITCHEN_NOTHING_FITS"
+
+
+## A recipe's product icon made from the save's first apple variety (the syrup tab's "2 juices").
+func _recipe_icon(recipe_id: String) -> Texture2D:
+	var vars: Dictionary = GameState.data.varieties
+	var ids := vars.keys().filter(func(k: String) -> bool: return String(vars[k].get("type", "")) == "apple")
+	ids.sort()
+	var key := ProductGen.make_key(recipe_id, [ids[0] if not ids.is_empty() else ""], "")
+	if not _product_icons.has(key):
+		_product_icons[key] = ImageTexture.create_from_image(JarIcon.render(ProductGen.describe(key, vars), "icon"))
+	return _product_icons[key]
 
 
 ## Row and slot icon: the fruit for fresh stacks, a little bottle in the juice's colour for a recipe slot.
