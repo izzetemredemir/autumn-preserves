@@ -21,10 +21,23 @@ var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	_rng.randomize()
+	# Dev and test runs start muted (user request); exported release builds play sound. "--sound" unmutes a dev run.
+	if OS.is_debug_build() and not "--sound" in OS.get_cmdline_user_args():
+		AudioServer.set_bus_mute(0, true)
 	for i in SFX_VOICES:
 		_sfx_pool.append(_player("SFX"))
 	_music = [_player("Music"), _player("Music")]
 	_jingle = _player("Music")
+
+
+## M toggles all sound (Master bus) in any build.
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_M:
+		AudioServer.set_bus_mute(0, not AudioServer.is_bus_mute(0))
+
+
+func is_muted() -> bool:
+	return AudioServer.is_bus_mute(0)
 
 
 func _notification(what: int) -> void:
