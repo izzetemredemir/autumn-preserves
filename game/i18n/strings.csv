@@ -474,3 +474,58 @@ CAT_PET_1,Purrrr...
 CAT_PET_2,Mrrp. Right on the spot.
 CAT_PET_3,The cat leans into your hand.
 CAT_PET_4,A very warm, very orange cat.
+UI_MARKET_TITLE,Market Day
+UI_MARKET_TODAY,Market today!
+UI_MARKET_YOUR_JARS,Your jars
+UI_MARKET_NO_JARS,No ready jars today. Fill some in the kitchen!
+UI_MARKET_HINT,Drag jars onto the stall.
+UI_MARKET_FILL,Fill stall
+UI_MARKET_CLEAR,Clear stall
+UI_MARKET_OPEN,Open stall
+UI_MARKET_SIGN,Granny's Jars
+UI_MARKET_APPEAL,Stall appeal
+UI_MARKET_MULT,x%s
+UI_MARKET_VARIETY,Variety
+UI_MARKET_COLOURS,Colours
+UI_MARKET_FULL,Full stall
+UI_MARKET_VISITORS,About %d visitors
+UI_MARKET_SOLD,Sold %d
+UI_MARKET_SPEED,Faster
+UI_MARKET_SPEED_ON,Slower
+UI_MARKET_DONE,Market's over!
+UI_MARKET_DONE_SOLD,Sold %d of %d jars
+UI_MARKET_DONE_COINS,Earned %d coins
+UI_MARKET_DONE_REP,Reputation %d
+UI_MARKET_DONE_NEXT,More visitors next week!
+UI_MARKET_TO_TOWN,Back to town
+MARKET_OOH_HONEY,"Ooh, honey!"
+MARKET_OOH_CINNAMON,"Ooh, cinnamon!"
+MARKET_OOH_CLOVE,"Mmm, clove!"
+MARKET_OOH_GINGER,"Ooh, ginger!"
+MARKET_OOH_CHILI,"Ooh, chili!"
+MARKET_OOH_WALNUT,"Walnuts, lovely!"
+MARKET_OOH_HAZELNUT,"Ooh, hazelnut!"
+MARKET_OOH_CHESTNUT,"Chestnut? Yes!"
+MARKET_OOH_THYME,"A hint of thyme!"
+MARKET_OOH_MINT,"Ooh, minty!"
+MARKET_LIKE_SWEET_1,"Sweet, just right!"
+MARKET_LIKE_SWEET_2,For my toast!
+MARKET_LIKE_SOUR_1,Nice and tangy!
+MARKET_LIKE_SOUR_2,"Sour, my favourite!"
+MARKET_LIKE_SPICY_1,A little fire!
+MARKET_LIKE_SPICY_2,"Spicy, lovely!"
+MARKET_LIKE_SALTY_1,For my lunch!
+MARKET_LIKE_SALTY_2,"Salty, perfect!"
+MARKET_LIKE_EARTHY_1,Smells like the woods!
+MARKET_LIKE_EARTHY_2,"Earthy, how cosy!"
+MARKET_RARE,What a rare find!
+MARKET_PRICEY,A bit dear for me.
+MARKET_WISH_SWEET,Anything sweet?
+MARKET_WISH_SOUR,Nothing tangy?
+MARKET_WISH_SPICY,Nothing spicy today?
+MARKET_WISH_SALTY,Anything salty?
+MARKET_WISH_EARTHY,Nothing earthy?
+UI_MARKET_CLOSED,The market opens every 7th day.
+UI_MARKET_COINS,+%d
+WILD_LAB_STATS,%d trees  %d bushes  %d ground
+WILD_LAB_STATS_SPECIAL,%d trees  %d bushes  + %s

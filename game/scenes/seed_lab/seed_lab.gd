@@ -278,10 +278,11 @@ func _generate() -> void:
 	for p in map.pickups:
 		if String(p.get("kind", "")) == "bush":
 			bushes += 1
-	var text := tr("WILD_LAB_INFO") % [int(map.seed), map.fruit_trees.size(), bushes, map.pickups.size() - bushes]
+	# the seed is in the field above; a special place replaces the ground count so the line fits the bar
+	var text := tr("WILD_LAB_STATS") % [map.fruit_trees.size(), bushes, map.pickups.size() - bushes]
 	var sp: Dictionary = map.get("special", {})
 	if not sp.is_empty():
-		text += "  " + tr("WILD_SPECIAL_" + String(sp.get("kind", "")).to_upper())
+		text = tr("WILD_LAB_STATS_SPECIAL") % [map.fruit_trees.size(), bushes, tr("WILD_SPECIAL_" + String(sp.get("kind", "")).to_upper())]
 	_info = text
 	_update_labels()
 

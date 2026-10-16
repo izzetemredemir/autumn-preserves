@@ -123,6 +123,8 @@ func _build() -> void:
 	back.size = Vector2(62, 20)
 	back.pressed.connect(_on_back)
 	add_child(back)
+	if Market.can_open(GameState.data):  # MARKET: "Market today!" banner on market days, until the stall opens
+		add_child(load("res://scenes/market/market_banner.gd").new())
 	var panel := PanelContainer.new()
 	panel.position = Vector2(8, PANEL_Y)
 	panel.size = Vector2(464, 270 - PANEL_Y - 4)
