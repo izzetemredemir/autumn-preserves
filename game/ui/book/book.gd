@@ -14,7 +14,7 @@ const INK := Color("111010")
 const GREEN := Color("4e7664")
 const RED := Color("a22512")
 const SILHOUETTE := Color("49423d")
-const FONT_BODY := preload("res://assets/fonts/m5x7.ttf")
+const FONT_BODY := preload("res://assets/fonts/m6x11plus.ttf")
 const FONT_TITLE := preload("res://assets/fonts/m6x11plus.ttf")
 const MILESTONES := [5, 15, 30, 60]
 const VARIANTS_PER_PAGE := 3
@@ -170,14 +170,14 @@ func _build() -> void:
 	var bottom := HBoxContainer.new()
 	bottom.add_theme_constant_override("separation", 4)
 	vb.add_child(bottom)
-	_milestone = _label(FONT_BODY, 16, TEXT)
+	_milestone = _label(FONT_BODY, 18, TEXT)
 	_milestone.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_milestone.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bottom.add_child(_milestone)
 	_prev = _button("<")
 	_prev.pressed.connect(_flip.bind(-1))
 	bottom.add_child(_prev)
-	_page_label = _label(FONT_BODY, 16, TEXT)
+	_page_label = _label(FONT_BODY, 18, TEXT)
 	_page_label.custom_minimum_size.x = 36
 	bottom.add_child(_page_label)
 	_next = _button(">")
@@ -206,7 +206,7 @@ func _button(text: String) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.add_theme_font_override("font", FONT_BODY)
-	b.add_theme_font_size_override("font_size", 16)
+	b.add_theme_font_size_override("font_size", 18)
 	for c in ["font_color", "font_focus_color", "font_pressed_color", "font_hover_color", "font_hover_pressed_color"]:
 		b.add_theme_color_override(c, PAPER if c != "font_hover_color" else Color("dbcc83"))
 	for st in ["normal", "hover", "pressed", "focus", "disabled"]:
@@ -323,7 +323,7 @@ func _fill_recipes() -> void:
 	_heading(_right, tr("BOOK_VARIANTS"))
 	var keys := _variant_keys()
 	if keys.is_empty():
-		var l := _label(FONT_BODY, 16, TEXT)
+		var l := _label(FONT_BODY, 18, TEXT)
 		l.text = tr("BOOK_EMPTY")
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -339,7 +339,7 @@ func _fill_recipes() -> void:
 func _recipe_entry(id: String, r: Dictionary) -> Control:
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 0)
-	var name_l := _label(FONT_BODY, 16, TEXT)
+	var name_l := _label(FONT_BODY, 18, TEXT)
 	name_l.text = "%s  (%s)" % [tr("BOOK_RECIPE_" + id.to_upper()), tr("BOOK_METHOD_" + String(r.method).to_upper())]
 	v.add_child(name_l)
 	var row := HBoxContainer.new()
@@ -356,7 +356,7 @@ func _recipe_entry(id: String, r: Dictionary) -> Control:
 
 
 func _plus(row: Control) -> void:
-	var l := _label(FONT_BODY, 16, GOLD_DK)
+	var l := _label(FONT_BODY, 18, GOLD_DK)
 	l.text = "+"
 	row.add_child(l)
 
@@ -373,13 +373,13 @@ func _add_slot(row: Control, slot: Variant) -> void:
 			if ings.has(t) and int(ings[t].get("priority", 0)) == 0 and slot.groups.has(ings[t].group):
 				names.append(t)
 	elif slot.has("recipe"):
-		var l := _label(FONT_BODY, 16, TEXT)
+		var l := _label(FONT_BODY, 18, TEXT)
 		l.text = tr("BOOK_RECIPE_" + String(slot.recipe).to_upper())
 		row.add_child(l)
 	for t in names:
 		if int(ings.get(t, {}).get("priority", 0)) == 0:
 			_icon(row, t)
-	var c := _label(FONT_BODY, 16, TEXT)
+	var c := _label(FONT_BODY, 18, TEXT)
 	c.text = "x%d" % int(slot.get("count", 1))
 	row.add_child(c)
 
@@ -415,7 +415,7 @@ func _variant_row(key: String, rec: Dictionary) -> Control:
 	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mid.alignment = BoxContainer.ALIGNMENT_CENTER
 	h.add_child(mid)
-	var nm := _label(FONT_BODY, 16, TEXT)
+	var nm := _label(FONT_BODY, 18, TEXT)
 	nm.text = String(desc.name)
 	nm.clip_text = true
 	mid.add_child(nm)
@@ -425,7 +425,7 @@ func _variant_row(key: String, rec: Dictionary) -> Control:
 	sr.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	mid.add_child(sr)
 	sr.set_stars(bq, clampi(bs - bq, 0, 2))
-	var pl := _label(FONT_BODY, 16, TEXT)
+	var pl := _label(FONT_BODY, 18, TEXT)
 	pl.text = "%s  x%d" % [desc.profile_label, int(rec.get("count", 1))]
 	pl.clip_text = true
 	mid.add_child(pl)
@@ -500,13 +500,13 @@ func _variety_cell(variety: Dictionary, found: bool) -> Control:
 		ib.add_child(SwatchBar.new().setup(ProductGen.fill_tones(variety, "")))
 	else:
 		_icon(ib, type, SILHOUETTE)
-	var nm := _label(FONT_BODY, 16, TEXT if found else PAPER_DK)
+	var nm := _label(FONT_BODY, 18, TEXT if found else PAPER_DK)
 	nm.text = _short_name(variety) if found else tr("BOOK_UNKNOWN")
 	nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	nm.clip_text = true
 	nm.custom_minimum_size.x = 50
 	c.add_child(nm)
-	var rl := _label(FONT_BODY, 16, PAPER_DK)
+	var rl := _label(FONT_BODY, 18, PAPER_DK)
 	rl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	rl.custom_minimum_size.x = 50
 	if found:

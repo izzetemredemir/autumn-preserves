@@ -106,7 +106,7 @@ func _label(pos: Vector2, key: String) -> Label:
 	l.text = key  # Label auto-translates keys
 	l.position = pos
 	l.add_theme_color_override("font_color", C_TEXT)
-	l.add_theme_font_size_override("font_size", 10)
+	l.add_theme_font_size_override("font_size", 18)
 	add_child(l)
 	return l
 

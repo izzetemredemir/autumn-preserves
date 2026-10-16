@@ -178,8 +178,8 @@ content_margin_bottom = 6
 axis_stretch_horizontal = 0
 axis_stretch_vertical = 0
 [resource]
-default_font = ExtResource("1_body")
-default_font_size = 16
+default_font = ExtResource("2_head")
+default_font_size = 18
 Label/colors/font_color = Color(0.9490, 0.8510, 0.7725, 1)
 Label/colors/font_shadow_color = Color(0.0667, 0.0627, 0.0627, 1)
 Label/constants/shadow_offset_x = 1

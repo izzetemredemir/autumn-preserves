@@ -25,7 +25,7 @@ const STAR := [
 	".##.##.",
 	".#...#.",
 ]
-const FONT_BODY := preload("res://assets/fonts/m5x7.ttf")
+const FONT_BODY := preload("res://assets/fonts/m6x11plus.ttf")
 const FONT_TITLE := preload("res://assets/fonts/m6x11plus.ttf")
 
 var _built := false
@@ -132,7 +132,7 @@ func _build() -> void:
 	var right := VBoxContainer.new()
 	right.add_theme_constant_override("separation", 2)
 	hb.add_child(right)
-	_profile = _label(FONT_BODY, 16, TEXT)
+	_profile = _label(FONT_BODY, 18, TEXT)
 	_profile.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	right.add_child(_profile)
 	_chart = TasteChart.new()
@@ -142,13 +142,13 @@ func _build() -> void:
 	_stars.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	vb.add_child(_stars)
 
-	_value = _label(FONT_BODY, 16, TEXT)
+	_value = _label(FONT_BODY, 18, TEXT)
 	vb.add_child(_value)
 
 	_button = Button.new()
 	_button.text = tr("UI_CONTINUE")
 	_button.add_theme_font_override("font", FONT_BODY)
-	_button.add_theme_font_size_override("font_size", 16)
+	_button.add_theme_font_size_override("font_size", 18)
 	_button.add_theme_color_override("font_color", PAPER)
 	_button.add_theme_color_override("font_hover_color", Color("dbcc83"))
 	_button.add_theme_color_override("font_focus_color", PAPER)
@@ -220,7 +220,7 @@ class TasteChart extends Control:
 	func _draw() -> void:
 		for i in 5:
 			var y := i * 11
-			draw_string(FONT_BODY, Vector2(0, y + 8), tr("UI_TASTE_" + AXES[i].to_upper()), HORIZONTAL_ALIGNMENT_LEFT, 40, 16, TEXT)
+			draw_string(FONT_BODY, Vector2(0, y + 8), tr("UI_TASTE_" + AXES[i].to_upper()), HORIZONTAL_ALIGNMENT_LEFT, 40, 18, TEXT)
 			var v := clampi(int(taste[i]) if i < taste.size() else 0, 0, 9)
 			for c in 9:
 				draw_rect(Rect2(42 + c * 7, y + 1, 6, 7), AXIS_COLORS[i] if c < v else EMPTY)
