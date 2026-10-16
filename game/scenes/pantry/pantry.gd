@@ -285,6 +285,7 @@ func _on_stars_changed(result: Dictionary, prev: Dictionary) -> void:
 	var per := int(Data.rules().energy.pantry_bonus_per_star)
 	bonus.text = tr("PANTRY_BONUS") % (n * per) if n > 0 else tr("PANTRY_BONUS_NONE")
 	if n >= 3 and not first and int(prev.get("stars", 0)) < 3:
+		Audio.play_jingle("jgl_pantry_3stars")
 		_show_lovely()
 
 

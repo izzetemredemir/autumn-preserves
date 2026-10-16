@@ -558,6 +558,7 @@ func _do_fulfill(ref: Dictionary) -> void:
 		Hud.toast("TOWN_DELIVERED_HEART", [int(res.coins)])
 	else:
 		Hud.toast("TOWN_DELIVERED", [int(res.coins)])
+	Audio.play_jingle("jgl_order_done")
 	_show_rewards(1.6)
 
 
