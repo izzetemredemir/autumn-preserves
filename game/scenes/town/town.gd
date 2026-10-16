@@ -5,11 +5,14 @@ extends Control
 
 const ICONS_JSON := "res://assets/sprites/icons/icons.json"
 const ICONS_PNG := "res://assets/sprites/icons/icons.png"
+const PANEL_Y := 146  # the panel covers the lower ~44%; the painted shopfront stays visible above it
+const ROWS := 3
 const NPC_IDS := ["grocer", "baker", "postman"]
 
 var _tab := "grocer"
 var _sub := "buy"
 var _npc := "grocer"
+var _page := 0
 var _picker: Dictionary = {}  # {} or {"kind": "order"|"gift", "id": order id or npc id}
 var _content: VBoxContainer
 var _tab_buttons: Dictionary = {}
@@ -101,6 +104,7 @@ func _build() -> void:
 		b.text = t[1]
 		b.position = Vector2(x, 38)
 		b.size = Vector2(88, 20)
+		_style_toggle(b)
 		b.pressed.connect(_on_tab.bind(t[0]))
 		add_child(b)
 		_tab_buttons[t[0]] = b
@@ -118,20 +122,33 @@ func _build() -> void:
 	back.pressed.connect(_on_back)
 	add_child(back)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(8, 120)
-	panel.size = Vector2(464, 144)
+	panel.position = Vector2(8, PANEL_Y)
+	panel.size = Vector2(464, 270 - PANEL_Y - 4)
+	panel.clip_contents = true
 	add_child(panel)
-	var scroll := ScrollContainer.new()
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	panel.add_child(scroll)
 	_content = VBoxContainer.new()
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_content.add_theme_constant_override("separation", 2)
-	scroll.add_child(_content)
+	_content.add_theme_constant_override("separation", 1)
+	panel.add_child(_content)
+
+
+## Selected tabs are shown pressed (not disabled) with a bright label.
+func _style_toggle(b: Button) -> void:
+	b.toggle_mode = true
+	b.focus_mode = Control.FOCUS_ALL
+	var cream := Color(0.949, 0.851, 0.7725)
+	for k in ["font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
+		b.add_theme_color_override(k, cream)
+
+
+func _mark(b: Button, on: bool) -> void:
+	_style_toggle(b)
+	b.set_pressed_no_signal(on)
 
 
 func _on_tab(id: String) -> void:
 	_tab = id
+	_page = 0
 	_picker = {}
 	_render()
 
@@ -162,7 +179,7 @@ func _render() -> void:
 		_content.remove_child(c)
 		c.queue_free()
 	for id in _tab_buttons:
-		(_tab_buttons[id] as Button).disabled = id == _tab
+		(_tab_buttons[id] as Button).set_pressed_no_signal(id == _tab)
 	if not _picker.is_empty():
 		_render_picker()
 		return
@@ -193,6 +210,28 @@ func _button(text: String, cb: Callable, disabled := false) -> Button:
 	b.disabled = disabled
 	b.pressed.connect(cb)
 	return b
+
+
+## "< 1/2 >" for lists longer than one page; returns the first and last index to show.
+func _pager(head: HBoxContainer, total: int, per: int) -> Vector2i:
+	var pages := maxi(1, ceili(float(total) / per))
+	_page = clampi(_page, 0, pages - 1)
+	if pages > 1:
+		var prev := _button("<", _turn.bind(-1), _page == 0)
+		prev.custom_minimum_size = Vector2(22, 18)
+		head.add_child(prev)
+		var num := Label.new()
+		num.text = "%d/%d" % [_page + 1, pages]
+		head.add_child(num)
+		var nxt := _button(">", _turn.bind(1), _page == pages - 1)
+		nxt.custom_minimum_size = Vector2(22, 18)
+		head.add_child(nxt)
+	return Vector2i(_page * per, mini(total, _page * per + per))
+
+
+func _turn(dir: int) -> void:
+	_page += dir
+	_render()
 
 
 func _row(icon: Control, text: String, btn_text: String, cb: Callable, disabled := false) -> HBoxContainer:
@@ -258,18 +297,23 @@ func _item_icon(item: Dictionary) -> Control:
 func _render_grocer() -> void:
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 6)
-	head.add_child(_button(tr("TOWN_BUY"), _set_sub.bind("buy"), _sub == "buy"))
-	head.add_child(_button(tr("TOWN_SELL"), _set_sub.bind("sell"), _sub == "sell"))
+	var buy := _button(tr("TOWN_BUY"), _set_sub.bind("buy"))
+	var sell := _button(tr("TOWN_SELL"), _set_sub.bind("sell"))
+	_mark(buy, _sub == "buy")
+	_mark(sell, _sub == "sell")
+	head.add_child(buy)
+	head.add_child(sell)
 	head.add_child(_label(tr("TOWN_GROCER_HELLO")))
 	_content.add_child(head)
 	if _sub == "buy":
-		_render_buy()
+		_render_buy(head)
 	else:
-		_render_sell()
+		_render_sell(head)
 
 
 func _set_sub(s: String) -> void:
 	_sub = s
+	_page = 0
 	_render()
 
 
@@ -286,12 +330,15 @@ func _shop_name(id: String) -> String:
 	return tr("TOWN_ITEM_" + id.to_upper())
 
 
-func _render_buy() -> void:
+func _render_buy(head: HBoxContainer) -> void:
 	var d: Dictionary = GameState.data
+	var ids: Array = []
 	for id in _shop_ids():
+		if Economy.price(d, id) >= 0:
+			ids.append(id)
+	var r := _pager(head, ids.size(), ROWS)
+	for id in ids.slice(r.x, r.y):
 		var price := Economy.price(d, id)
-		if price < 0:
-			continue
 		var text := _shop_name(id)
 		if d.cupboard.has(id):
 			text += "  " + tr("TOWN_HAVE") % int(d.cupboard[id])
@@ -308,13 +355,14 @@ func _on_buy(id: String) -> void:
 	Hud.toast("TOWN_BOUGHT", [_shop_name(id), int(res.spent)])
 
 
-func _render_sell() -> void:
+func _render_sell(head: HBoxContainer) -> void:
 	var d: Dictionary = GameState.data
 	var list := _sellables()
 	if list.is_empty():
 		_content.add_child(_label(tr("TOWN_NOTHING_TO_SELL")))
 		return
-	for e in list:
+	var r := _pager(head, list.size(), ROWS)
+	for e in list.slice(r.x, r.y):
 		var price := Economy.sell_price(e.item, d.varieties)
 		var text := "%s  -  %s" % [_item_name(e.item), tr("TOWN_PRICE") % price]
 		_row(_item_icon(e.item), text, tr("TOWN_SELL"), _on_sell.bind(e.ref))
@@ -356,13 +404,29 @@ func _render_orders() -> void:
 	if d.orders.is_empty():
 		_content.add_child(_label(tr("TOWN_NO_ORDERS")))
 		return
-	for o in d.orders:
+	var pager := HBoxContainer.new()
+	pager.add_theme_constant_override("separation", 2)
+	var r := _pager(pager, d.orders.size(), 2)
+	var first := true
+	for o in d.orders.slice(r.x, r.y):
 		var left := int(o.expires_day) - int(d.day)
 		var days := tr("TOWN_LAST_DAY") if left <= 1 else tr("TOWN_DAYS_LEFT") % left
 		var face := Bust.new()
 		face.npc_id = o.npc
 		face.custom_minimum_size = Vector2(48, 48)
-		_row(face, "%s\n%s" % [_order_text(o), days], tr("TOWN_DELIVER"), _on_deliver.bind(int(o.id)))
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 6)
+		row.add_child(face)
+		row.add_child(_label("%s\n%s" % [_order_text(o), days], 250))
+		var col := VBoxContainer.new()
+		col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		col.add_theme_constant_override("separation", 2)
+		col.add_child(_button(tr("TOWN_DELIVER"), _on_deliver.bind(int(o.id))))
+		if first and pager.get_child_count() > 0:
+			col.add_child(pager)
+		first = false
+		row.add_child(col)
+		_content.add_child(row)
 
 
 func _order_by_id(id: int) -> Dictionary:
@@ -377,6 +441,7 @@ func _on_deliver(order_id: int) -> void:
 	for e in _products():
 		if Orders.matches(o, e.item, GameState.data.varieties):
 			_picker = {"kind": "order", "id": order_id}
+			_page = 0
 			_render()
 			return
 	Hud.toast("UI_ORDER_NO_MATCH")
@@ -396,7 +461,7 @@ func _render_neighbours() -> void:
 		var b := Button.new()
 		b.text = Data.npcs()[id].name
 		b.custom_minimum_size = Vector2(104, 22)
-		b.disabled = id == _npc
+		_mark(b, id == _npc)
 		b.pressed.connect(_select_npc.bind(id))
 		list.add_child(b)
 	var npc: Dictionary = Data.npcs()[_npc]
@@ -435,6 +500,7 @@ func _on_gift() -> void:
 		Hud.toast("TOWN_NO_JARS")
 		return
 	_picker = {"kind": "gift", "id": _npc}
+	_page = 0
 	_render()
 
 
@@ -448,26 +514,28 @@ func _render_picker() -> void:
 	if _picker.kind == "gift":
 		title = tr("TOWN_PICK_FOR_GIFT") % Data.npcs()[_picker.id].name
 	head.add_child(_label(title))
-	head.add_child(_button(tr("UI_CANCEL"), _close_picker))
-	_content.add_child(head)
 	var order: Dictionary = _order_by_id(int(_picker.id)) if _picker.kind == "order" else {}
-	var shown := 0
+	var list: Array = []
 	for e in _products():
+		if _picker.kind != "order" or Orders.matches(order, e.item, d.varieties):
+			list.append(e)
+	head.add_child(_button(tr("UI_CANCEL"), _close_picker))
+	var r := _pager(head, list.size(), 3)
+	_content.add_child(head)
+	for e in list.slice(r.x, r.y):
 		if _picker.kind == "order":
-			if not Orders.matches(order, e.item, d.varieties):
-				continue
 			var coins := floori(ProductGen.value(e.item.key, d.varieties, int(e.item.q)) * float(Data.rules().orders.reward_mult))
 			var text := "%s  -  %s" % [_item_name(e.item), tr("TOWN_REWARD") % coins]
 			_row(_item_icon(e.item), text, tr("TOWN_GIVE"), _do_fulfill.bind(e.ref))
 		else:
 			_row(_item_icon(e.item), _item_name(e.item), tr("TOWN_GIVE"), _do_gift.bind(e.ref))
-		shown += 1
-	if shown == 0:
+	if list.is_empty():
 		_content.add_child(_label(tr("UI_ORDER_NO_MATCH")))
 
 
 func _close_picker() -> void:
 	_picker = {}
+	_page = 0
 	_render()
 
 
