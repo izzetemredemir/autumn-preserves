@@ -2,22 +2,44 @@ extends Control
 ## Pantry (spec §7.4, tech-spec §7): shelf grid on the right (ArrangeBoard driven by PantryRules), inbox on the
 ## left, live stars, Auto-arrange and Back. Every move goes straight into GameState.data.pantry / inbox, followed
 ## by GameState.notify(["pantry", "inbox"]). Opened without a running game it starts seed 1 with sample items.
+## Bought shelves (PantryRules.add_shelf, up to 3) keep the painted look: every one makes the room one BAND taller
+## by repeating rows cut from BG (BG_STRIPS: a board, a name plate, a taller crate), and the room then scrolls
+## under the fixed left column (inbox, stars, buttons): mouse wheel or trackpad, drag on empty space, W/S or
+## Up/Down, and auto-scroll near the top/bottom edge while an item is held, so it can go on any shelf.
 
 const InboxView := preload("res://scenes/pantry/inbox_view.gd")
 const CELL := 24
 ## Aligned to the drawn shelves of BG (ART-BG-A): shelves x=312..456 (inner shelf 300..470), block tops y=8/68/128
 ## so each bottom row stands on a board (top surfaces y~48/105/165), floor block y=206..254 on the floor planks.
+## Bought shelves continue the rhythm (block tops 188/248/308, floor 60 px lower each) in room coordinates.
 const BG := "res://assets/sprites/scenes/bg_pantry.png"
 const BOARD_X := 312
 const BOARD_TOP := 8
 const BOARD_BOTTOM := 254
 const SHELF_GAP := 12
 const FLOOR_GAP := 30
-const TIGHT_GAP := 4
 const LABEL_W := 38
 ## Blank name plates painted on the shelf post of BG, one per base shelf (top to bottom): shelf labels sit on them.
 const PLATES := [Rect2i(261, 18, 36, 18), Rect2i(261, 75, 36, 18), Rect2i(261, 130, 36, 18)]
-## Fallback look (no art, or bought shelves that the art does not show): opaque cells and drawn shelf frames.
+## One shelf tier of the room (2 cell rows + SHELF_GAP): each bought shelf makes the room this much taller.
+const BAND := 60
+## Vertical strips of BG, each grown by BAND rows per bought shelf by repeating rows that tile seamlessly there
+## (no new art): [x0, x1, band_y, band_h, insert_y]. band_h divides BAND; rows from insert_y on slide down.
+const BG_STRIPS := [
+	[0, 122, 166, 30, 196],   # window wall, crate and bush: the crate grows taller
+	[122, 302, 100, 60, 160], # door and shelf post: one more name plate (a copy of PLATES[2], BAND lower each)
+	[302, 480, 80, 60, 140],  # shelves: one more board, cut through the dark back wall so no seam shows
+]
+## Scrolling (only when bought shelves make the room taller than the screen).
+const SCROLL_X := 258 # the shelf column: edge auto-scroll works right of this x
+const WHEEL_STEP := 24.0
+const PAN_STEP := 6.0 # trackpad pan gesture, px per unit of delta
+const EDGE := 18 # a held item this close to the top/bottom edge of the shelf column scrolls the room
+const EDGE_SPEED := 200.0
+const SCROLL_EASE := 14.0
+const SCROLL_MIN_SPEED := 90.0
+const SCROLL_BAR_X := 475 # arrows and thumb on the right shelf post (x 471..479), clear of plates and items
+## Fallback look (no art): opaque cells and drawn shelf frames.
 const ZONE_COLORS := {
 	"dry": ["50361e", "3d1f29"], "room": ["62272c", "3d1f29"], "cool": ["2e3f3f", "23282a"], "floor": ["49423d", "23282a"],
 }
@@ -37,6 +59,7 @@ const C_STONE_EDGE := Color("23282a")
 const C_TEXT := Color("f2d9c5")
 const C_TEXT_DIM := Color("b9a697")
 const C_TEXT_HI := Color("e5bd7f")
+const C_INK := Color("111010")
 
 @onready var board: ArrangeBoard = %Board
 @onready var inbox_view: InboxView = %Inbox
@@ -50,14 +73,29 @@ var _rule_labels: Array[Label] = []
 var _rule_icons: Array[TextureRect] = []
 var _zone_labels: Array[Label] = []
 var _label_zone: Array[String] = []
+## Unscrolled (room) y of each zone label.
+var _label_y: Array[int] = []
 var _blocks: Array[Rect2i] = []
 var _block_zone: Array[String] = []
 var _full: Texture2D
 var _empty: Texture2D
 var _bg: Texture2D
-## True when the board matches the shelves drawn in BG (base shelves, normal gaps).
+## True when the room is painted (BG loaded), for any number of bought shelves.
 var _on_art := false
 var _bubble_tween: Tween
+## Bought shelves below the base ones; the room is BAND px taller per shelf.
+var _extra := 0
+var _scroll := 0.0
+var _scroll_to := 0.0
+var _scroll_max := 0
+## Applied scroll in whole pixels: the room, board and shelf labels sit this much higher.
+var _offset := 0
+## Last pointer position (viewport), for edge auto-scroll and keeping a held item under the pointer.
+var _pointer := Vector2(-1, -1)
+var _panning := false
+## Edge auto-scroll waits until the held item has been outside the edge zone once (picking up near it is no move).
+var _edge_armed := false
+var _hints: Control
 
 
 func _ready() -> void:
@@ -69,7 +107,7 @@ func _ready() -> void:
 	var b := PantryRules.board_of(pantry)
 	_bg = load(BG) if ResourceLoader.exists(BG) else null
 	var layout := _layout(b)
-	board.position = Vector2(BOARD_X, int(layout.top))
+	board.position = Vector2(BOARD_X, BOARD_TOP)
 	board.view_factory = _make_view
 	board.sounds = SOUNDS
 	board.changed.connect(_on_board_changed)
@@ -83,10 +121,17 @@ func _ready() -> void:
 		"item_size": _item_size, "can_place": _can_place, "zone_for": _zone_for,
 		"in_correct_zone": _in_zone, "can_rotate": _can_rotate, "stars": _stars_now,
 	}, layout)
+	_scroll_max = maxi(0, BOARD_TOP + int(board.size.y) - BOARD_BOTTOM)
 	_build_blocks(b)
 	inbox_view.setup(data.inbox, board, _make_view)
 	%AutoArrange.pressed.connect(_on_auto)
 	%Back.pressed.connect(_on_back)
+	_hints = Control.new()
+	_hints.name = "ScrollHints"
+	_hints.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hints.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_hints)
+	_hints.draw.connect(_draw_scroll_hints)
 	_refresh_inbox_labels()
 	_set_hint("")
 	queue_redraw()
@@ -96,6 +141,121 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("cancel"):
 		get_viewport().set_input_as_handled()
 		_on_back()
+
+
+## Scrolling runs before the GUI so focused buttons do not eat Up/Down and the wheel works over the board.
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouse:
+		_pointer = (event as InputEventMouse).position
+	if _scroll_max <= 0 or not is_visible_in_tree():
+		return
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_WHEEL_UP or mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			if mb.pressed:
+				var f := clampf(mb.factor, 0.25, 4.0) if mb.factor > 0.0 else 1.0
+				scroll_to(_scroll_to + WHEEL_STEP * f * (-1.0 if mb.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0))
+			get_viewport().set_input_as_handled()
+		elif mb.button_index == MOUSE_BUTTON_LEFT:
+			_panning = mb.pressed and _is_empty_space(mb.position)
+	elif event is InputEventMouseMotion:
+		if not _panning:
+			return
+		var mm := event as InputEventMouseMotion
+		if board.is_holding() or (mm.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0:
+			_panning = false
+			return
+		scroll_to(_scroll_to - mm.relative.y, true)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventPanGesture:
+		scroll_to(_scroll_to + (event as InputEventPanGesture).delta.y * PAN_STEP, true)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventKey and event.is_pressed():
+		var dir := 1 if event.is_action("move_down") else (-1 if event.is_action("move_up") else 0)
+		if dir != 0:
+			scroll_to(snappedf(_scroll_to, BAND) + dir * BAND)
+			get_viewport().set_input_as_handled()
+
+
+func _process(delta: float) -> void:
+	if _scroll_max <= 0:
+		return
+	if board.is_holding():
+		var dir := _edge_dir(_pointer)
+		if dir == 0:
+			_edge_armed = true
+		elif _edge_armed and _pointer.x >= SCROLL_X:
+			scroll_to(_scroll_to + dir * EDGE_SPEED * delta, true)
+			return
+	if _scroll != _scroll_to:
+		var ease_step := absf(_scroll_to - _scroll) * (1.0 - exp(-SCROLL_EASE * delta))
+		_scroll = move_toward(_scroll, _scroll_to, maxf(ease_step, SCROLL_MIN_SPEED * delta))
+		_apply_scroll()
+
+
+# --- scrolling (public for scripted demos and the smoke shot) ---------------------------------------------------
+
+## Scrolls the room so room row `y` is at the top of the screen (clamped). `instant` skips the easing.
+func scroll_to(y: float, instant := false) -> void:
+	_scroll_to = clampf(y, 0.0, float(_scroll_max))
+	if instant:
+		_scroll = _scroll_to
+		_apply_scroll()
+
+
+func scroll_offset() -> int:
+	return _offset
+
+
+func scroll_max() -> int:
+	return _scroll_max
+
+
+func on_art() -> bool:
+	return _on_art
+
+
+## Name plate of shelf `i` in room coordinates: the three painted ones, then one copy per bought shelf.
+static func plate_rect(i: int) -> Rect2i:
+	if i < PLATES.size():
+		return PLATES[i]
+	var last: Rect2i = PLATES[PLATES.size() - 1]
+	return Rect2i(last.position + Vector2i(0, BAND * (i - PLATES.size() + 1)), last.size)
+
+
+func _apply_scroll() -> void:
+	var off := clampi(roundi(_scroll), 0, _scroll_max)
+	if off == _offset:
+		return
+	_offset = off
+	board.position.y = BOARD_TOP - off
+	for i in _zone_labels.size():
+		_zone_labels[i].position.y = _label_y[i] - off
+	if board.is_holding() and _pointer.x >= 0.0:
+		board.move_hold_to(board.get_global_transform_with_canvas().affine_inverse() * _pointer)
+	queue_redraw()
+	_hints.queue_redraw()
+
+
+## -1 / 1 when `p` is in the top / bottom auto-scroll zone of the screen, else 0.
+func _edge_dir(p: Vector2) -> int:
+	if p.y < EDGE:
+		return -1
+	if p.y >= size.y - EDGE:
+		return 1
+	return 0
+
+
+## Drag-to-scroll starts on empty space only: not the inbox, a button or a shelf item, with nothing in hand.
+func _is_empty_space(p: Vector2) -> bool:
+	if board.is_holding() or not get_global_rect().has_point(p):
+		return false
+	for c: Control in [inbox_view, %AutoArrange, %Back]:
+		if c.get_global_rect().has_point(p):
+			return false
+	if board.get_global_rect().has_point(p):
+		return board.entry_index_at(board.get_global_transform_with_canvas().affine_inverse() * p) < 0
+	return true
 
 
 ## Test and first-run content: a few of every kind and size (jars, bottle, pie, bread, fresh stacks, nuts).
@@ -151,39 +311,32 @@ func _make_view(item: Dictionary, rot: int, px: Vector2i) -> Control:
 
 # --- layout ------------------------------------------------------------------------------------------------------
 
-## Row gaps between shelves and above the floor; tighter when bought shelves would push the floor off screen.
+## Same gaps for every shelf count (one shelf tier = BAND px): bought shelves make the room taller, never tighter.
 func _layout(b: Dictionary) -> Dictionary:
 	var rows := int(b.rows)
 	var floor_y := int(b.get("floor_y", rows))
 	var shelves: Array = b.get("shelves", [])
-	var shelf_gap := SHELF_GAP
-	var floor_gap := FLOOR_GAP if floor_y < rows else 0
-	var top := BOARD_TOP
-	var height := rows * CELL + maxi(shelves.size() - 1, 0) * shelf_gap + floor_gap
-	if top + height > BOARD_BOTTOM:
-		shelf_gap = TIGHT_GAP
-		floor_gap = TIGHT_GAP if floor_y < rows else 0
-		height = rows * CELL + maxi(shelves.size() - 1, 0) * shelf_gap + floor_gap
-		top = maxi(4, BOARD_BOTTOM - height)
 	var gaps := {}
 	for sh in shelves:
 		if int(sh.y) > 0:
-			gaps[int(sh.y)] = shelf_gap
+			gaps[int(sh.y)] = SHELF_GAP
 	if floor_y > 0 and floor_y < rows:
-		gaps[floor_y] = floor_gap
-	_on_art = _bg != null and shelves.size() == PLATES.size() and top == BOARD_TOP and shelf_gap == SHELF_GAP
-	return {"cell": CELL, "row_gaps": gaps, "zone_colors": ZONE_TINTS if _on_art else ZONE_COLORS, "top": top}
+		gaps[floor_y] = FLOOR_GAP
+	_extra = maxi(shelves.size() - PLATES.size(), 0)
+	_on_art = _bg != null
+	return {"cell": CELL, "row_gaps": gaps, "zone_colors": ZONE_TINTS if _on_art else ZONE_COLORS}
 
 
 func _build_blocks(b: Dictionary) -> void:
 	for sh in b.get("shelves", []):
-		_add_block(int(sh.y), int(sh.rows), String(sh.zone))
+		_add_block(int(sh.y), int(sh.rows), String(sh.zone), true)
 	var floor_y := int(b.get("floor_y", int(b.rows)))
 	if floor_y < int(b.rows):
-		_add_block(floor_y, int(b.rows) - floor_y, String(Data.rules().pantry.floor.zone))
+		_add_block(floor_y, int(b.rows) - floor_y, String(Data.rules().pantry.floor.zone), false)
 
 
-func _add_block(y0: int, n: int, zone: String) -> void:
+## A shelf's label sits on its painted name plate; the floor's (and every label without art) beside its block.
+func _add_block(y0: int, n: int, zone: String, shelf: bool) -> void:
 	var rect := Rect2i()
 	var found := false
 	for y in range(y0, y0 + n):
@@ -199,19 +352,20 @@ func _add_block(y0: int, n: int, zone: String) -> void:
 	_block_zone.append(zone)
 	var l := Label.new()
 	l.text = _zone_name(zone)
-	var plate := _blocks.size() - 1
-	if _on_art and plate < PLATES.size():
+	if _on_art and shelf:
+		var plate := plate_rect(_blocks.size() - 1)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		l.position = Vector2(PLATES[plate].position)
-		l.size = Vector2(PLATES[plate].size)
+		l.position = Vector2(plate.position)
+		l.size = Vector2(plate.size)
 	else:
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		l.position = Vector2(BOARD_X - LABEL_W - 6, int(board.position.y) + rect.position.y + 3)
+		l.position = Vector2(BOARD_X - LABEL_W - 6, BOARD_TOP + rect.position.y + 3)
 		l.size = Vector2(LABEL_W, 16)
 	l.add_theme_color_override("font_color", C_TEXT_DIM)
 	add_child(l)
 	_zone_labels.append(l)
 	_label_zone.append(zone)
+	_label_y.append(int(l.position.y))
 
 
 func _build_rule_stars() -> void:
@@ -290,6 +444,7 @@ func _on_stars_changed(result: Dictionary, prev: Dictionary) -> void:
 
 
 func _on_hold_started(item: Dictionary, _from: Dictionary) -> void:
+	_edge_armed = _edge_dir(_pointer) == 0
 	_set_hint(PantryRules.zone_for(item))
 	inbox_empty.visible = false
 
@@ -359,13 +514,15 @@ func _draw() -> void:
 	var w := int(size.x)
 	var h := int(size.y)
 	if _bg != null:
-		draw_texture(_bg, Vector2.ZERO)
+		_draw_room()
 	else:
 		draw_rect(Rect2(0, 0, w, h), C_WALL)
 		for x in range(8, w, 16):
 			draw_rect(Rect2(x, 0, 1, h), C_WALL_LINE)
-		draw_rect(Rect2(0, 258, w, h - 258), C_WOOD_DARK)
-		draw_rect(Rect2(0, 258, w, 1), C_WOOD)
+		var fy := 258 + BAND * _extra - _offset
+		if fy < h:
+			draw_rect(Rect2(0, fy, w, h - fy), C_WOOD_DARK)
+			draw_rect(Rect2(0, fy, w, 1), C_WOOD)
 	var origin := Vector2i(board.position)
 	if _on_art:
 		for i in _blocks.size():
@@ -381,3 +538,54 @@ func _draw() -> void:
 		draw_rect(Rect2(r.position.x - 4, r.position.y - 4, r.size.x + 8, 1), C_WOOD_HI)
 		draw_rect(Rect2(r.position.x - 4, r.end.y + 3, r.size.x + 8, 1), C_WOOD_DARK)
 		draw_rect(Rect2(r.grow(1)), C_STONE_EDGE if is_floor else C_WOOD_DARK)
+
+
+## BG with BAND more rows per bought shelf in every strip (BG_STRIPS), scrolled up by _offset.
+func _draw_room() -> void:
+	var grow := BAND * _extra
+	var bg_h := _bg.get_height()
+	for s: Array in BG_STRIPS:
+		var x0 := int(s[0])
+		var w := int(s[1]) - x0
+		var band_y := int(s[2])
+		var band_h := int(s[3])
+		var at := int(s[4])
+		_blit(Rect2i(x0, 0, w, at), 0)
+		for n in floori(grow / float(band_h)):
+			_blit(Rect2i(x0, band_y, w, band_h), at + n * band_h)
+		_blit(Rect2i(x0, at, w, bg_h - at), at + grow)
+
+
+## Draws the BG region `src` at room row `y`, skipped when it is off screen.
+func _blit(src: Rect2i, y: int) -> void:
+	var dy := y - _offset
+	if dy + src.size.y <= 0 or dy >= int(size.y):
+		return
+	draw_texture_rect_region(_bg, Rect2(src.position.x, dy, src.size.x, src.size.y), Rect2(src))
+
+
+## Scroll bar on the right shelf post: an arrow where more shelves wait, a thumb for where the view is.
+func _draw_scroll_hints() -> void:
+	if _scroll_max <= 0:
+		return
+	var h := int(size.y)
+	var top := 9
+	var track := h - 2 * top
+	var thumb := maxi(12, floori(track * h / float(h + _scroll_max)))
+	var ty := top + roundi(float(_offset) * (track - thumb) / _scroll_max)
+	_hints.draw_rect(Rect2(SCROLL_BAR_X - 1, ty, 4, thumb), C_INK)
+	_hints.draw_rect(Rect2(SCROLL_BAR_X, ty + 1, 2, thumb - 2), C_TEXT_HI)
+	if _offset > 0:
+		_arrow(Vector2i(SCROLL_BAR_X, 2), -1)
+	if _offset < _scroll_max:
+		_arrow(Vector2i(SCROLL_BAR_X, h - 7), 1)
+
+
+## 7x4 arrow inside a 1-px ink outline (9x6 from at.y - 1), centred on `at.x`; dir 1 points down.
+func _arrow(at: Vector2i, dir: int) -> void:
+	for k in 6:
+		var y := at.y - 1 + (k if dir > 0 else 5 - k)
+		var half := 4 - maxi(k - 1, 0)
+		_hints.draw_rect(Rect2(at.x - half, y, 2 * half + 1, 1), C_INK)
+		if k >= 1 and k <= 4:
+			_hints.draw_rect(Rect2(at.x - half + 1, y, 2 * half - 1, 1), C_TEXT_HI)

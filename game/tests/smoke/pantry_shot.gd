@@ -3,7 +3,14 @@ extends SceneTree
 ## (inbox -> shelf drag, right click while holding and on a shelf item, R on hover, shelf -> shelf, shelf -> inbox,
 ## tap-tap pick and place, Esc, Auto-arrange, live stars). Then a 2-star pantry gets its third star by one drag
 ## ("Ohh, lovely") and a jar is held over the cool shelf for user://shots/pantry.png. In-memory seed-1 game, no save.
-##   godot --path game -s res://tests/smoke/pantry_shot.gd      (needs a display; exit 1 when a check fails)
+## POLISH-PANTRY: with 1 and 3 bought shelves the room stays painted (labels on plates, no off-palette pixel in any
+## shot) and scrolls: wheel, drag on empty space, W/S + Up/Down, and a held item reaches the lowest shelf by mouse
+## (edge auto-scroll) and by keyboard (tap, S/Down, tap) -> user://shots/pantry_rows1.png, pantry_rows3.png.
+##   godot --audio-driver Dummy --path game -s res://tests/smoke/pantry_shot.gd   (needs a display; exit 1 on a fail)
+
+const PAL := ["111010", "a22512", "c94d2e", "e19064", "49423d", "81746a", "b9a697", "f2d9c5", "50361e", "b66813",
+	"c58845", "83571e", "e5bd7f", "9b8039", "dbcc83", "b1a13d", "c5bf3f", "b4b3a0", "b7b768", "747c37", "53612e",
+	"314524", "738c7a", "4e7664", "275e4c", "2e3f3f", "415c5d", "567c7d", "23282a", "3d1f29", "62272c"]
 
 var _gs: Node
 var _scene: Control
@@ -30,13 +37,25 @@ func _run() -> void:
 	await process_frame
 	await _open(_shot_state())
 	_shot_moves()
-	for i in 20:
-		await process_frame
-	var dir := "user://shots"
-	DirAccess.make_dir_recursive_absolute(dir)
-	RenderingServer.force_draw(false)
-	root.get_texture().get_image().save_png(dir + "/pantry.png")
-	print("saved ", ProjectSettings.globalize_path(dir + "/pantry.png"))
+	await _frames(20)
+	_painted_checks(0)
+	_shot("pantry.png")
+	_board.cancel_hold()
+	_scene.queue_free()
+	await process_frame
+
+	await _open(_bought_state(1))
+	_painted_checks(1)
+	await _wheel_checks()
+	_shot("pantry_rows1.png")
+	_scene.queue_free()
+	await process_frame
+
+	await _open(_bought_state(3))
+	_painted_checks(3)
+	_pan_checks()
+	await _lowest_shelf_checks()
+	_shot("pantry_rows3.png")
 	print("pantry smoke: %d checks, %d failed" % [_checks, _fails])
 	quit(1 if _fails > 0 else 0)
 
@@ -158,7 +177,184 @@ func _shot_moves() -> void:
 	_move(_cell(Vector2i(3, 5)) + Vector2(2, 1))
 
 
+# --- bought shelves (POLISH-PANTRY) ------------------------------------------------------------------------------
+
+## A few items on every shelf (bought ones too) and a pear basket on the floor.
+func _bought_state(n: int) -> Dictionary:
+	var s := State.new_game(1)
+	for i in n:
+		PantryRules.add_shelf(s.pantry)
+	var items: Array = s.pantry.items
+	items.append(_e(State.nut("walnut", 8), 0, 0))
+	items.append(_e(State.product("bread|-", 1, 0, 3), 1, 0))
+	for i in 4:
+		items.append(_e(State.product(["jam|quince_1|-", "jam|pear_2|-", "jam|apple_1|-", "jam|crabapple_1|-"][i], 2, 0), i, 2))
+	items.append(_e(State.product("pickle|cucumber_1|-", 2, 2), 0, 4))
+	items.append(_e(State.fresh("apple_1", 5, 6), 1, 5))
+	var bought: Array = [
+		[State.product("chutney|pear_1|pepper_1|-", 2, 0), State.product("juice|apple_2|-", 2, 0), State.product("pie|apple_1|-", 3, 0, 3)],
+		[State.product("pickle|cucumber_2|-", 1, 2), State.product("brined_mushroom|chanterelle_1|-", 2, 1), State.fresh("blackberry_2", 3, 2)],
+		[State.nut("hazelnut", 6), State.product("bread|-", 2, 0, 3), State.nut("walnut", 4)],
+	]
+	var cells: Array = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(3, 1)]
+	var cells_dry: Array = [Vector2i(5, 0), Vector2i(4, 1), Vector2i(1, 1)]
+	for k in n:
+		for j in 3:
+			var c: Vector2i = (cells_dry if k == 2 else cells)[j]
+			items.append(_e(bought[k][j], c.x, 6 + 2 * k + c.y))
+	items.append(_e(State.fresh("pear_2", 3, 5), 0, 6 + 2 * n))
+	s.inbox = [State.product("jam|pear_1|-", 2, 0), State.product("pickle|cucumber_3|-", 3, 2),
+		State.fresh("chanterelle_1", 2, 2), State.fresh("pear_3", 4, 4)]
+	return s
+
+
+## Painted look for any shelf count: art on, scroll range = one band per bought shelf, every shelf label on its plate.
+func _painted_checks(n: int) -> void:
+	var shelves: Array = _board.board.get("shelves", [])
+	_check("%d bought: painted look" % n, bool(_scene.call("on_art")))
+	_check("%d bought: scroll range %d" % [n, 60 * n], int(_scene.call("scroll_max")) == 60 * n)
+	var labels: Array = _scene.get("_zone_labels")
+	var off := int(_scene.call("scroll_offset"))
+	var on_plates := labels.size() == shelves.size() + 1
+	for i in shelves.size():
+		var plate: Rect2i = _scene.call("plate_rect", i)
+		var l: Label = labels[i]
+		on_plates = on_plates and Vector2i(l.position) == plate.position - Vector2i(0, off) and Vector2i(l.size) == plate.size
+	_check("%d bought: %d shelf labels on name plates" % [n, shelves.size()], on_plates)
+
+
+func _wheel_checks() -> void:
+	var p := _board.get_global_rect().get_center()
+	_wheel(p, MOUSE_BUTTON_WHEEL_DOWN, 2)
+	await _settle()
+	_check("wheel down scrolls (%d)" % _offset(), _offset() == 48)
+	_wheel(p, MOUSE_BUTTON_WHEEL_DOWN, 3)
+	await _settle()
+	_check("wheel stops at the bottom (%d)" % _offset(), _offset() == 60)
+	_wheel(p, MOUSE_BUTTON_WHEEL_UP, 4)
+	await _settle()
+	_check("wheel up back to the top (%d)" % _offset(), _offset() == 0)
+
+
+func _pan_checks() -> void:
+	var d: Dictionary = _gs.get("data")
+	var empty := _cell(Vector2i(5, 1))
+	_check("pan starts on an empty cell", _at(d.pantry.items, Vector2i(5, 1)) == "")
+	_move(empty)
+	_press(empty)
+	_move(empty + Vector2(0, -50))
+	_move(empty + Vector2(0, -100))
+	_check("drag on empty space scrolls (%d)" % _offset(), _offset() == 100)
+	_move(empty + Vector2(0, -40))
+	_release(empty + Vector2(0, -40))
+	_check("dragging back scrolls back (%d)" % _offset(), _offset() == 40)
+	var jar := _cell(Vector2i(0, 4))
+	_move(jar)
+	_press(jar)
+	_move(jar + Vector2(0, -30))
+	_check("dragging an item does not scroll", _offset() == 40 and _board.is_holding())
+	_key(KEY_ESCAPE)
+	_release(jar + Vector2(0, -30))
+	_scene.call("scroll_to", 0.0, true)
+
+
+## Mouse: inbox jar dragged to the bottom edge auto-scrolls to the lowest shelf and drops there. Keyboard: W x3 to
+## the top, tap a pickle, Down x3, tap on the lowest shelf. Last: a chanterelle held over the lowest shelf for the shot.
+func _lowest_shelf_checks() -> void:
+	var d: Dictionary = _gs.get("data")
+	var items: Array = d.pantry.items
+	var low := int(_board.board.rows) - 3
+	_check("lowest shelf is row %d (dry)" % low, _board.zone_at(Vector2i(0, low)) == "dry" and int(_board.board.floor_y) == low + 1)
+	var max_off := int(_scene.call("scroll_max"))
+
+	var start := _slot(_find(d.inbox, "jam|pear_1|-"))
+	_press(start)
+	_move(start + Vector2(30, 0))
+	_move(Vector2(384, 266))
+	for i in 240:
+		if _offset() >= max_off:
+			break
+		await process_frame
+	_check("held at the bottom edge auto-scrolls to the end (%d)" % _offset(), _offset() == max_off)
+	_move(_cell(Vector2i(2, low)))
+	await _frames(5)
+	_release(_cell(Vector2i(2, low)))
+	var jam := _entry(items, "jam|pear_1|-")
+	_check("mouse: jar dropped on the lowest shelf", not jam.is_empty() and int(jam.y) == low and int(jam.x) == 2)
+
+	for i in 3:
+		_key(KEY_W)
+	await _settle()
+	_check("W scrolls back to the top (%d)" % _offset(), _offset() == 0)
+	var pk := _slot(_find(d.inbox, "pickle|cucumber_3|-"))
+	_move(pk)
+	_press(pk)
+	_release(pk)
+	_check("keyboard: tap holds the pickle", _board.is_holding())
+	for i in 3:
+		_key(KEY_DOWN)
+	await _settle()
+	_check("Down scrolls to the lowest shelf while holding (%d)" % _offset(), _offset() == max_off and _board.is_holding())
+	_move(_cell(Vector2i(3, low)))
+	_press(_cell(Vector2i(3, low)))
+	_release(_cell(Vector2i(3, low)))
+	var pickle := _entry(items, "pickle|cucumber_3|-")
+	_check("keyboard: pickle placed on the lowest shelf", not pickle.is_empty() and int(pickle.y) == low and int(pickle.x) == 3)
+
+	var ch := _slot(_find_type(d.inbox, "chanterelle"))
+	_press(ch)
+	_move(ch + Vector2(40, 0))
+	_move(_cell(Vector2i(0, low)) + Vector2(2, 1))
+	await _frames(20)
+
+
 # --- helpers -----------------------------------------------------------------------------------------------------
+
+func _offset() -> int:
+	return int(_scene.call("scroll_offset"))
+
+
+## Waits until the eased scroll has arrived (at most 240 frames).
+func _settle() -> void:
+	for i in 240:
+		if float(_scene.get("_scroll")) == float(_scene.get("_scroll_to")):
+			return
+		await process_frame
+
+
+func _frames(n: int) -> void:
+	for i in n:
+		await process_frame
+
+
+func _shot(file: String) -> void:
+	var dir := "user://shots"
+	DirAccess.make_dir_recursive_absolute(dir)
+	RenderingServer.force_draw(false)
+	var img := root.get_texture().get_image()
+	img.save_png(dir + "/" + file)
+	print("saved ", ProjectSettings.globalize_path(dir + "/" + file))
+	var pal := {}
+	for h in PAL:
+		pal[h] = true
+	var off := 0
+	for y in img.get_height():
+		for x in img.get_width():
+			if not pal.has(img.get_pixel(x, y).to_html(false)):
+				off += 1
+	_check("%s: no off-palette pixels (%d)" % [file, off], off == 0)
+
+
+func _wheel(p: Vector2, button: MouseButton, notches: int) -> void:
+	for i in notches:
+		for pressed in [true, false]:
+			var ev := InputEventMouseButton.new()
+			ev.button_index = button
+			ev.pressed = pressed
+			ev.factor = 1.0
+			ev.position = p
+			ev.global_position = p
+			root.push_input(ev, true)
 
 func _check(what: String, ok: bool) -> void:
 	_checks += 1
