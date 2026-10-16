@@ -1,0 +1,93 @@
+{
+ "cell": [
+  16,
+  16
+ ],
+ "cols": 6,
+ "icons": {
+  "apple": [
+   0,
+   0
+  ],
+  "quince": [
+   1,
+   0
+  ],
+  "crabapple": [
+   2,
+   0
+  ],
+  "pear": [
+   3,
+   0
+  ],
+  "blackberry": [
+   4,
+   0
+  ],
+  "cucumber": [
+   5,
+   0
+  ],
+  "pepper": [
+   0,
+   1
+  ],
+  "chanterelle": [
+   1,
+   1
+  ],
+  "porcini": [
+   2,
+   1
+  ],
+  "walnut": [
+   3,
+   1
+  ],
+  "jar": [
+   4,
+   1
+  ],
+  "sugar": [
+   5,
+   1
+  ],
+  "salt": [
+   0,
+   2
+  ],
+  "vinegar": [
+   1,
+   2
+  ],
+  "honey": [
+   2,
+   2
+  ],
+  "cinnamon": [
+   3,
+   2
+  ],
+  "clove": [
+   4,
+   2
+  ],
+  "ginger": [
+   5,
+   2
+  ],
+  "chili": [
+   0,
+   3
+  ],
+  "seed_cucumber": [
+   1,
+   3
+  ],
+  "seed_pepper": [
+   2,
+   3
+  ]
+ }
+}

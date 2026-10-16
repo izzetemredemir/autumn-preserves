@@ -1,0 +1,25 @@
+{
+  "_note": "ART-06 UI kit. Sources: tools/style/src/ui/*.txt (ascii_sprite.py). margin = 9-slice margin in px (left=top=right=bottom). Deviation from art-bible 3.8 (24x24, margin 8): card asked for 16x16 with margin 5; buttons have 4 frames (hover added).",
+  "panels": {
+    "ui_panel_paper.png": {"size": [16, 16], "margin": 5, "use": "light wood-framed paper panel, text bark_900"},
+    "ui_panel_dark.png":  {"size": [16, 16], "margin": 5, "use": "dark dialog panel, text cream_100"},
+    "ui_panel_card.png":  {"size": [16, 16], "margin": 5, "use": "gold-trimmed info card, text bark_900"}
+  },
+  "buttons": {
+    "ui_button.png":      {"frame_size": [48, 16], "frames": ["normal", "hover", "pressed", "disabled"], "margin": [5, 5, 5, 5], "text_dy_pressed": 1},
+    "ui_button_icon.png": {"frame_size": [16, 16], "frames": ["normal", "hover", "pressed", "disabled"]}
+  },
+  "bars": {
+    "ui_bar_fill.png": {"size": [8, 8]},
+    "ui_bar_empty.png": {"size": [8, 8]}
+  },
+  "cursors": {
+    "ui_cursor.png":      {"size": [16, 16], "hotspot": [1, 1]},
+    "ui_cursor_hand.png": {"size": [16, 16], "hotspot": [5, 1]}
+  },
+  "icons": ["icon_energy", "icon_coin", "icon_bag", "icon_star_full", "icon_star_empty",
+            "icon_taste_sweet", "icon_taste_sour", "icon_taste_spicy", "icon_taste_salty", "icon_taste_earthy",
+            "icon_weather_sun", "icon_weather_rain", "icon_weather_wind", "icon_weather_fog",
+            "icon_arrow", "icon_close"],
+  "icon_size": [16, 16]
+}

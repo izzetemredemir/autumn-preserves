@@ -5,3 +5,50 @@ forest_tiles,game/assets/sprites/tiles/forest_tiles.png,tiles,procedural,,,,2026
 mus_title_a,game/assets/audio/music/candidates/mus_title_a.ogg,music,fal-ai/elevenlabs/music,464e19f21f6ba0562438fa9fed6093cad35d7210,,,2026-10-16T18:48:36Z,audio_post --kind music --loop --crossfade 2,n,,prompt: tools/audio/prompts/mus_title_a.txt
 mus_title_b,game/assets/audio/music/candidates/mus_title_b.ogg,music,fal-ai/elevenlabs/music,879cbd4c1ef0b1d13653b291f4ac043ec701f840,,,2026-10-16T18:48:36Z,audio_post --kind music --loop --crossfade 2,n,,prompt: tools/audio/prompts/mus_title_b.txt
 mus_title_c,game/assets/audio/music/candidates/mus_title_c.ogg,music,fal-ai/elevenlabs/music,2c5109f8aa99b5e18e7398bbd93b4d806f6ac157,,,2026-10-16T18:48:36Z,audio_post --kind music --loop --crossfade 2,n,,prompt: tools/audio/prompts/mus_title_c.txt
+icon_apple,game/assets/sprites/icons/apple.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_quince,game/assets/sprites/icons/quince.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_crabapple,game/assets/sprites/icons/crabapple.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_pear,game/assets/sprites/icons/pear.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_blackberry,game/assets/sprites/icons/blackberry.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_cucumber,game/assets/sprites/icons/cucumber.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_pepper,game/assets/sprites/icons/pepper.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_chanterelle,game/assets/sprites/icons/chanterelle.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_porcini,game/assets/sprites/icons/porcini.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_walnut,game/assets/sprites/icons/walnut.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_jar,game/assets/sprites/icons/jar.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_sugar,game/assets/sprites/icons/sugar.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_salt,game/assets/sprites/icons/salt.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_vinegar,game/assets/sprites/icons/vinegar.png,icons,hand,,,,2026-10-16T18:57:12Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_honey,game/assets/sprites/icons/honey.png,icons,hand,,,,2026-10-16T18:57:13Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_cinnamon,game/assets/sprites/icons/cinnamon.png,icons,hand,,,,2026-10-16T18:57:13Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_clove,game/assets/sprites/icons/clove.png,icons,hand,,,,2026-10-16T18:57:13Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_ginger,game/assets/sprites/icons/ginger.png,icons,hand,,,,2026-10-16T18:57:13Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_chili,game/assets/sprites/icons/chili.png,icons,hand,,,,2026-10-16T18:57:13Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_seed_cucumber,game/assets/sprites/icons/seed_cucumber.png,icons,hand,,,,2026-10-16T18:57:13Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_seed_pepper,game/assets/sprites/icons/seed_pepper.png,icons,hand,,,,2026-10-16T18:57:13Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_atlas,game/assets/sprites/icons/icons.png,icons,hand,,,,2026-10-16T18:57:13Z,,n,,"ascii_sprite, tools/style/src/icons/icons.src"
+icon_arrow,game/assets/sprites/ui/icon_arrow.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_arrow.txt
+icon_bag,game/assets/sprites/ui/icon_bag.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_bag.txt
+icon_close,game/assets/sprites/ui/icon_close.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_close.txt
+icon_coin,game/assets/sprites/ui/icon_coin.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_coin.txt
+icon_energy,game/assets/sprites/ui/icon_energy.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_energy.txt
+icon_star_empty,game/assets/sprites/ui/icon_star_empty.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_star_empty.txt
+icon_star_full,game/assets/sprites/ui/icon_star_full.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_star_full.txt
+icon_taste_earthy,game/assets/sprites/ui/icon_taste_earthy.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_taste_earthy.txt
+icon_taste_salty,game/assets/sprites/ui/icon_taste_salty.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_taste_salty.txt
+icon_taste_sour,game/assets/sprites/ui/icon_taste_sour.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_taste_sour.txt
+icon_taste_spicy,game/assets/sprites/ui/icon_taste_spicy.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_taste_spicy.txt
+icon_taste_sweet,game/assets/sprites/ui/icon_taste_sweet.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_taste_sweet.txt
+icon_weather_fog,game/assets/sprites/ui/icon_weather_fog.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_weather_fog.txt
+icon_weather_rain,game/assets/sprites/ui/icon_weather_rain.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_weather_rain.txt
+icon_weather_sun,game/assets/sprites/ui/icon_weather_sun.png,ui,hand,,,,2026-10-16T18:57:38Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_weather_sun.txt
+icon_weather_wind,game/assets/sprites/ui/icon_weather_wind.png,ui,hand,,,,2026-10-16T18:57:39Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/icon_weather_wind.txt
+ui_bar_empty,game/assets/sprites/ui/ui_bar_empty.png,ui,hand,,,,2026-10-16T18:57:39Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/ui_bar_empty.txt
+ui_bar_fill,game/assets/sprites/ui/ui_bar_fill.png,ui,hand,,,,2026-10-16T18:57:39Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/ui_bar_fill.txt
+ui_button_icon,game/assets/sprites/ui/ui_button_icon.png,ui,hand,,,,2026-10-16T18:57:39Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/ui_button_icon.txt
+ui_button,game/assets/sprites/ui/ui_button.png,ui,hand,,,,2026-10-16T18:57:39Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/ui_button.txt
+ui_cursor_hand,game/assets/sprites/ui/ui_cursor_hand.png,ui,hand,,,,2026-10-16T18:57:39Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/ui_cursor_hand.txt
+ui_cursor,game/assets/sprites/ui/ui_cursor.png,ui,hand,,,,2026-10-16T18:57:39Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/ui_cursor.txt
+ui_panel_card,game/assets/sprites/ui/ui_panel_card.png,ui,hand,,,,2026-10-16T18:57:39Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/ui_panel_card.txt
+ui_panel_dark,game/assets/sprites/ui/ui_panel_dark.png,ui,hand,,,,2026-10-16T18:57:39Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/ui_panel_dark.txt
+ui_panel_paper,game/assets/sprites/ui/ui_panel_paper.png,ui,hand,,,,2026-10-16T18:57:39Z,,n,,ART-06 ascii_sprite src tools/style/src/ui/ui_panel_paper.txt
