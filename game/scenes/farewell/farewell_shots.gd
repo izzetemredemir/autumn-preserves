@@ -398,17 +398,20 @@ class SnowShot:
 		add_child(garden)
 		var backdrop: Node2D = (load(BACKDROP) as GDScript).new()
 		garden.add_child(backdrop)
+		var ledge_src := []
 		for s in GARDEN_SPRITES:
 			var path := String(s[0])
 			var t := tex(path if path.begins_with("res://") else TREE_ART % path)
 			if t == null:
 				continue
+			ledge_src.append([t, s[1]])
 			var sp := Sprite2D.new()
 			sp.texture = t
 			sp.centered = false
 			sp.position = Vector2(s[1])
 			garden.add_child(sp)
 		_fx = SnowFx.new()
+		_fx.add_sprites(ledge_src)
 		add_child(_fx)
 		_line_box = CenterContainer.new()
 		_line_box.anchor_left = 0.0
@@ -435,20 +438,22 @@ class SnowShot:
 		type_in(_line, t, LINE_AT + 0.4, CPS)
 
 
-## Settling snow (2x2 cells in noise-shaped patches, cream and pale grey, painted in as it falls) and the flakes.
+## A gentle first snow: whole-pixel flakes (1-2 px, cream and pale grey) drifting down at a few speeds, and a thin
+## cover that builds up over the seconds on the top edges of shapes (roofs, branches, the fence, the path edges),
+## one to three pixels deep, never a full-screen pattern.
 class SnowFx:
 	extends Control
-	const CELL := 2
-	const CW := 240
-	const CH := 136
-	const COVER_MAX := 0.46
+	const LAYOUT := preload("res://scenes/garden/garden_layout.gd")
+	const FENCE := "res://assets/sprites/garden/garden_fence_h.png"
 	const COVER_FROM := 1.0
 	const COVER_SEC := 11.0
 	const BUCKETS := 20
-	const FLAKES := 130
+	const DEPTH := 3  ## pixels of cover under a ledge at the end
+	const SPEEDS := [7.0, 11.0, 16.0]
+	const FLAKES := 90
 	var _img: Image
 	var _tex: ImageTexture
-	var _buckets: Array = []  ## per threshold step: PackedInt32Array of (y << 10 | x << 2 | colour)
+	var _buckets: Array = []  ## per step: PackedInt32Array of (y << 12 | x << 2 | colour)
 	var _painted := 0
 	var _flakes: Array = []  ## [x0, y0, speed, amp, phase, size, colour]
 	var _t := 0.0
@@ -456,30 +461,77 @@ class SnowFx:
 	func _init() -> void:
 		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_img = Image.create(CW, CH, false, Image.FORMAT_RGBA8)
+		_img = Image.create(W, H, false, Image.FORMAT_RGBA8)
 		_tex = ImageTexture.create_from_image(_img)
-		var noise := FastNoiseLite.new()
-		noise.seed = 1017
-		noise.frequency = 0.045
 		for b in BUCKETS:
 			_buckets.append(PackedInt32Array())
-		for y in CH:
-			for x in CW:
-				var n := (noise.get_noise_2d(x, y) + 1.0) * 0.5
-				var h := (x * 374761393 + y * 668265263) & 0x7FFFFFFF
-				h = ((h ^ (h >> 13)) * 1274126177) & 0x7FFFFFFF
-				h = (h ^ (h >> 16)) & 0xFFFF
-				var th := 0.8 * n + 0.2 * (h / 65535.0)
-				if th >= COVER_MAX:
-					continue
-				# thick snow is cream; the thin edges of a patch, settling last, are pale grey
-				var col := 0 if th < COVER_MAX * 0.8 else (1 + (h & 1))
-				_buckets[mini(int(th / COVER_MAX * BUCKETS), BUCKETS - 1)].append((((y << 8) | x) << 2) | col)
 		var r := RandomNumberGenerator.new()
 		r.seed = 1017
 		for i in FLAKES:
-			_flakes.append([r.randf_range(0, W), r.randf_range(0, H), r.randf_range(9.0, 22.0), r.randf_range(0.0, 4.0),
-				r.randf_range(0.0, TAU), 2 if r.randf() < 0.3 else 1, CREAM if r.randf() < 0.8 else GLASS])
+			_flakes.append([r.randf_range(0, W), r.randf_range(0, H), SPEEDS[r.randi() % SPEEDS.size()], r.randf_range(0.0, 3.0),
+				r.randf_range(0.0, TAU), 2 if r.randf() < 0.25 else 1, CREAM if r.randf() < 0.7 else GLASS])
+
+	## Ledges from the garden sprites: the top opaque pixel of every run in each column, plus the fence and path edges.
+	func add_sprites(sprites: Array) -> void:
+		for s in sprites:
+			var t: Texture2D = s[0]
+			if t == null:
+				continue
+			_ledges_of(t.get_image(), Vector2i(s[1]))
+		var fence: Texture2D = load(FENCE) if ResourceLoader.exists(FENCE) else null
+		if fence != null:
+			var img: Image = fence.get_image()
+			var gy := (LAYOUT.H - 1) * LAYOUT.TILE
+			for x in range(1, LAYOUT.W - 1):
+				var c := Vector2i(x, LAYOUT.H - 1)
+				if LAYOUT.is_gate(c):
+					continue
+				_ledges_of(img.get_region(Rect2i(0, 0, LAYOUT.TILE, LAYOUT.TILE)), Vector2i(x * LAYOUT.TILE, gy))
+		# path and road edges: a thin line on the lawn side
+		var tile: int = LAYOUT.TILE
+		var px0: int = int(LAYOUT.PATH_COLS[0]) * tile
+		var px1: int = (int(LAYOUT.PATH_COLS[-1]) + 1) * tile
+		var ry0: int = int(LAYOUT.ROAD_ROWS[0]) * tile
+		var ry1: int = (int(LAYOUT.ROAD_ROWS[-1]) + 1) * tile
+		var top: int = (LAYOUT.HOUSE.end.y) * tile
+		for y in range(top, (LAYOUT.H - 1) * tile):
+			if y >= ry0 and y < ry1:
+				continue
+			if (y * 7 + 3) % 5 != 0:
+				_put(px0 - 1, y, 0)
+			if (y * 11 + 1) % 5 != 0:
+				_put(px1, y, 0)
+		for x in range(0, W - tile):
+			if x >= px0 and x < px1:
+				continue
+			if (x * 7 + 3) % 5 != 0:
+				_put(x, ry0 - 1, 0)
+			if (x * 11 + 1) % 5 != 0:
+				_put(x, ry1, 1)
+
+	func _ledges_of(img: Image, at: Vector2i) -> void:
+		for x in img.get_width():
+			var open := true
+			for y in img.get_height():
+				var solid := img.get_pixel(x, y).a > 0.5
+				if solid and open:
+					for k in DEPTH:
+						if y + k < img.get_height() and img.get_pixel(x, y + k).a > 0.5:
+							_put(at.x + x, at.y + y + k, k)
+				open = not solid
+
+	## `depth` 0 is the top pixel (appears first, cream); deeper ones follow and the thin ones are pale grey.
+	func _put(x: int, y: int, depth: int) -> void:
+		if x < 0 or y < 0 or x >= W or y >= H:
+			return
+		var h := (x * 374761393 + y * 668265263) & 0x7FFFFFFF
+		h = ((h ^ (h >> 13)) * 1274126177) & 0x7FFFFFFF
+		h = (h ^ (h >> 16)) & 0xFFFF
+		if depth >= 2 and (h & 3) != 0:
+			return  # the third row is patchy
+		var th := (0.55 * float(h) / 65535.0 + 0.2 * depth) / 1.0
+		var col := 1 if depth == 0 and (h & 7) == 0 else (0 if depth < 2 else 1 + ((h >> 3) & 1))
+		_buckets[clampi(int(th * BUCKETS), 0, BUCKETS - 1)].append((((y << 10) | x) << 2) | col)
 
 	func at(t: float, full: bool) -> void:
 		_t = t
@@ -491,16 +543,16 @@ class SnowFx:
 			var cols := [CREAM, GLASS, CREAM_LO]
 			while _painted < k:
 				for v in _buckets[_painted]:
-					_img.set_pixel((v >> 2) & 0xFF, v >> 10, cols[v & 3])
+					_img.set_pixel((v >> 2) & 0x3FF, v >> 12, cols[v & 3])
 				_painted += 1
 			_tex.update(_img)
 		queue_redraw()
 
 	func _draw() -> void:
-		draw_texture_rect(_tex, Rect2(0, 0, CW * CELL, CH * CELL), false)
+		draw_texture(_tex, Vector2.ZERO)
 		for f in _flakes:
 			var y := fposmod(float(f[1]) + _t * float(f[2]), H + 4.0) - 2.0
-			var x := fposmod(float(f[0]) + sin(_t * 0.7 + float(f[4])) * float(f[3]) - _t * 4.0, float(W))
+			var x := fposmod(float(f[0]) + sin(_t * 0.5 + float(f[4])) * float(f[3]) - _t * 2.0, float(W))
 			draw_rect(Rect2(floorf(x), floorf(y), f[5], f[5]), f[6])
 
 

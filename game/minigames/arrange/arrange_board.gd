@@ -257,7 +257,10 @@ func begin_hold(item: Dictionary, from: Dictionary, pointer: Vector2, grab: Vect
 	_h_from = from
 	_h_index = int(from.get("index", -1)) if str(from.get("where", "")) == "board" else -1
 	_h_rot = rot
-	_h_grab = grab if grab.x >= 0.0 else Vector2(cell, cell) * 0.5
+	# An item from the inbox is held by the centre of its left/top cell whatever the slot offset was, so the ghost
+	# (and the drop) sits under the cursor instead of half a cell off.
+	var from_inbox := str(from.get("where", "")) == "inbox"
+	_h_grab = grab if grab.x >= 0.0 and not from_inbox else Vector2(cell, cell) * 0.5
 	_held_view = _make_view(item, rot, item_size(item, rot) * cell)
 	_held_view.z_index = HELD_Z
 	add_child(_held_view)
