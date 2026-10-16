@@ -1,0 +1,28 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/garden/garden.gd" id="1_garden"]
+[ext_resource type="Script" path="res://scenes/garden/garden_backdrop.gd" id="2_back"]
+[ext_resource type="Script" path="res://player/follow_camera.gd" id="3_cam"]
+[ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="4_hud"]
+[ext_resource type="PackedScene" path="res://ui/hud/rain.tscn" id="5_rain"]
+
+[node name="Garden" type="Node2D"]
+script = ExtResource("1_garden")
+
+[node name="Ground" type="TileMapLayer" parent="."]
+
+[node name="Backdrop" type="Node2D" parent="."]
+script = ExtResource("2_back")
+
+[node name="Objects" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Fx" type="Node2D" parent="."]
+
+[node name="Camera" type="Camera2D" parent="."]
+anchor_mode = 0
+script = ExtResource("3_cam")
+
+[node name="Rain" parent="." instance=ExtResource("5_rain")]
+
+[node name="Hud" parent="." instance=ExtResource("4_hud")]

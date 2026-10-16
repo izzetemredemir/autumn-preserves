@@ -262,6 +262,19 @@ UI_DEV_GAVE,Added %d stacks.
 UI_DEV_DAY,Day %d
 UI_DEV_SEED_COPIED,Seed %d copied.
 UI_DEV_DEMO_BAD,No demo save at res://dev/demo_save.json
+GARDEN_PLANT_TITLE,Plant what?
+GARDEN_FERT_ON,[x] Fertilizer (%d left)
+GARDEN_FERT_OFF,[ ] Fertilizer (%d left)
+GARDEN_NO_SEEDS,No seeds. The grocer sells some.
+GARDEN_PLANTED,Ready in %d days
+GARDEN_BED_DAYS,Ready in %d days
+GARDEN_BED_TOMORROW,Ready tomorrow
+GARDEN_TREE_REFILL,Fruit again in %d days
+GARDEN_TREE_TOMORROW,Fruit again tomorrow
+GARDEN_COMPOST,Compost %d/%d\nFertilizer %d
+GARDEN_NO_MAIL,No letters yet
+GARDEN_GATE_SIGN,%s\nSeed %d
+GARDEN_TO_TOWN,Town
 KITCHEN_STOVE,Stove
 KITCHEN_COUNTER,Jar counter
 KITCHEN_CUPBOARD,Cupboard
