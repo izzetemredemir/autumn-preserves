@@ -12,13 +12,13 @@
     "pumpkin":  {"price": 20, "grow_days": 5, "yield": 1, "priority": 1}
   },
   "sell": {
-    "product_ratio": 0.5,
+    "product_ratio": 0.35,
     "fresh": {"fruit": 3, "vegetable": 3, "mushroom": 4, "nut": 4},
     "fresh_overrides": {"porcini": 8},
     "rarity_mult": {"common": 1.0, "uncommon": 1.5, "rare": 3.0}
   },
   "upgrades": {
-    "pantry_row": {"prices": [250, 400, 600], "cells": 12, "priority": 0},
+    "pantry_row": {"prices": [250, 450, 800], "cells": 12, "priority": 0},
     "bag":        {"prices": [200, 500], "capacity": [40, 50], "priority": 1},
     "press":      {"price": 350, "priority": 1},
     "big_pot":    {"price": 600, "priority": 1},

@@ -245,8 +245,8 @@ func test_cook_consumes_exact_inputs() -> void:
 	assert_eq(c.reason, "")
 	var res := Kitchen.cook(s, "jam", "crabapple_4", "", "cinnamon", 3)
 	assert_true(res.ok, str(res))
-	# 4 crabapple_4 taken: 3 + 1 from the inbox, nothing from the pantry
-	assert_eq(_fresh_count(s, "crabapple_4"), 9 - 4)
+	# 3 crabapple_4 taken (recipe count), all from the first inbox stack, nothing from the pantry
+	assert_eq(_fresh_count(s, "crabapple_4"), 9 - int(Data.recipes().jam.main.count))
 	assert_eq(int(s.pantry.items[0].item.count), 4, "inbox before pantry")
 	assert_eq(_fresh_count(s, "crabapple_1"), 5, "other varieties untouched")
 	assert_eq(int(s.pantry.items[1].item.count), 3, "walnut not used")
@@ -268,16 +268,16 @@ func test_cook_from_pantry_with_nut_addin_and_repeat() -> void:
 		_pantry_entry(State.fresh("crabapple_4", 3, 2))]
 	var res := Kitchen.cook(s, "jam", "crabapple_4", "", "walnut", 1)
 	assert_true(res.ok, str(res))
-	assert_eq(_fresh_count(s, "crabapple_4"), 5)
+	assert_eq(_fresh_count(s, "crabapple_4"), 6)
 	assert_eq(int(s.pantry.items[0].item.count), 1, "one walnut used from the pantry")
-	assert_eq(int(s.pantry.items[1].item.count), 2, "3 from the first pantry stack")
+	assert_eq(int(s.pantry.items[1].item.count), 3, "2 from the first pantry stack")
 	assert_eq(int(s.cupboard.cinnamon), 1, "cupboard add-in untouched")
 	assert_true(res.is_new)
 	var again := Kitchen.cook(s, "jam", "crabapple_4", "", "walnut", 2)
 	assert_true(again.ok, str(again))
 	assert_false(again.is_new)
 	assert_eq(s.pantry.items.size(), 1, "emptied stacks (walnut, first crabapple stack) are removed")
-	assert_eq(s.pantry.items[0].item, State.fresh("crabapple_4", 1, 2))
+	assert_eq(s.pantry.items[0].item, State.fresh("crabapple_4", 3, 2))
 	var e: Dictionary = s.book.variants["jam|crabapple_4|walnut"]
 	assert_eq(int(e.count), 2)
 	assert_eq(int(e.best_q), 2)
@@ -288,16 +288,16 @@ func test_chutney_and_pickle_cook() -> void:
 	var s := _demo_state()
 	var fruit: String = _fitting(s.varieties, {"groups": ["fruit"]})[0]
 	var veg: String = _fitting(s.varieties, {"groups": ["vegetable"]})[0]
-	s.inbox = [State.fresh(fruit, 2, 3), State.fresh(veg, 5, 3)]
+	s.inbox = [State.fresh(fruit, 2, 3), State.fresh(veg, 4, 3)]
 	var res := Kitchen.cook(s, "chutney", fruit, veg, "", 2)
 	assert_true(res.ok, str(res))
 	assert_eq(res.item.key, "chutney|%s|%s|-" % [fruit, veg])
 	assert_eq(_fresh_count(s, fruit), 0)
-	assert_eq(_fresh_count(s, veg), 3)
+	assert_eq(_fresh_count(s, veg), 2)
 	assert_eq(int(s.cupboard.vinegar), 1)
 	assert_eq(int(s.cupboard.sugar), 3, "chutney needs no sugar")
 	var pk := Kitchen.cook(s, "pickle", veg, "", "", 1)
-	assert_false(pk.ok, "only 3 vegetables left")
+	assert_false(pk.ok, "only 2 vegetables left")
 	assert_eq(pk.missing, {veg: 1})
 	s.inbox.append(State.fresh(veg, 1, 2))
 	pk = Kitchen.cook(s, "pickle", veg, "", "", 1)
@@ -313,7 +313,7 @@ func test_check_failures() -> void:
 	var c := Kitchen.check(s, "jam", "crabapple_4", "", "")
 	assert_false(c.ok)
 	assert_eq(c.reason, "UI_KITCHEN_SAME_VARIETY", "4 crabapples, but not of one variety")
-	assert_eq(c.missing, {"crabapple_4": 2})
+	assert_eq(c.missing, {"crabapple_4": 1})
 	s.inbox.append(State.fresh("crabapple_4", 2, 5))
 	assert_true(Kitchen.check(s, "jam", "crabapple_4", "", "").ok)
 	assert_eq(Kitchen.check(s, "pickle", "crabapple_4", "", "").reason, "UI_KITCHEN_WRONG", "fruit is no pickle")

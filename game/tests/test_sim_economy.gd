@@ -78,7 +78,7 @@ func test_buy_cupboard_seed_and_upgrade() -> void:
 	assert_eq(int(s.coins), 750)
 	assert_eq(int(s.upgrades.pantry_row), 1)
 	assert_eq(int(s.pantry.rows_extra), 1)
-	assert_eq(Economy.price(s, "pantry_row"), 400, "next shelf level")
+	assert_eq(Economy.price(s, "pantry_row"), int(Data.shop().upgrades.pantry_row.prices[1]), "next shelf level")
 	for id in ["nothing", "bottle", "seed_pumpkin", "press"]:
 		assert_eq(Economy.buy(s, id).reason, "UI_NOT_AVAILABLE", id)
 	assert_eq(Economy.buy(s, "jar", 0).reason, "UI_NOT_AVAILABLE")
@@ -112,7 +112,7 @@ func test_sell_prices_fresh_nut_product() -> void:
 	assert_eq(Economy.sell_price(State.fresh("chanterelle_4", 1, 2), v), 12, "rare mushroom 4 * 3")
 	assert_eq(Economy.sell_price(State.nut("walnut", 3), v), 12)
 	var p := State.product("jam|apple_1|-", 2, 0)
-	assert_eq(Economy.sell_price(p, v), floori(ProductGen.value(p.key, v, 2) * 0.5), "half the product value")
+	assert_eq(Economy.sell_price(p, v), floori(ProductGen.value(p.key, v, 2) * float(Data.shop().sell.product_ratio)), "product_ratio of the value")
 	assert_false(Economy.sell(make_state(), {"where": "bag", "index": 3}).ok, "bad ref")
 
 
