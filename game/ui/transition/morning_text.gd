@@ -57,6 +57,10 @@ static func line(e: Dictionary, state: Dictionary) -> Dictionary:
 		"weather":
 			var w := String(e.get("weather", "sunny")).to_upper()
 			return _l("UI_NIGHT_WEATHER_" + w, [])
+		"letter":
+			var who := String(e.get("letter", {}).get("from", ""))
+			var kids: Dictionary = Data.npcs().get("grandkids", {})
+			return _l("UI_NIGHT_LETTER", [String(kids.get(who, {}).get("name", who.capitalize()))])
 		"energy":
 			var stars := int(e.get("stars", 0))
 			if stars > 0:

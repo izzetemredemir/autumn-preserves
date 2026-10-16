@@ -98,7 +98,7 @@ func play_jingle(id: String) -> void:
 		t.tween_property(cur, "volume_db", 0.0, 0.6)
 
 
-func play_ambient(id: String, fade_sec := 2.0) -> void:
+func play_ambient(id: String, fade_sec := 2.0, volume_db := 0.0) -> void:
 	if _ambient.has(id):
 		return
 	var s := _streams(id)
@@ -109,7 +109,7 @@ func play_ambient(id: String, fade_sec := 2.0) -> void:
 	p.volume_db = SILENT_DB
 	p.play()
 	_ambient[id] = p
-	create_tween().tween_property(p, "volume_db", 0.0, fade_sec)
+	create_tween().tween_property(p, "volume_db", volume_db, fade_sec)
 
 
 func stop_ambient(id: String, fade_sec := 2.0) -> void:

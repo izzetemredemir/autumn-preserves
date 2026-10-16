@@ -128,10 +128,10 @@ TOWN_BOUGHT,Bought %s for %d coins
 TOWN_SOLD,Sold for %d coins
 TOWN_NOTHING_TO_SELL,You have nothing to sell.
 TOWN_NO_ORDERS,No orders on the board today.
-TOWN_ORDER_ANY,"%s wants something %s, %d+ stars"
-TOWN_ORDER_PLAIN,"%s wants anything tasty, %d+ stars"
-TOWN_ORDER_RECIPE,"%s wants a %s that is %s, %d+ stars"
-TOWN_ORDER_RECIPE_PLAIN,"%s wants a %s, %d+ stars"
+TOWN_ORDER_ANY,"%s: something %s (%d+ stars)"
+TOWN_ORDER_PLAIN,"%s: anything tasty (%d+ stars)"
+TOWN_ORDER_RECIPE,"%s: %s, %s (%d+ stars)"
+TOWN_ORDER_RECIPE_PLAIN,"%s: a %s (%d+ stars)"
 TOWN_DAYS_LEFT,%d days left
 TOWN_LAST_DAY,Last day
 TOWN_DELIVERED,Delivered! +%d coins
@@ -334,3 +334,4 @@ LET_RECIPE_CRABAPPLE_JELLY,Crabapple Jelly
 LET_RECIPE_PEPPER_RELISH,Pepper Relish
 LET_RECIPE_CHILI_PICKLES,Chili Pickles
 LET_RECIPE_SALTED_PORCINI,Salted Porcini
+UI_NIGHT_LETTER,A letter from %s arrived!
