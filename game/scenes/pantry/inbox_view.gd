@@ -3,7 +3,8 @@ extends Control
 ## board's hand (ArrangeBoard.begin_hold); dropping a board item here sends it back (handled by pantry.gd).
 
 const SLOT := 24
-const COLS := 6
+## 5 columns (40 slots, more than a full bag) leave the middle column room for the 18 px rule texts.
+const COLS := 5
 const PAD := 4
 const C_FRAME := Color("83571e")
 const C_FRAME_HI := Color("c58845")

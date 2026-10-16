@@ -5,16 +5,25 @@ extends Control
 
 const InboxView := preload("res://scenes/pantry/inbox_view.gd")
 const CELL := 24
-## Art-bible §3.7 alignment: shelves at x=312..456, tops y=20/80/140, floor y=206..254.
+## Aligned to the drawn shelves of BG (ART-BG-A): shelves x=312..456 (inner shelf 300..470), block tops y=8/68/128
+## so each bottom row stands on a board (top surfaces y~48/105/165), floor block y=206..254 on the floor planks.
+const BG := "res://assets/sprites/scenes/bg_pantry.png"
 const BOARD_X := 312
-const BOARD_TOP := 20
+const BOARD_TOP := 8
 const BOARD_BOTTOM := 254
 const SHELF_GAP := 12
-const FLOOR_GAP := 18
+const FLOOR_GAP := 30
 const TIGHT_GAP := 4
 const LABEL_W := 38
+## Blank name plates painted on the shelf post of BG, one per base shelf (top to bottom): shelf labels sit on them.
+const PLATES := [Rect2i(261, 18, 36, 18), Rect2i(261, 75, 36, 18), Rect2i(261, 130, 36, 18)]
+## Fallback look (no art, or bought shelves that the art does not show): opaque cells and drawn shelf frames.
 const ZONE_COLORS := {
 	"dry": ["50361e", "3d1f29"], "room": ["62272c", "3d1f29"], "cool": ["2e3f3f", "23282a"], "floor": ["49423d", "23282a"],
+}
+## On the art: no fill, only a thin on-palette cell grid in the zone colour (subtle tint, no partial alpha).
+const ZONE_TINTS := {
+	"dry": ["00000000", "50361e"], "room": ["00000000", "62272c"], "cool": ["00000000", "2e3f3f"], "floor": ["00000000", "49423d"],
 }
 const SOUNDS := {"pick": "sfx_pantry_pick", "place": "sfx_pantry_place", "wrong": "sfx_pantry_wrong", "rotate": "sfx_piece_rotate"}
 const STAR_FULL := "res://assets/sprites/ui/icon_star_full.png"
@@ -45,6 +54,9 @@ var _blocks: Array[Rect2i] = []
 var _block_zone: Array[String] = []
 var _full: Texture2D
 var _empty: Texture2D
+var _bg: Texture2D
+## True when the board matches the shelves drawn in BG (base shelves, normal gaps).
+var _on_art := false
 var _bubble_tween: Tween
 
 
@@ -55,6 +67,7 @@ func _ready() -> void:
 	var data: Dictionary = GameState.data
 	var pantry: Dictionary = data.pantry
 	var b := PantryRules.board_of(pantry)
+	_bg = load(BG) if ResourceLoader.exists(BG) else null
 	var layout := _layout(b)
 	board.position = Vector2(BOARD_X, int(layout.top))
 	board.view_factory = _make_view
@@ -158,7 +171,8 @@ func _layout(b: Dictionary) -> Dictionary:
 			gaps[int(sh.y)] = shelf_gap
 	if floor_y > 0 and floor_y < rows:
 		gaps[floor_y] = floor_gap
-	return {"cell": CELL, "row_gaps": gaps, "zone_colors": ZONE_COLORS, "top": top}
+	_on_art = _bg != null and shelves.size() == PLATES.size() and top == BOARD_TOP and shelf_gap == SHELF_GAP
+	return {"cell": CELL, "row_gaps": gaps, "zone_colors": ZONE_TINTS if _on_art else ZONE_COLORS, "top": top}
 
 
 func _build_blocks(b: Dictionary) -> void:
@@ -185,9 +199,15 @@ func _add_block(y0: int, n: int, zone: String) -> void:
 	_block_zone.append(zone)
 	var l := Label.new()
 	l.text = _zone_name(zone)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	l.position = Vector2(BOARD_X - LABEL_W - 6, int(board.position.y) + rect.position.y + 3)
-	l.size = Vector2(LABEL_W, 16)
+	var plate := _blocks.size() - 1
+	if _on_art and plate < PLATES.size():
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.position = Vector2(PLATES[plate].position)
+		l.size = Vector2(PLATES[plate].size)
+	else:
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		l.position = Vector2(BOARD_X - LABEL_W - 6, int(board.position.y) + rect.position.y + 3)
+		l.size = Vector2(LABEL_W, 16)
 	l.add_theme_color_override("font_color", C_TEXT_DIM)
 	add_child(l)
 	_zone_labels.append(l)
@@ -337,12 +357,22 @@ func _pop(c: Control, amount: float) -> void:
 func _draw() -> void:
 	var w := int(size.x)
 	var h := int(size.y)
-	draw_rect(Rect2(0, 0, w, h), C_WALL)
-	for x in range(8, w, 16):
-		draw_rect(Rect2(x, 0, 1, h), C_WALL_LINE)
-	draw_rect(Rect2(0, 258, w, h - 258), C_WOOD_DARK)
-	draw_rect(Rect2(0, 258, w, 1), C_WOOD)
+	if _bg != null:
+		draw_texture(_bg, Vector2.ZERO)
+	else:
+		draw_rect(Rect2(0, 0, w, h), C_WALL)
+		for x in range(8, w, 16):
+			draw_rect(Rect2(x, 0, 1, h), C_WALL_LINE)
+		draw_rect(Rect2(0, 258, w, h - 258), C_WOOD_DARK)
+		draw_rect(Rect2(0, 258, w, 1), C_WOOD)
 	var origin := Vector2i(board.position)
+	if _on_art:
+		for i in _blocks.size():
+			var line: Color = Color(str(ZONE_TINTS[_block_zone[i]][1])) if ZONE_TINTS.has(_block_zone[i]) else C_WOOD_DARK
+			var r := Rect2i(_blocks[i].position + origin, _blocks[i].size)
+			draw_rect(Rect2(r.position.x - 1, r.position.y - 1, r.size.x + 1, 1), line)
+			draw_rect(Rect2(r.position.x - 1, r.position.y, 1, r.size.y), line)
+		return
 	for i in _blocks.size():
 		var r := Rect2i(_blocks[i].position + origin, _blocks[i].size)
 		var is_floor := _block_zone[i] == String(Data.rules().pantry.floor.zone)
