@@ -17,6 +17,8 @@ const FOREST_DB := -8.0  ## forest ambience in the background here; the wild pla
 var granny: Granny
 var spots: Array[GardenSpot] = []
 var menu: Node  ## the open plant menu, or null
+var cat: Cat  ## Granny's cat (P2-CAT): naps at today's spot, wanders a little, purrs when petted
+var _last_pet_line := 0
 var _blocked := {}
 var _leaving := false
 
@@ -37,6 +39,7 @@ func _ready() -> void:
 	granny.setup(Layout.size(), _walkable, spawn[0], spawn[1])
 	granny.stepped.connect(_on_stepped)
 	granny.interact_requested.connect(_on_interact)
+	_build_cat()
 	camera.target = granny
 	camera.bounds = Rect2i(0, 0, Layout.W * Layout.TILE, Layout.VIEW_H)
 	camera.snap()
@@ -50,6 +53,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if granny == null:
 		return
+	cat.near_granny = CatRules.near(cat.cell, granny.current_cell())
 	var facing: GardenSpot = null
 	if not granny.is_moving() and menu == null and not _leaving:
 		facing = spot_at_cell(granny.facing_cell())
@@ -71,6 +75,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## A tap/click at a world point: walk there, or go and use the thing under it.
 func tap_world(p: Vector2) -> void:
+	if cat.hit_rect().has_point(p):
+		if not granny.approach(cat_cell(), _pet_cat):
+			Fx.bubble(fx, cat.top(), tr("WILD_CANT_REACH"))
+		return
 	var s := spot_at_point(p)
 	if s == null and Layout.HOUSE.has_point(Granny.point_to_cell(p)):
 		s = find_spot("door")  # the whole cottage front leads to its door
@@ -108,6 +116,9 @@ func spot_at_point(p: Vector2) -> GardenSpot:
 
 func _on_interact(cell: Vector2i) -> void:
 	if _leaving or menu != null:
+		return
+	if cell == cat_cell():
+		_pet_cat()
 		return
 	var s := spot_at_cell(cell)
 	if s != null:
@@ -355,6 +366,44 @@ func _build_spots() -> void:
 	_add("town_sign", -1, [Layout.TOWN_SIGN])
 
 
+## The cat naps at today's spot (CatRules). Its cell is not walkable, so Granny can face it and pet it.
+func _build_cat() -> void:
+	var spot := CatRules.spot_for(int(GameState.data.save_seed), int(GameState.data.day))
+	cat = Cat.new()
+	objects.add_child(cat)
+	cat.setup(Seeds.seed_for(int(GameState.data.save_seed), "cat_walk", int(GameState.data.day)), spot.cell)
+	cat.wander_walkable = _cat_may_walk
+
+
+func cat_cell() -> Vector2i:
+	return cat.cell if cat != null else Vector2i(-1, -1)
+
+
+func _cat_may_walk(c: Vector2i) -> bool:
+	return _walkable(c) and c != granny.current_cell() and c != granny.dest_cell()
+
+
+## Pets the cat: purr, a heart and a short line. Nothing else happens (no needs, no reward).
+func _pet_cat() -> void:
+	if _leaving or menu != null or cat.is_purring():
+		return
+	cat.pet()
+	Audio.play_sfx("sfx_cat_purr", false)
+	var n := CatRules.pet_line(RandomNumberGenerator.new(), _last_pet_line)
+	_last_pet_line = n
+	var line := ""
+	match n:
+		1:
+			line = tr("CAT_PET_1")
+		2:
+			line = tr("CAT_PET_2")
+		3:
+			line = tr("CAT_PET_3")
+		_:
+			line = tr("CAT_PET_4")
+	Fx.bubble(fx, cat.top(), line, 1.8)
+
+
 func _add(kind: String, index: int, cells: Array) -> void:
 	var s := GardenSpot.new()
 	s.setup(kind, index, cells)
@@ -427,7 +476,7 @@ func _near_gate() -> bool:
 
 
 func _walkable(cell: Vector2i) -> bool:
-	return Layout.is_open(cell) and not _blocked.has(cell)
+	return Layout.is_open(cell) and not _blocked.has(cell) and cell != cat_cell()
 
 
 func _nearest_cell(s: GardenSpot) -> Vector2i:
