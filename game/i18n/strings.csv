@@ -50,6 +50,16 @@ MG_PACK_HINT_LID,Click 3 times or circle the lid.
 MG_PACK_HINT_DONE,Sealed!
 UI_DAY,Day
 UI_BAG,Bag
+WILD_CANT_REACH,Can't reach that
+WILD_BIOME_FOREST,Forest
+WILD_SPECIAL_MUSHROOM_RING,Mushroom ring
+WILD_SPECIAL_ABANDONED_ORCHARD,Abandoned orchard
+WILD_LAB_SEED_HINT,random
+WILD_LAB_GENERATE,Generate
+WILD_LAB_RANDOM,Random
+WILD_LAB_WALK,Walk
+WILD_LAB_PAN,Drag or WASD to pan
+WILD_LAB_INFO,Map %d  trees %d  bushes %d  ground %d
 UI_KITCHEN_WRONG,That doesn't go in this recipe
 UI_KITCHEN_MISSING,Something is missing
 UI_KITCHEN_SAME_VARIETY,Needs all of the same variety
@@ -179,3 +189,4 @@ PANTRY_BONUS,+%d energy tomorrow
 PANTRY_BONUS_NONE,Tidy shelves give energy
 PANTRY_LIKES,Likes: %s
 PANTRY_HINT,Drag things onto the shelves. R turns pies.
+WILD_NEW_VARIETY,New find: %s

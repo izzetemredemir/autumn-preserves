@@ -1,0 +1,107 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/seed_lab/seed_lab.gd" id="1_lab"]
+[ext_resource type="PackedScene" path="res://scenes/wild/wild_map.tscn" id="2_map"]
+
+[node name="SeedLab" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_lab")
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.137255, 0.156863, 0.164706, 1)
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Top" type="PanelContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="Layout/Top"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SeedCaption" type="Label" parent="Layout/Top/Row"]
+layout_mode = 2
+text = "UI_SEED"
+
+[node name="SeedEdit" type="LineEdit" parent="Layout/Top/Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(84, 0)
+layout_mode = 2
+placeholder_text = "WILD_LAB_SEED_HINT"
+max_length = 24
+
+[node name="Biome" type="OptionButton" parent="Layout/Top/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Generate" type="Button" parent="Layout/Top/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "WILD_LAB_GENERATE"
+
+[node name="Random" type="Button" parent="Layout/Top/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "WILD_LAB_RANDOM"
+
+[node name="Walk" type="Button" parent="Layout/Top/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "WILD_LAB_WALK"
+
+[node name="Spacer" type="Control" parent="Layout/Top/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="Back" type="Button" parent="Layout/Top/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "UI_BACK"
+
+[node name="MapArea" type="Control" parent="Layout"]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Map" parent="Layout/MapArea" instance=ExtResource("2_map")]
+unique_name_in_owner = true
+
+[node name="Bottom" type="PanelContainer" parent="Layout"]
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="Layout/Bottom"]
+layout_mode = 2
+
+[node name="Info" type="Label" parent="Layout/Bottom/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+clip_text = true
+
+[node name="Hint" type="Label" parent="Layout/Bottom/Row"]
+layout_mode = 2
+text = "WILD_LAB_PAN"

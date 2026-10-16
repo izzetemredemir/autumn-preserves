@@ -1,0 +1,49 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/wild/wild.gd" id="1_wild"]
+[ext_resource type="PackedScene" path="res://scenes/wild/wild_map.tscn" id="2_map"]
+[ext_resource type="Script" path="res://player/follow_camera.gd" id="3_cam"]
+[ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="4_hud"]
+
+[node name="Wild" type="Node2D"]
+script = ExtResource("1_wild")
+
+[node name="Map" parent="." instance=ExtResource("2_map")]
+
+[node name="Camera" type="Camera2D" parent="."]
+anchor_mode = 0
+script = ExtResource("3_cam")
+
+[node name="Hud" parent="." instance=ExtResource("4_hud")]
+
+[node name="Corner" type="CanvasLayer" parent="."]
+layer = 9
+
+[node name="Root" type="Control" parent="Corner"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SeedBox" type="PanelContainer" parent="Corner/Root"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -4.0
+offset_top = -4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="Seed" type="Label" parent="Corner/Root/SeedBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "UI_SEED"

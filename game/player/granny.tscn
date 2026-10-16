@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://player/granny.gd" id="1_granny"]
+[ext_resource type="Script" path="res://player/granny_body.gd" id="2_body"]
+
+[node name="Granny" type="Node2D"]
+script = ExtResource("1_granny")
+
+[node name="Body" type="Node2D" parent="."]
+script = ExtResource("2_body")
