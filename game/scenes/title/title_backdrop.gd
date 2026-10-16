@@ -16,10 +16,11 @@ const CANOPY := [Color("a22512"), Color("c94d2e"), Color("b66813"), Color("e1906
 const LEAF := [Color("c94d2e"), Color("e19064"), Color("b66813"), Color("c58845"), Color("e5bd7f")]
 const SMOKE := [Color("b9a697"), Color("81746a")]
 const LEAF_COUNT := 22
+const IMAGE := "res://assets/sprites/scenes/bg_title.png"
 
 var leaves_only := false
 
-var _tex: ImageTexture
+var _tex: Texture2D
 var _leaves: Array = []
 var _chimney := Vector2i(-100, -100)
 var _t := 0.0
@@ -95,6 +96,11 @@ func _rebuild() -> void:
 	var w := int(size.x)
 	var h := int(size.y)
 	if w <= 0 or h <= 0:
+		return
+	if not leaves_only and ResourceLoader.exists(IMAGE):
+		_tex = load(IMAGE) as Texture2D
+		_chimney = Vector2i(44, 100)
+		queue_redraw()
 		return
 	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
 	img.fill(BG)

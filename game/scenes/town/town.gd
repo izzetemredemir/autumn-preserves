@@ -89,55 +89,37 @@ func _icon(id: String) -> Control:
 
 
 func _paint_background() -> void:
-	var img := Image.create(480, 270, false, Image.FORMAT_RGBA8)
-	img.fill(Color("415c5d"))  # dusk sky
-	var rects := [
-		[Rect2i(0, 0, 480, 40), Color("567c7d")],
-		[Rect2i(0, 150, 480, 120), Color("53612e")],  # grass
-		[Rect2i(0, 196, 480, 74), Color("83571e")],  # cobbles
-		[Rect2i(24, 70, 120, 90), Color("62272c")],  # shop
-		[Rect2i(24, 60, 120, 14), Color("a22512")],
-		[Rect2i(40, 96, 24, 64), Color("3d1f29")],
-		[Rect2i(80, 90, 48, 30), Color("e5bd7f")],
-		[Rect2i(200, 90, 100, 70), Color("50361e")],  # board
-		[Rect2i(206, 96, 88, 58), Color("c58845")],
-		[Rect2i(340, 60, 100, 100), Color("b66813")],  # bakery
-		[Rect2i(340, 52, 100, 12), Color("c94d2e")],
-		[Rect2i(368, 100, 28, 60), Color("3d1f29")],
-	]
-	for r in rects:
-		img.fill_rect(r[0], r[1])
-	$Background.texture = ImageTexture.create_from_image(img)
+	$Background.texture = load("res://assets/sprites/scenes/bg_town.png") as Texture2D
 
 
 # ------------------------------------------------------------------ frame
 
 func _build() -> void:
-	var x := 8
+	var x := 52
 	for t in [["grocer", tr("TOWN_TAB_GROCER")], ["orders", tr("TOWN_TAB_ORDERS")], ["neighbours", tr("TOWN_TAB_NEIGHBOURS")]]:
 		var b := Button.new()
 		b.text = t[1]
-		b.position = Vector2(x, 52)
-		b.size = Vector2(96, 20)
+		b.position = Vector2(x, 38)
+		b.size = Vector2(88, 20)
 		b.pressed.connect(_on_tab.bind(t[0]))
 		add_child(b)
 		_tab_buttons[t[0]] = b
-		x += 100
+		x += 92
 	var post := Button.new()
 	post.text = tr("LET_POST_OFFICE")
-	post.position = Vector2(306, 52)
-	post.size = Vector2(68, 20)
+	post.position = Vector2(326, 38)
+	post.size = Vector2(80, 20)
 	post.pressed.connect(_on_post_office)
 	add_child(post)
 	var back := Button.new()
 	back.text = tr("TOWN_BACK_GARDEN")
-	back.position = Vector2(378, 52)
-	back.size = Vector2(94, 20)
+	back.position = Vector2(410, 38)
+	back.size = Vector2(62, 20)
 	back.pressed.connect(_on_back)
 	add_child(back)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(8, 76)
-	panel.size = Vector2(464, 186)
+	panel.position = Vector2(8, 120)
+	panel.size = Vector2(464, 144)
 	add_child(panel)
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -379,7 +361,7 @@ func _render_orders() -> void:
 		var days := tr("TOWN_LAST_DAY") if left <= 1 else tr("TOWN_DAYS_LEFT") % left
 		var face := Bust.new()
 		face.npc_id = o.npc
-		face.custom_minimum_size = Vector2(16, 16)
+		face.custom_minimum_size = Vector2(48, 48)
 		_row(face, "%s\n%s" % [_order_text(o), days], tr("TOWN_DELIVER"), _on_deliver.bind(int(o.id)))
 
 
@@ -421,7 +403,7 @@ func _render_neighbours() -> void:
 	var hearts := Economy.hearts(d, _npc)
 	var bust := Bust.new()
 	bust.npc_id = _npc
-	bust.custom_minimum_size = Vector2(64, 64)
+	bust.custom_minimum_size = Vector2(48, 48)
 	bust.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	split.add_child(bust)
 	var info := VBoxContainer.new()
@@ -516,56 +498,27 @@ func _do_gift(ref: Dictionary) -> void:
 
 # ------------------------------------------------------------------ palette-rect drawings
 
-## Placeholder portrait bust drawn from palette rects (ART portraits replace it). Design grid 32x32.
-## Boxes under 32 px draw a separate 16x16 layout, so scaling is always 1x or 2x.
+## Neighbour portrait (48x48): the final one if present, else the approved candidate.
 class Bust:
 	extends Control
-	const LOOKS := {
-		"grocer": {"skin": "e19064", "hair": "b9a697", "shirt": "738c7a", "extra": "f2d9c5", "bg": "275e4c"},
-		"baker": {"skin": "e19064", "hair": "83571e", "shirt": "e5bd7f", "extra": "f2d9c5", "bg": "b66813"},
-		"postman": {"skin": "e19064", "hair": "49423d", "shirt": "567c7d", "extra": "2e3f3f", "bg": "415c5d"},
-	}
+	const FILES := {"grocer": "barnaby", "baker": "rosie", "postman": "pip"}
 	var npc_id := "grocer"
+	var _tex: Texture2D
+
+	func _ready() -> void:
+		custom_minimum_size = Vector2(48, 48)
+		var id: String = FILES.get(npc_id, "barnaby")
+		for dir in ["res://assets/sprites/portraits/", "res://assets/sprites/portraits/candidates/"]:
+			var path: String = "%sportrait_%s.png" % [dir, id]
+			if ResourceLoader.exists(path):
+				_tex = load(path) as Texture2D
+				break
+		texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		queue_redraw()
 
 	func _draw() -> void:
-		var look: Dictionary = LOOKS.get(npc_id, LOOKS.grocer)
-		var big := custom_minimum_size.x >= 32
-		var u := 2 if big else 1  # pixels per design unit
-		if big:
-			_r(0, 0, 32, 32, look.bg, u)
-			_r(6, 24, 20, 8, look.shirt, u)
-			_r(12, 22, 8, 3, look.skin, u)
-			_r(9, 8, 14, 15, look.skin, u)
-			_r(8, 5, 16, 5, look.hair, u)
-			_r(8, 8, 2, 8, look.hair, u)
-			_r(22, 8, 2, 8, look.hair, u)
-			_r(12, 14, 2, 2, "111010", u)
-			_r(18, 14, 2, 2, "111010", u)
-			_r(14, 19, 4, 1, "a22512", u)
-			match npc_id:
-				"grocer":
-					_r(10, 26, 12, 6, look.extra, u)
-				"baker":
-					_r(9, 1, 14, 5, look.extra, u)
-				"postman":
-					_r(8, 3, 16, 4, look.extra, u)
-					_r(8, 6, 18, 1, look.extra, u)
-		else:
-			_r(0, 0, 16, 16, look.bg, 1)
-			_r(3, 12, 10, 4, look.shirt, 1)
-			_r(6, 11, 4, 2, look.skin, 1)
-			_r(4, 4, 8, 8, look.skin, 1)
-			_r(4, 2, 8, 3, look.hair, 1)
-			_r(6, 7, 1, 1, "111010", 1)
-			_r(9, 7, 1, 1, "111010", 1)
-			_r(7, 10, 2, 1, "a22512", 1)
-			if npc_id == "baker":
-				_r(4, 0, 8, 3, look.extra, 1)
-			elif npc_id == "postman":
-				_r(4, 1, 9, 2, look.extra, 1)
-
-	func _r(x: int, y: int, w: int, h: int, c: String, u: int) -> void:
-		draw_rect(Rect2(x * u, y * u, w * u, h * u), Color(c))
+		if _tex != null:
+			draw_texture(_tex, Vector2.ZERO)
 
 
 ## Five hearts, `filled` of them lit.
