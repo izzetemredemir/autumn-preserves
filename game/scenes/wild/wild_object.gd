@@ -9,6 +9,8 @@ extends Node2D
 ## Readability (INT-WILD): a fruit tree that still has fruit carries a bobbing paper tag with its fruit's icon
 ## above the canopy (always, so it never reads as a maple); trees, bushes and ground pickups with something to take
 ## get a 1 px cream outline while Granny is `near`, and the one she faces a gold outline. Taken things lose both.
+## BIOMES: decor kind "vine" (decor_vine), grape vines and elder trees as fruit trees (tree_<type>_ripe|bare, smaller
+## than the 64x80 trees: tap area and shadow follow the sprite), kind "hive" (bee_hive_ripe|bare, used like a bush).
 
 const C_INK := Color("111010")
 const C_BARK := Color("50361e")
@@ -22,7 +24,7 @@ const C_OLIVE_MID := Color("747c37")
 const C_SHADOW := Color("3d1f29")  ## plum_900: hard ground shadow to the lower right (art-bible §2.5)
 const C_TAG_EDGE := Color("3d1f29")  ## fruit tag border (plum_900)
 ## Ground-shadow half widths under sprites, by kind
-const SHADOW_HALF := {"decor": 9, "fruit_tree": 11, "bush": 8}
+const SHADOW_HALF := {"decor": 9, "fruit_tree": 11, "bush": 8, "hive": 8}
 ## Decor canopies by kind: [shade, base, light]
 const CANOPY := {
 	"maple": ["a22512", "c94d2e", "e19064"],
@@ -113,9 +115,9 @@ func usable() -> bool:
 	return kind != "decor" and not (done and kind != "fruit_tree")
 
 
-## Something left to take: an unshaken fruit tree, a bush with berries, a ground pickup still lying there.
+## Something left to take: an unshaken fruit tree, a bush with berries, a ground pickup still lying there, a hive.
 func has_take() -> bool:
-	return (kind == "fruit_tree" or kind == "bush" or kind == "ground") and not done
+	return (kind == "fruit_tree" or kind == "bush" or kind == "ground" or kind == "hive") and not done
 
 
 ## World point just above what is drawn (the fruit tag included), for bubbles.
@@ -176,11 +178,20 @@ func vanish() -> void:
 func _local_rect() -> Rect2:
 	match kind:
 		"decor":
+			if _decor_kind() == "vine":
+				return Rect2(-8, -24, 16, 24)
 			return Rect2(-8, -16, 16, 16) if _cut() else Rect2(-16, -56, 32, 56)
 		"fruit_tree":
+			var tex := _texture()
+			if tex != null and (tex.get_width() < 48 or tex.get_height() < 72):  # vines, elders: the sprite itself
+				var sw := maxf(tex.get_width() - 4, 16)
+				var sh := maxf(tex.get_height() - opaque_top(tex), 16)
+				return Rect2(-floorf(sw * 0.5), -sh, sw, sh)
 			return Rect2(-24, -72, 48, 72)
 		"bush":
 			return Rect2(-14, -30, 28, 30)
+		"hive":
+			return Rect2(-12, -26, 24, 26)
 	return Rect2(-8, -16, 16, 16)
 
 
@@ -192,8 +203,8 @@ func _draw() -> void:
 		if lit.a > 0.0:
 			_frame(_local_rect(), lit)
 		return
-	var hw := 0 if _cut() else int(SHADOW_HALF.get(kind, 0))
-	if hw > 0:
+	var hw := 0 if _cut() else mini(int(SHADOW_HALF.get(kind, 0)), floori(tex.get_width() * 0.35))
+	if hw > 2:
 		draw_rect(Rect2(4 - hw, -4, hw * 2 - 4, 4), C_SHADOW)
 		draw_rect(Rect2(2 - hw, -3, hw * 2, 2), C_SHADOW)
 	var at := _sprite_pos(tex)
@@ -286,11 +297,15 @@ func _texture() -> Texture2D:
 		"decor":
 			if _cut():
 				return sprite("prop_stump")
+			if _decor_kind() == "vine":
+				return sprite("decor_vine")
 			return sprite("decor_tree_" + _decor_kind())
 		"fruit_tree":
 			return sprite("tree_%s_%s" % [String(info.get("type", "")), state])
 		"bush":
 			return sprite("bush_%s_%s" % [String(info.get("type", "")), state])
+		"hive":
+			return sprite("bee_hive_" + state)
 		"ground":
 			return _icon
 	return null
@@ -337,10 +352,10 @@ func _draw_tag() -> void:
 		t.draw_rect(Rect2(-4, -17, 7, 7), color)
 
 
-## WildGen's decor kind ("maple" | "birch" | "oak"); anything else maps onto one of them.
+## WildGen's decor kind ("maple" | "birch" | "oak" | "vine"); anything else maps onto one of the trees.
 func _decor_kind() -> String:
 	var k := String(info.get("kind", ""))
-	return k if CANOPY.has(k) else CANOPY_KINDS[absi(hash(k)) % CANOPY_KINDS.size()]
+	return k if CANOPY.has(k) or k == "vine" else CANOPY_KINDS[absi(hash(k)) % CANOPY_KINDS.size()]
 
 
 func _draw_placeholder() -> void:
@@ -353,12 +368,18 @@ func _draw_placeholder() -> void:
 			_draw_bush()
 		"ground":
 			_draw_ground()
+		"hive":
+			_draw_hive()
 		"exit":
 			_draw_exit()
 
 
 func _draw_decor() -> void:
 	var k := _decor_kind()
+	if k == "vine":
+		draw_rect(Rect2(-1, -8, 2, 8), C_BARK)
+		_blob(Rect2(-8, -22, 16, 15), C_OLIVE_DARK, C_OLIVE, C_OLIVE_MID)
+		return
 	var c: Array = CANOPY[k]
 	var trunk := Color("b9a697") if k == "birch" else C_BARK
 	draw_rect(Rect2(-2, -12, 4, 12), trunk)
@@ -400,6 +421,14 @@ func _draw_ground() -> void:
 		draw_rect(Rect2(-3, -8, 6, 6), C_INK)
 		draw_rect(Rect2(-3, -8, 5, 5), color)
 		draw_rect(Rect2(-2, -7, 1, 1), C_CREAM)
+
+
+func _draw_hive() -> void:
+	draw_rect(Rect2(-6, -14, 12, 14), C_INK)
+	draw_rect(Rect2(-5, -13, 10, 13), C_BARK_MID)
+	draw_rect(Rect2(-2, -10, 4, 5), C_INK)
+	if not done:
+		draw_rect(Rect2(-2, -10, 4, 4), C_GOLD)
 
 
 func _draw_exit() -> void:

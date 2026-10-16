@@ -55,6 +55,8 @@ static func pick(state: Dictionary, map: Dictionary, pickup_id: int) -> Dictiona
 	var today := _today(state, map.biome)
 	if _has_id(today.collected, pickup_id):
 		return _fail("UI_NOTHING_LEFT", state)
+	if p.kind == "hive":
+		return _take_honey(state, today, pickup_id)
 	var fr: Dictionary = Data.rules().forage
 	var bush: bool = p.kind == "bush"
 	var count := int(fr.bush_yield) if bush else int(fr.ground_yield)
@@ -111,6 +113,23 @@ static func add_stacked(list: Array, item: Dictionary) -> void:
 
 
 # ---------- helpers ----------
+
+## BIOMES: a wild bee hive (pickup kind "hive") gives rules.biomes.bee_hive.honey honey straight to the cupboard (an
+## add-in, spec §6.1), so it needs no bag room; it costs a bush pick. Result item {"kind": "addin", "id", "count"}.
+static func _take_honey(state: Dictionary, today: Dictionary, pickup_id: int) -> Dictionary:
+	var cost := _spend(state, "pick_bush")
+	if cost < 0:
+		return _fail("UI_TIRED", state)
+	today.collected.append(pickup_id)
+	var n := int(WildGen.biome_table("bee_hive").get("honey", 2))
+	if not state.has("cupboard"):
+		state.cupboard = {}
+	state.cupboard.honey = int(state.cupboard.get("honey", 0)) + n
+	if state.has("stats"):
+		state.stats.items_foraged = int(state.stats.get("items_foraged", 0)) + n
+	return {"ok": true, "reason": "", "items": [{"kind": "addin", "id": "honey", "count": n}], "energy": int(state.energy),
+		"cost": cost, "new": []}
+
 
 static func _today(state: Dictionary, biome: String) -> Dictionary:
 	if not state.has("wild_today") or typeof(state.wild_today) != TYPE_DICTIONARY:

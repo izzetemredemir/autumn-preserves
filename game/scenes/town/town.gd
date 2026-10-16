@@ -327,6 +327,7 @@ func _shop_ids() -> Array:
 	for s in shop.seeds:
 		ids.append("seed_" + s)
 	ids.append("pantry_row")
+	ids.append("boots")  # BIOMES: opens the creek; Economy.price hides it until LIVE and after the purchase
 	return ids
 
 

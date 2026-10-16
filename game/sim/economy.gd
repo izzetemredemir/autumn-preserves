@@ -7,6 +7,7 @@ const MAX_PRIORITY := 0
 ## P1 rows go on sale one by one as their feature lands (tech-spec §16): shop.json buy/seed/upgrade id -> true.
 ## Seeds use their bare id ("cabbage"). One line per id so parallel cards merge cleanly.
 const LIVE := {
+	"boots": true,
 }
 
 

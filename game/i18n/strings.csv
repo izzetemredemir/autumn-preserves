@@ -529,3 +529,12 @@ UI_MARKET_CLOSED,The market opens every 7th day.
 UI_MARKET_COINS,+%d
 WILD_LAB_STATS,%d trees  %d bushes  %d ground
 WILD_LAB_STATS_SPECIAL,%d trees  %d bushes  + %s
+WILD_BIOME_VINEYARD,Vineyard
+WILD_BIOME_CREEK,Creek
+WILD_PICK_TITLE,Where to today?
+WILD_LOCKED_VINEYARD,Vito keeps the key
+WILD_LOCKED_CREEK,Needs rubber boots
+WILD_SPECIAL_BEE_HIVE,Wild bee hive
+WILD_SPECIAL_ROSEHIP_THICKET,Rosehip thicket
+WILD_HONEY,+%d honey for the cupboard
+TOWN_ITEM_BOOTS,Rubber boots

@@ -1,10 +1,13 @@
 extends Node2D
-## Wild scene (GD-WILD, spec §7.1): today's procedural forest. Rules live in WildGen/Forage; this scene only
-## draws the map, walks Granny and shows feedback.
-## Router.params: "biome" (default "forest"); "seed" is used only when no game is running (test start).
+## Wild scene (GD-WILD, spec §7.1): today's procedural forest, vineyard or creek. Rules live in WildGen/Forage; this
+## scene only draws the map, walks Granny and shows feedback.
+## Router.params: "biome" (default "forest"; BiomePicker sends the others); "seed" is used only when no game is
+## running (test start). Before the map is made, the save gets its P1 varieties (VarietyGen.ensure_types: old saves).
 
 const Fx := preload("res://scenes/wild/wild_fx.gd")
 const GRANNY := preload("res://player/granny.tscn")
+## Ambient loops per biome; ids without a file yet are skipped.
+const AMBIENT := {"forest": ["amb_forest"], "vineyard": ["amb_forest"], "creek": ["amb_forest", "amb_creek"]}
 
 var biome := "forest"
 var map: Dictionary = {}
@@ -21,6 +24,8 @@ func _ready() -> void:
 	if not GameState.has_game():
 		GameState.start_temp(int(Router.params.get("seed", Seeds.random_save_seed())))
 	var s: Dictionary = GameState.data
+	if not VarietyGen.ensure_types(s.varieties, int(s.save_seed)).is_empty():
+		GameState.notify(PackedStringArray(["varieties"]))
 	map = WildGen.generate(int(s.save_seed), int(s.day), biome, String(s.weather), s.varieties)
 	if map.is_empty():
 		push_warning("Wild: no map for biome '%s'" % biome)
@@ -41,7 +46,8 @@ func _ready() -> void:
 	camera.snap()
 	seed_label.text = "%s %d" % [tr("UI_SEED"), int(map.seed)]
 	Audio.play_music("mus_forest")
-	Audio.play_ambient("amb_forest")
+	for id in _ambient():
+		Audio.play_ambient(id)
 
 
 func _process(_delta: float) -> void:
@@ -91,7 +97,7 @@ func _use(o: WildObject) -> void:
 	match o.kind:
 		"fruit_tree":
 			r = Forage.shake_tree(GameState.data, map, o.id)
-		"bush", "ground":
+		"bush", "ground", "hive":
 			r = Forage.pick(GameState.data, map, o.id)
 		"exit":
 			_exit()
@@ -108,6 +114,14 @@ func _use(o: WildObject) -> void:
 	o.pop()
 	_refresh()  # the tree turns bare and drops its tag before the bubble is placed over it
 	var n := _count(r.get("items", []))
+	if o.kind == "hive":  # honey goes straight to the cupboard, not the bag
+		granny.act("pick")
+		Audio.play_sfx("sfx_bush_rustle")
+		Audio.play_sfx("sfx_sparkle")
+		Fx.bubble(view.fx, o.top(), "+%d" % n, 0.6)
+		Hud.toast("WILD_HONEY", [n])
+		GameState.notify(PackedStringArray(["energy", "cupboard", "wild_today", "stats"]))
+		return
 	if o.kind == "fruit_tree":
 		granny.act("shake")
 		camera.shake(2, 0.25)
@@ -163,8 +177,14 @@ func _exit() -> void:
 	if granny != null:
 		granny.input_enabled = false
 		granny.stop()
-	Audio.stop_ambient("amb_forest")
+	for id in _ambient():
+		Audio.stop_ambient(id)
 	Router.goto("garden" if Router.exists("garden") else "title")
+
+
+func _ambient() -> Array:
+	return (AMBIENT.get(biome, ["amb_forest"]) as Array).filter(
+		func(id: String) -> bool: return ResourceLoader.exists("res://assets/audio/ambient/%s.ogg" % id))
 
 
 static func _count(items: Variant) -> int:

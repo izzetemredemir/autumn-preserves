@@ -10,10 +10,14 @@ extends Node2D
 ## the middle of a mushroom-ring special place, and a few mossy rocks on free grass from the map seed
 ## (scatter_rocks). Those two are ground decoration only and never block, like the stepping stones; wood (trees,
 ## stumps) always blocks.
+## BIOMES: the ground atlas follows map.biome (tileset_for: <biome>_tiles.png/json, rows = WildGen.T_* ids incl.
+## T_BANK; the forest atlas when a biome has none). Vines (decor kind "vine") are never cut to stumps.
 
 const TILE := 16
 const FOREST_TILES := "res://assets/sprites/tiles/forest_tiles.png"
 const FOREST_TILES_JSON := "res://assets/sprites/tiles/forest_tiles.json"
+const BIOME_TILES := "res://assets/sprites/tiles/%s_tiles.png"
+const BIOME_TILES_JSON := "res://assets/sprites/tiles/%s_tiles.json"
 const STEPPING_STONE := "res://assets/sprites/forest/prop_stepping_stone.png"
 const MUSHROOM_RING := "res://assets/sprites/forest/mushroom_ring.png"
 const MOSSY_ROCK := "res://assets/sprites/forest/prop_mossy_rock.png"
@@ -35,6 +39,7 @@ const C_SPECIAL := Color("c94d2e")
 
 static var _tileset: TileSet
 static var _variants: Array = []  ## per T_* id: Array of atlas coords
+static var _biome_sets := {}  ## biome -> {"ts": TileSet, "variants": per T_* id Array of atlas coords}
 
 var map: Dictionary = {}
 var show_marks := false:  ## Seed Lab: clearings, entrance and the special place outlined
@@ -94,17 +99,19 @@ func show_map(m: Dictionary, varieties: Dictionary = {}) -> void:
 	_rocks = scatter_rocks(m)
 	var w := int(m.w)
 	var h := int(m.h)
+	var biome := String(m.get("biome", "forest"))
+	ground.tile_set = tileset_for(biome)
 	for y in h:
 		for x in w:
 			var t := int(m.ground[y * w + x])
 			if t == WildGen.T_STONE and _step_tex != null:
 				_steps.append(Vector2i(x, y))
 				t = WildGen.T_WATER
-			ground.set_cell(Vector2i(x, y), 0, _atlas_for(t, x, y))
+			ground.set_cell(Vector2i(x, y), 0, atlas_in(biome, t, x, y))
 	var open := open_cells(m)
 	for d in m.get("decor_trees", []):
 		var info: Dictionary = d
-		if canopy_covers(Vector2i(int(d.x), int(d.y)), open):
+		if String(d.get("kind", "")) != "vine" and canopy_covers(Vector2i(int(d.x), int(d.y)), open):
 			info = d.duplicate()
 			info["cut"] = true  # drawn as a stump: same solid cell, but the path or clearing stays in view
 		_add("decor", info, Color.WHITE)
@@ -132,7 +139,7 @@ func apply_visible(vis: Dictionary) -> void:
 			continue
 		if o.kind == "fruit_tree":
 			o.set_done(bool(shaken.get(o.id, false)))
-		elif o.kind == "bush" or o.kind == "ground":
+		elif o.kind == "bush" or o.kind == "ground" or o.kind == "hive":
 			o.set_done(not present.has(o.id))
 
 
@@ -311,6 +318,60 @@ static func tileset() -> TileSet:
 	ts.add_source(src, 0)
 	_tileset = ts
 	return ts
+
+
+## The ground TileSet of a biome: <biome>_tiles.png + .json (rows "0".."5" required, "6" = T_BANK optional), else the
+## forest's tileset().
+static func tileset_for(biome: String) -> TileSet:
+	return _biome_set(biome).ts
+
+
+## Atlas cell for a T_* id in a biome's tileset: variant by hash(x, y); an id the atlas lacks (T_BANK in the forest
+## atlas) falls back to dirt.
+static func atlas_in(biome: String, t: int, x: int, y: int) -> Vector2i:
+	var variants: Array = _biome_set(biome).variants
+	if t < 0 or t >= variants.size() or (variants[t] as Array).is_empty():
+		t = WildGen.T_DIRT if t == WildGen.T_BANK else 0
+	if t >= variants.size() or (variants[t] as Array).is_empty():
+		t = 0
+	var cells: Array = variants[t]
+	var hsh := ((x * 73856093) ^ (y * 19349663)) & 0x7FFFFFFF
+	return cells[hsh % cells.size()]
+
+
+static func _biome_set(biome: String) -> Dictionary:
+	if _biome_sets.has(biome):
+		return _biome_sets[biome]
+	var out := {}
+	var png := BIOME_TILES % biome
+	var js := BIOME_TILES_JSON % biome
+	if biome != "forest" and ResourceLoader.exists(png) and FileAccess.file_exists(js):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(js))
+		var tiles: Dictionary = parsed.get("tiles", {}) if typeof(parsed) == TYPE_DICTIONARY else {}
+		var ok := true
+		for t in FLAT_COLORS.size():
+			ok = ok and tiles.has(str(t))
+		if ok:
+			var ts := TileSet.new()
+			ts.tile_size = Vector2i(TILE, TILE)
+			var src := TileSetAtlasSource.new()
+			src.texture_region_size = Vector2i(TILE, TILE)
+			src.texture = load(png)
+			var variants: Array = []
+			for t in WildGen.T_BANK + 1:
+				var cells: Array = []
+				for c in tiles.get(str(t), {}).get("cells", []):
+					var ac := Vector2i(int(c[0]), int(c[1]))
+					if not src.has_tile(ac):
+						src.create_tile(ac)
+					cells.append(ac)
+				variants.append(cells)
+			ts.add_source(src, 0)
+			out = {"ts": ts, "variants": variants}
+	if out.is_empty():
+		out = {"ts": tileset(), "variants": _variants}
+	_biome_sets[biome] = out
+	return out
 
 
 static func _atlas_for(t: int, x: int, y: int) -> Vector2i:

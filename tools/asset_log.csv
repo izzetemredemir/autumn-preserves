@@ -288,3 +288,20 @@ cat_idle,game/assets/sprites/cat/cat_idle.png,cat,ported:cozy-fishbowl,,,,2026-1
 cat_look,game/assets/sprites/cat/cat_look.png,cat,ported:cozy-fishbowl,,,,2026-10-16T20:59:16Z,pixel_cleanup --palette autumn.hex --size 24x24 --resample box --outline none,n,,P2-CAT port of old orange tabby cat_look.png; no generation
 cat_sleep,game/assets/sprites/cat/cat_sleep.png,cat,ported:cozy-fishbowl,,,,2026-10-16T20:59:16Z,pixel_cleanup --palette autumn.hex --size 24x24 --resample box --outline none,n,,P2-CAT port of old orange tabby cat_sleep.png; no generation
 cat_purr,game/assets/sprites/cat/cat_purr.png,cat,ported:cozy-fishbowl,,,,2026-10-16T20:59:17Z,pixel_cleanup --palette autumn.hex --size 24x24 --resample box --outline none,n,,P2-CAT port of old orange tabby cat_purr.png; no generation
+vineyard_tiles,game/assets/sprites/tiles/vineyard_tiles.png,tiles,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+creek_tiles,game/assets/sprites/tiles/creek_tiles.png,tiles,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+decor_vine,game/assets/sprites/forest/decor_vine.png,forest,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+tree_grape_ripe,game/assets/sprites/forest/tree_grape_ripe.png,forest,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+tree_grape_bare,game/assets/sprites/forest/tree_grape_bare.png,forest,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+tree_elderberry_ripe,game/assets/sprites/forest/tree_elderberry_ripe.png,forest,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+tree_elderberry_bare,game/assets/sprites/forest/tree_elderberry_bare.png,forest,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+bush_rosehip_ripe,game/assets/sprites/forest/bush_rosehip_ripe.png,forest,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+bush_rosehip_bare,game/assets/sprites/forest/bush_rosehip_bare.png,forest,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+bee_hive_ripe,game/assets/sprites/forest/bee_hive_ripe.png,forest,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+bee_hive_bare,game/assets/sprites/forest/bee_hive_bare.png,forest,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+icon_grape,game/assets/sprites/icons/grape.png,icons,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+icon_rosehip,game/assets/sprites/icons/rosehip.png,icons,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+icon_elderberry,game/assets/sprites/icons/elderberry.png,icons,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+icon_hazelnut,game/assets/sprites/icons/hazelnut.png,icons,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+icon_chestnut,game/assets/sprites/icons/chestnut.png,icons,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1
+icon_oyster_mushroom,game/assets/sprites/icons/oyster_mushroom.png,icons,procedural,,,,2026-10-17T00:30:00Z,python3 tools/procedural/biome_art.py (fixed seeds),n,,BIOMES P1

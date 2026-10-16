@@ -26,6 +26,31 @@ static func generate_all(save_seed: int, max_priority: int = 0) -> Dictionary:
 	return out
 
 
+## BIOMES (P1): adds the varieties of every P1 type (priority 1, not a nut) that `varieties` has none of, in place:
+## rules.varieties.count_p1 of them in tiers_p1 order, each type from its own sub-stream exactly as
+## generate_all(save_seed, 1) rolls it. Old saves and P0 new games get the same P1 varieties whenever this runs; P0
+## types are never touched (they keep their 4). Returns the added ids, sorted.
+static func ensure_types(varieties: Dictionary, save_seed: int) -> Array:
+	var cfg: Dictionary = Data.rules().varieties
+	var tiers: Array = cfg.tiers_p1
+	var ings := Data.ingredients()
+	var have := {}
+	for id in varieties:
+		have[String(varieties[id].get("type", ""))] = true
+	var added: Array = []
+	for type: String in Data.ids_up_to("ingredients", 1):
+		if int(ings[type].get("priority", 0)) < 1 or ings[type].group == "nut" or have.has(type):
+			continue
+		var r := Seeds.rng(save_seed, "variety", 0, type)
+		var used: Array = []
+		for i in tiers.size():
+			var v := _roll(r, type, i, String(tiers[i]), cfg, used)
+			varieties[v.id] = v
+			added.append(v.id)
+	added.sort()
+	return added
+
+
 ## Base taste of the type + taste_delta, each axis clamped to 0..9.
 static func taste_of(variety: Dictionary) -> Array:
 	var out := [0, 0, 0, 0, 0]

@@ -96,8 +96,8 @@ func test_wild_counts_in_rules_ranges() -> void:
 			assert_true(int(t.yield) >= 2 and int(t.yield) <= 3, tag + " yield")
 		for p in m.pickups:
 			_assert_cell_free(m, cells, p, tag)
-			if p.get("special", false):
-				continue
+			if p.get("special", false) or p.get("p1", false):
+				continue  # BIOMES: the forest's P1 points (step 8) are checked in test_sim_biomes.gd
 			if p.kind == "bush":
 				bush += 1
 				assert_has(bush_types, p.type, tag)
@@ -210,7 +210,7 @@ func test_wild_rain_doubles_mushroom_weight() -> void:
 		assert_eq(var_to_str(_positions(a)), var_to_str(_positions(b)), "weather keeps the layout, seed %d" % _seed(i))
 		for pair in [["sunny", a], ["rainy", b]]:
 			for p in pair[1].pickups:
-				if p.kind == "ground" and not p.get("special", false):
+				if p.kind == "ground" and not p.get("special", false) and not p.get("p1", false):
 					share[pair[0]][1] += 1
 					if p.type != "walnut":
 						share[pair[0]][0] += 1
@@ -225,13 +225,14 @@ func test_wild_empty_varieties_fallback() -> void:
 		for t in m.fruit_trees:
 			assert_eq(t.variety, t.type + "_1")
 		for p in m.pickups:
-			assert_eq(p.variety, "" if p.type == "walnut" else p.type + "_1")
+			assert_eq(p.variety, "" if Data.ingredients()[p.type].group == "nut" else p.type + "_1")
 
 
 func test_wild_debug_steps() -> void:
 	var m := _map(3)
 	if OS.is_debug_build():
-		assert_eq((m.steps as Dictionary).keys(), ["1_ground", "2_stream", "3_decor", "4_paths", "5_pickups", "6_special", "7_validate"])
+		assert_eq((m.steps as Dictionary).keys(), ["1_ground", "2_stream", "3_decor", "4_paths", "5_pickups", "6_special", "7_validate",
+			"8_p1"])
 		assert_eq((m.steps["1_ground"].ground as PackedByteArray).size(), int(m.w) * int(m.h))
 	else:
 		assert_true((m.steps as Dictionary).is_empty())

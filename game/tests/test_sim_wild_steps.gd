@@ -3,7 +3,7 @@ extends "res://tests/_runner/test_case.gd"
 ## release builds and never changes the map.
 
 const SEEDS := 16
-const KEYS := ["1_ground", "2_stream", "3_decor", "4_paths", "5_pickups", "6_special", "7_validate"]
+const KEYS := ["1_ground", "2_stream", "3_decor", "4_paths", "5_pickups", "6_special", "7_validate", "8_p1"]
 const N4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 
 var _vars: Dictionary = {}
@@ -128,7 +128,7 @@ func test_wild_steps_flood_and_moves() -> void:
 					ok = true
 			assert_true(ok, "flood step %d at %d,%d has a parent" % [d, x, y])
 		var pre: Array = m.steps["6_special"].fruit_trees + m.steps["6_special"].pickups
-		var post: Array = m.fruit_trees + m.pickups
+		var post: Array = m.fruit_trees + m.pickups.filter(func(p: Dictionary) -> bool: return not p.get("p1", false))
 		assert_eq(pre.size(), post.size(), "validation keeps every item")
 		var targets := {}
 		for mv in m.steps["7_validate"].moved:
