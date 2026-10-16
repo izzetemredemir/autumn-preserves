@@ -1,0 +1,13 @@
+{
+  "_doc": "Add-ins (0 or 1 per recipe), spec §7.3. effect = [sweet,sour,spicy,salty,earthy]. kind drives addin_bonus. tint = palette hex the fill shifts toward.",
+  "honey":    {"adjective": "Honeyed",  "effect": [2,0,0,0,0], "kind": "honey", "source": "shop",   "price": 15, "tint": "c58845", "priority": 0},
+  "cinnamon": {"adjective": "Cinnamon", "effect": [1,0,3,0,0], "kind": "spice", "source": "shop",   "price": 10, "tint": "83571e", "priority": 0},
+  "clove":    {"adjective": "Clove",    "effect": [0,0,3,0,1], "kind": "spice", "source": "shop",   "price": 10, "tint": "50361e", "priority": 0},
+  "ginger":   {"adjective": "Ginger",   "effect": [0,1,3,0,0], "kind": "spice", "source": "shop",   "price": 8,  "tint": "dbcc83", "priority": 0},
+  "chili":    {"adjective": "Chili",    "effect": [0,0,4,0,0], "kind": "spice", "source": "shop",   "price": 6,  "tint": "a22512", "priority": 0},
+  "walnut":   {"adjective": "Walnut",   "effect": [0,0,0,0,3], "kind": "nut",   "source": "forage", "price": 0,  "tint": "50361e", "priority": 0},
+  "hazelnut": {"adjective": "Hazelnut", "effect": [1,0,0,0,2], "kind": "nut",   "source": "forage", "price": 0,  "tint": "83571e", "priority": 1},
+  "chestnut": {"adjective": "Chestnut", "effect": [2,0,0,0,2], "kind": "nut",   "source": "forage", "price": 0,  "tint": "50361e", "priority": 1},
+  "thyme":    {"adjective": "Thyme",    "effect": [0,0,1,0,2], "kind": "herb",  "source": "forage", "price": 0,  "tint": "53612e", "priority": 1},
+  "mint":     {"adjective": "Minted",   "effect": [0,2,0,0,0], "kind": "herb",  "source": "forage", "price": 0,  "tint": "738c7a", "priority": 1}
+}

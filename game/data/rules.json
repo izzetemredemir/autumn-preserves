@@ -1,0 +1,30 @@
+{
+  "_doc": "Every tuning number from the design spec lives here. Code reads these, never hard-codes them. Section refs are to the design spec.",
+  "energy": {"base": 80, "pantry_bonus_per_star": 5, "costs": {"walk": 0, "pick_ground": 1, "pick_bush": 2, "shake_tree": 3, "bed_plant": 1, "bed_harvest": 1, "stir_pot": 7, "pack_jar": 6, "press": 6, "knead": 7}},
+  "bag": {"capacity": 30, "shake_needs_free": 3},
+  "forage": {"tree_yield": [2, 3], "bush_yield": 2, "ground_yield": 1, "ring_rare_weight_mult": 3},
+  "varieties": {
+    "count_p0": 4, "count_p1": 6,
+    "tiers_p0": ["common", "common", "uncommon", "rare"],
+    "weights_p0": [35, 35, 25, 5],
+    "tiers_p1": ["common", "common", "common", "uncommon", "uncommon", "rare"],
+    "weights_p1": [23, 23, 24, 12.5, 12.5, 5],
+    "taste_delta_axes_max": 2, "color_shift": [-1, 0, 1], "sizes": ["small", "medium", "large"]
+  },
+  "taste": {"min": 0, "max": 9, "profile_threshold": 3, "harmony_pair_min": 4, "balance_max_exclusive": 8, "balance_axes_min_count": 2, "balance_axis_min": 3,
+            "liked_pairs": [["sweet","sour"], ["sweet","spicy"], ["sour","salty"], ["earthy","sweet"], ["earthy","salty"]]},
+  "value": {"rarity_mult": {"common": 1.0, "uncommon": 1.5, "rare": 2.5}, "star_mult": [1.0, 1.0, 1.25, 1.5, 2.0, 3.0], "addin_bonus": {"honey": 10, "spice": 8, "nut": 5, "herb": 3}},
+  "pantry": {"cols": 6, "shelf_rows": 2, "shelves": ["dry", "room", "cool"], "floor": {"cols": 4, "rows": 2, "zone": "floor"},
+             "group_zone": {"fruit": "cool", "vegetable": "cool", "mushroom": "cool", "nut": "dry"},
+             "fresh_skip_every_nth_night": 3, "stars": {"correct_zone_ratio": 0.8, "min_group": 3, "sorted_row_min": 4}},
+  "stack": {"fresh_max": 5, "nut_max": 10},
+  "orders": {"slots": 3, "expire_days": 5, "reward_mult": 1.5, "friendship": 2, "axes_count": [1, 2], "axis_threshold": 3, "min_stars": [1, 3], "recipe_chance": 0.5},
+  "friendship": {"points_per_heart": 3, "max_hearts": 5, "gift_points": 1, "gift_like_min": 4},
+  "weather": {"p0": {"sunny": 75, "rainy": 25}, "p1": {"sunny": 50, "rainy": 20, "windy": 20, "foggy": 10}, "rain_mushroom_mult": 2, "fog_rare_mult": 1.5},
+  "wild": {"w": 48, "h": 30, "stream_chance": 0.4, "poisson_r": 3, "fruit_trees": [4, 6], "bushes": [6, 8], "ground": [8, 12], "clearings": [2, 3], "special_chance": 0.35,
+           "special_kinds_p0": ["mushroom_ring", "abandoned_orchard"], "ring_mushrooms": [6, 8], "orchard_quince_trees": 2},
+  "garden": {"trees": [{"type": "apple"}, {"type": "quince"}, {"type": "walnut"}], "tree_refill_days": 3, "beds": 4, "compost_per_fertilizer": 5, "fertilizer_days_saved": 1},
+  "start": {"coins": 100, "cupboard": {"jar": 5, "sugar": 3, "salt": 2, "vinegar": 2}, "beds": [{"crop": "cucumber", "days_left": 1}, {"crop": "cucumber", "days_left": 1}],
+            "first_order": {"npc": "baker", "axes": ["sweet"], "min_stars": 1}},
+  "farewell": {"day": 100, "signs_from_day": 90}
+}

@@ -34,16 +34,16 @@ import numpy as np
 from PIL import Image
 
 VALUE_LEGEND = {".": None, "#": "000000", "d": "404040", "m": "808080", "l": "c0c0c0", "W": "ffffff"}
-# art-bible §3.1 "Lofi Night 32" role names, so legends can say `legend k ink`
+# art-bible §1 Vintage Autumn role names
 MAIN_ROLES = {
-    "ink": "0d0b1a", "night_900": "151330", "night_800": "1e1b45", "night_700": "2a2760",
-    "night_600": "3a3a7d", "night_500": "4c5196", "plum_700": "3b1f4f", "plum_600": "5a2d6e",
-    "plum_500": "7d3f8a", "mauve_400": "a65fa3", "mauve_300": "d08cc0", "ember_800": "4a1f1a",
-    "wood_700": "6b3424", "wood_600": "8e4c2e", "lamp_500": "c8692f", "lamp_400": "ef9a3c",
-    "lamp_300": "ffc56b", "lamp_200": "ffe7a8", "deep_800": "0f2a44", "water_700": "14476b",
-    "water_600": "1d6f8f", "teal_500": "24a3a8", "teal_400": "4fd1c5", "teal_300": "9af0e0",
-    "glass_200": "d6fff6", "kelp_700": "1f4a3a", "kelp_500": "3c7a4e", "kelp_400": "6fb565",
-    "ui_text": "f4ecdf", "ui_muted": "a7a3c2", "danger": "e0475f", "glitch": "ff4fd8",
+    "ink": "111010", "slate_900": "23282a", "stone_700": "49423d", "stone_500": "81746a",
+    "stone_300": "b4b3a0", "leaf_red_700": "a22512", "leaf_red_500": "c94d2e",
+    "leaf_peach_300": "e19064", "gold_700": "9b8039", "amber_600": "b66813", "gold_300": "e5bd7f",
+    "gold_200": "dbcc83", "bark_900": "50361e", "bark_700": "83571e", "bark_500": "c58845",
+    "cream_400": "b9a697", "cream_100": "f2d9c5", "olive_900": "314524", "olive_800": "53612e",
+    "olive_600": "747c37", "olive_500": "b1a13d", "olive_300": "b7b768", "olive_200": "c5bf3f",
+    "water_900": "2e3f3f", "water_800": "275e4c", "water_700": "415c5d", "water_600": "4e7664",
+    "water_500": "567c7d", "sage_400": "738c7a", "plum_900": "3d1f29", "wine_700": "62272c",
 }
 AUTO_CHARS = "abcefghijknopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ0123456789@$%&*+=?"
 

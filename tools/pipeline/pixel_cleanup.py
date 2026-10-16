@@ -25,6 +25,8 @@ LOG_COLUMNS = ["asset_id", "file_path", "family", "model", "prompt_sha1", "seed"
 
 
 def parse_size(text):
+    if text.lower() == "any":  # --check only: accept the file's own size
+        return None
     w, h = text.lower().split("x")
     return int(w), int(h)
 
@@ -238,7 +240,7 @@ def main():
     p.add_argument("--out", help="required unless --check")
     p.add_argument("--check", action="store_true",
                    help="lint --in as is (no transform): palette, partial alpha, colors, frame size; exit 1 on a broken rule")
-    p.add_argument("--size", required=True, type=parse_size, help="target size of ONE frame, e.g. 32x32")
+    p.add_argument("--size", required=True, type=parse_size, help="target size of ONE frame, e.g. 32x32 ('any' with --check: skip the size rule)")
     p.add_argument("--frames", type=int, default=1, help="frames laid out horizontally in the source")
     p.add_argument("--palette", default="tools/palettes/autumn.hex")
     p.add_argument("--mode", choices=["env", "value-map", "fish-grayscale"], default="env",
@@ -266,12 +268,14 @@ def main():
     if args.mode == "fish-grayscale":
         args.mode = "value-map"
 
-    tw, th = args.size
+    if args.size is None and not args.check:
+        p.error("--size any is only valid with --check")
+    tw, th = args.size or (0, 0)
     palette = load_palette(args.palette)
     src = np.array(Image.open(args.src).convert("RGBA"))
     if args.check:
         rep = report(src, palette, args.mode, args.max_colors)
-        want = (tw * args.frames, th)
+        want = (tw * args.frames, th) if args.size else tuple(src.shape[1::-1])
         rep.update({"in": args.src, "size": f"{src.shape[1]}x{src.shape[0]}", "size_ok": src.shape[1::-1] == want,
                     "pure_black_pixels": int(((src[..., :3] == 0).all(-1) & (src[..., 3] > 0)).sum()) if args.mode == "env" else 0})
         print(json.dumps(rep))

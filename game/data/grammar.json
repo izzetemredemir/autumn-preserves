@@ -1,0 +1,19 @@
+{
+  "_doc": "Name grammar, spec §6.2 and §7.3. Variety name = '<feature> <type display name>' (max 20). Product name = '<adjective> <variety name> <recipe short>' (max 28), fallbacks: drop variety feature, then drop adjective. Repeat rule: adjective and feature sharing the first 4 letters -> drop the feature.",
+  "variety_name_max": 20,
+  "product_name_max": 28,
+  "features": {
+    "sweet_up":   ["Honey", "Sweet"],
+    "sour_up":    ["Tart", "Sharp"],
+    "spicy_up":   ["Ember"],
+    "salty_up":   ["Mill"],
+    "earthy_up":  ["Hollow", "Ridge"],
+    "small":      ["Little"],
+    "large":      ["Big"],
+    "shift_down": ["Dusk"],
+    "shift_up":   ["Ember", "Golden"]
+  },
+  "profile_adjectives": {"sweet": "Golden", "sour": "Tart", "spicy": "Warm", "salty": "Briny", "earthy": "Smoky", "mild": "Mellow"},
+  "axis_names": ["Sweet", "Sour", "Spicy", "Salty", "Earthy"],
+  "axis_order": ["sweet", "sour", "spicy", "salty", "earthy"]
+}
