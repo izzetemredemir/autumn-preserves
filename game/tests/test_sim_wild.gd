@@ -199,7 +199,7 @@ func test_wild_rain_doubles_mushroom_weight() -> void:
 		var expect: float = sunny.weights[k] * (mult if Data.ingredients()[t].group == "mushroom" else 1.0)
 		assert_near(float(rainy.weights[k]), expect, 0.0001, t)
 	# porcini is sparse: half the chanterelle weight
-	assert_near(float(sunny.weights[1]), float(sunny.weights[0]) * WildGen.UNCOMMON_SPAWN_WEIGHT)
+	assert_near(float(sunny.weights[1]), float(sunny.weights[0]) * WildGen.uncommon_spawn_weight())
 	# over 50 maps rain shifts ground points to mushrooms; the layout itself does not move
 	var share := {"sunny": [0, 0], "rainy": [0, 0]}
 	for i in SEEDS:
