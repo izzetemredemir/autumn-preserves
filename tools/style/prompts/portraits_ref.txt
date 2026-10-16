@@ -1,0 +1,7 @@
+Using the first reference image only as a style guide (same pixel art style, palette and lighting) and the second reference image only for the design of Granny Tonty, draw a character portrait sheet: a 2x2 grid of four square bust portraits (head and shoulders, facing the viewer, slightly three-quarter), each in its own equal square cell, on a fully flat plain cream background. Portraits designed to stay readable at a tiny 48x48 pixel size: BOLD SIMPLE chunky shapes, big clear eyes and mouth, thick dark brown outline, 3-4 tone shading lit warmly from the upper left.
+Top-left: Granny Tonty, the same sweet chubby grandmother as the second reference: grey hair in a round bun, round glasses, rust-red cardigan, cream apron, gentle smile.
+Top-right: Barnaby the grocer, a sturdy middle-aged man with a big moustache, a flat cap and a green-brown apron, friendly.
+Bottom-left: Rosie the baker, a cheerful woman with round rosy cheeks, a headscarf, flour smudges on her cream apron.
+Bottom-right: Pip the postman, a young lanky teenager with a post cap and a satchel strap across his chest, eager grin.
+No text, no letters, no labels, no frames, no logos.
+No watermark, no brand names, no copyrighted characters, no blur, no soft gradients, no anti-aliasing, no photorealism, no 3D render look, no pure black, no neon colors.
