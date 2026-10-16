@@ -1,99 +1,61 @@
 extends Node2D
-## GD-GARDEN · Static garden dressing over the ground tiles and under everything that y-sorts: the back hedge,
-## the wooden fence (left, right, bottom, with gaps for the gate and the town road) and flower clumps.
-## Palette-coloured placeholder shapes until the garden props (art-bible §3.6) land.
+## GD-GARDEN / ART-GARDEN · Static garden dressing over the ground tiles and under everything that y-sorts:
+## the painted ground (leaf-covered lawn, the dirt path and road, the back hedge; it covers the whole map, the
+## tiles only show in the margin of wider windows), the decor (pumpkins, flower clumps, leaf piles) and the
+## wooden fence (left, right, bottom, with gaps for the gate and the town road). All sprites, integer positions.
 
 const Layout := preload("res://scenes/garden/garden_layout.gd")
 const T := 16
-
-const C_INK := Color("111010")
-const C_BARK_DARK := Color("50361e")
-const C_BARK := Color("83571e")
-const C_BARK_LIGHT := Color("c58845")
-const C_OLIVE_DARK := Color("314524")
-const C_OLIVE := Color("53612e")
-const C_OLIVE_MID := Color("747c37")
-const C_OLIVE_LIGHT := Color("b1a13d")
-const C_GOLD := Color("e5bd7f")
-const C_RED := Color("c94d2e")
+const GROUND := preload("res://assets/sprites/garden/garden_ground.png")
+const DECOR := preload("res://assets/sprites/garden/garden_decor.png")  ## 16x12 frames: Layout.D_*
+const FENCE_H := preload("res://assets/sprites/garden/garden_fence_h.png")  ## 16x16: run with post, rails only
+const FENCE_V := preload("res://assets/sprites/garden/garden_fence_v.png")  ## 16x16: side run, bottom-left corner
+const DECOR_SIZE := Vector2i(16, 12)
+## Side-run rows drawn next to the road gap: the run stops at its post (fence_v rows 0-12 / 3-15).
+const RUN_TO_POST := 13
 
 
 func _draw() -> void:
-	_draw_hedge()
-	_draw_leaf_specks()
-	for f in Layout.FLOWERS:
-		_flower(f[0], Color(String(f[1])))
-	for y in range(Layout.HEDGE_ROWS, Layout.H):
-		var left := Vector2i(0, y)
-		var right := Vector2i(Layout.W - 1, y)
-		if not Layout.is_road_exit(left):
-			_fence_side(left)
-		if not Layout.is_road_exit(right):
-			_fence_side(right)
-	for x in Layout.W:
-		var c := Vector2i(x, Layout.H - 1)
-		if not Layout.is_gate(c):
-			_fence_front(c)
+	draw_texture(GROUND, Vector2.ZERO)
+	for d in Layout.DECOR:
+		var c: Vector2i = d[0]
+		var pos := Vector2(c.x * T, (c.y + 1) * T - DECOR_SIZE.y)
+		_frame(DECOR, int(d[1]), DECOR_SIZE, pos)
+	var bottom := Layout.H - 1
+	for y in range(Layout.HEDGE_ROWS, bottom):
+		for x in [0, Layout.W - 1]:
+			_side(Vector2i(x, y))
+	_frame(FENCE_V, 1, Vector2i(T, T), Vector2(0, bottom * T))
+	_frame(FENCE_V, 1, Vector2i(T, T), Vector2((Layout.W - 1) * T, bottom * T), true)
+	for x in range(1, Layout.W - 1):
+		var c := Vector2i(x, bottom)
+		if Layout.is_gate(c):
+			continue
+		var by_gate := Layout.is_gate(c + Vector2i.LEFT) or Layout.is_gate(c + Vector2i.RIGHT)
+		_frame(FENCE_H, 1 if by_gate else 0, Vector2i(T, T), Vector2(x * T, bottom * T))
 
 
-## Back hedge along the top rows: overlapping round bushes with a few autumn leaves.
-func _draw_hedge() -> void:
-	var h := Layout.HEDGE_ROWS * T
-	draw_rect(Rect2(0, 0, Layout.W * T, h), C_OLIVE_DARK)
-	for i in range(-1, Layout.W * 2 + 1):
-		var x := i * 8 - 4
-		var y := h - 20 + (i % 3) * 2
-		draw_rect(Rect2(x, y, 16, 18), C_INK)
-		draw_rect(Rect2(x + 1, y + 1, 14, 16), C_OLIVE)
-		draw_rect(Rect2(x + 2, y + 1, 10, 9), C_OLIVE_MID)
-		draw_rect(Rect2(x + 3, y + 2, 4, 2), C_OLIVE_LIGHT)
-		if i % 4 == 1:
-			draw_rect(Rect2(x + 9, y + 6, 2, 2), C_RED)
-		elif i % 5 == 2:
-			draw_rect(Rect2(x + 5, y + 9, 2, 2), C_GOLD)
+## One side-fence cell; next to the road gap the rail ends at the post instead of running into the opening.
+func _side(c: Vector2i) -> void:
+	if Layout.is_road_exit(c):
+		return
+	var pos := Vector2(c.x * T, c.y * T)
+	if Layout.is_road_exit(c + Vector2i.DOWN):
+		draw_texture_rect_region(FENCE_V, Rect2(pos, Vector2(T, RUN_TO_POST)), Rect2(0, 0, T, RUN_TO_POST))
+	elif Layout.is_road_exit(c + Vector2i.UP):
+		var cut := T - RUN_TO_POST
+		draw_texture_rect_region(FENCE_V, Rect2(pos + Vector2(0, cut), Vector2(T, RUN_TO_POST)),
+			Rect2(0, cut, T, RUN_TO_POST))
+	else:
+		_frame(FENCE_V, 0, Vector2i(T, T), pos)
 
 
-## A few fallen leaves blown onto the grass (on every few cells, picked by a stable per-cell hash).
-func _draw_leaf_specks() -> void:
-	var colors := [C_RED, Color("b66813"), C_GOLD, Color("a22512")]
-	for y in range(Layout.HEDGE_ROWS, Layout.H):
-		for x in Layout.W:
-			var c := Vector2i(x, y)
-			var h := Layout.cell_hash(c)
-			if h % 4 != 0 or Layout.ground(c) != Layout.T_GRASS:
-				continue
-			for i in 2:
-				var px := x * T + (h >> (3 + i * 4)) % 13 + 1
-				var py := y * T + (h >> (5 + i * 4)) % 13 + 1
-				draw_rect(Rect2(px, py, 2, 1), colors[(h >> (2 + i)) % colors.size()])
-
-
-## Side fence seen from above: a rail running down the tile with a post at its middle.
-func _fence_side(c: Vector2i) -> void:
-	var x := c.x * T + 6
-	var y := c.y * T
-	draw_rect(Rect2(x, y, 4, T), C_INK)
-	draw_rect(Rect2(x + 1, y, 2, T), C_BARK)
-	draw_rect(Rect2(x - 1, y + 4, 6, 9), C_INK)
-	draw_rect(Rect2(x, y + 5, 4, 7), C_BARK)
-	draw_rect(Rect2(x, y + 5, 4, 2), C_BARK_LIGHT)
-
-
-## Front fence: pickets with two rails, feet on the bottom of the tile.
-func _fence_front(c: Vector2i) -> void:
-	var x := c.x * T
-	var base := (c.y + 1) * T
-	draw_rect(Rect2(x, base - 11, T, 2), C_BARK_DARK)
-	draw_rect(Rect2(x, base - 6, T, 2), C_BARK_DARK)
-	for px in [1, 6, 11]:
-		draw_rect(Rect2(x + px, base - 15, 4, 15), C_INK)
-		draw_rect(Rect2(x + px + 1, base - 14, 2, 14), C_BARK)
-		draw_rect(Rect2(x + px + 1, base - 14, 2, 2), C_BARK_LIGHT)
-
-
-func _flower(c: Vector2i, petal: Color) -> void:
-	var o := Vector2(c.x * T + 4, c.y * T + 6)
-	for p in [Vector2(0, 2), Vector2(5, 0), Vector2(3, 5)]:
-		draw_rect(Rect2(o + p + Vector2(1, 2), Vector2(1, 3)), C_OLIVE)
-		draw_rect(Rect2(o + p, Vector2(3, 2)), petal)
-		draw_rect(Rect2(o + p + Vector2(1, 0), Vector2(1, 1)), C_GOLD if petal != C_GOLD else C_RED)
+## Frame `i` of a one-row sheet at a whole-pixel position; `flip` mirrors it (the right-hand fence corner).
+func _frame(tex: Texture2D, i: int, size: Vector2i, pos: Vector2, flip := false) -> void:
+	var src := Rect2(i * size.x, 0, size.x, size.y)
+	if flip:
+		draw_set_transform(pos + Vector2(size.x, 0), 0.0, Vector2(-1, 1))
+		draw_texture_rect_region(tex, Rect2(Vector2.ZERO, size), src)
+		draw_set_transform(Vector2.ZERO)
+	else:
+		draw_texture_rect_region(tex, Rect2(pos, size), src)

@@ -2,8 +2,8 @@ extends SceneTree
 ## Smoke drive (GD-GARDEN): the garden run alone on a throwaway game (GameState.start_temp), Granny's To-Do on.
 ##   godot --path game --rendering-driver opengl3 --audio-driver Dummy -s res://tests/smoke/garden_shot.gd
 ## Taps the apple tree (energy -3, bag +2..3), buys a cucumber seed and plants it in an empty bed through the
-## plant menu, makes a letter arrive (mailbox flag up), opens and closes the letters overlay from the mailbox,
-## then taps the door and checks the bag went to the inbox and the kitchen opened.
+## plant menu, makes a letter arrive (mailbox flag up), ripens two beds for the shot, opens and closes the
+## letters overlay from the mailbox, then taps the door and checks the bag went to the inbox and the kitchen opened.
 ## Saves user://shots/garden_start.png, garden_menu.png, garden.png, garden_letters.png.
 ## Exit code 1 on a failed check or timeout.
 ## Autoloads are reached through the root and scene scripts by path (SceneTree scripts can't name autoloads).
@@ -87,6 +87,16 @@ func _run() -> void:
 	var mailbox: Node = _scene.find_spot("mailbox")
 	_check(int(letters_rules.unread_count(_gs.data)) == 1, "one unread letter")
 	_check(int(mailbox.get("unread")) == 1, "mailbox flag is up")
+	# dress the shot (ART-GARDEN): ripe pepper and cucumber beds next to the new seed, a fertilized sprout,
+	# a heaped compost bin with a sack of fertilizer
+	var beds: Array = _gs.data.garden.beds
+	beds[0] = {"crop": "pepper", "variety": "", "days_left": 0, "fertilized": false}
+	beds[1] = {"crop": "cucumber", "variety": "", "days_left": 0, "fertilized": false}
+	if beds.size() > 3 and bed_i != 3:
+		beds[3] = {"crop": "pepper", "variety": "", "days_left": 2, "fertilized": true}
+	_gs.data.garden.compost = 4
+	_gs.data.garden.fertilizer = 1
+	_gs.notify(PackedStringArray(["garden"]))
 	await _frames_wait(40)
 	_shot("garden")
 	_scene.tap_world(mailbox.hit_rect().get_center())

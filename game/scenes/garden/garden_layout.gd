@@ -3,10 +3,11 @@ extends RefCounted
 ## 2 px under the bottom edge). Pure data and lookups, no autoloads. Cells are [col, row]; things that span
 ## several cells list them all. Ground ids are WildGen.T_* so WildMapView's forest_tiles atlas draws them.
 ##
-##   rows 0-1   hedge, the cottage (cols 11-16, rows 0-4) with its door at the bottom (left of centre: the To-Do note)
+##   rows 0-1   hedge, the cottage (cols 10-17, rows 0-5) with its door at the bottom (left of centre: the To-Do note)
 ##   left       apple and quince trees, the beds in a 2-column grid, the compost bin
 ##   middle     path from the door down to the garden gate in the bottom fence
 ##   right      road to town (rows 9-10) leaving through the right fence, the walnut tree
+## The painted ground (garden_ground.png) follows PATH_COLS / ROAD_ROWS; move them and the painting together.
 
 const W := 30
 const H := 17
@@ -20,10 +21,10 @@ const T_LEAVES := 1
 const T_PATH := 4
 
 const HEDGE_ROWS := 2
-const HOUSE := Rect2i(11, 0, 6, 5)
-const DOOR := [Vector2i(13, 4), Vector2i(14, 4)]
-const MAILBOX := Vector2i(10, 4)
-const COMPOST := Vector2i(12, 14)
+const HOUSE := Rect2i(10, 0, 8, 6)
+const DOOR := [Vector2i(13, 5), Vector2i(14, 5)]
+const MAILBOX := Vector2i(11, 6)
+const COMPOST := Vector2i(12, 11)
 ## Tree trunks by type (rules.garden.trees); TREE_SLOTS for types this table doesn't know.
 const TREES := {"apple": Vector2i(3, 7), "quince": Vector2i(3, 13), "walnut": Vector2i(24, 15)}
 const TREE_SLOTS := [Vector2i(3, 7), Vector2i(3, 13), Vector2i(24, 15)]
@@ -37,15 +38,23 @@ const ROAD_EXIT := [Vector2i(29, 9), Vector2i(29, 10)]
 const TOWN_SIGN := Vector2i(27, 11)
 ## Where Granny appears, by where she comes back from: [cell, facing].
 const SPAWN := {
-	"door": [Vector2i(13, 5), Vector2i.DOWN],
+	"door": [Vector2i(13, 6), Vector2i.DOWN],
 	"wild": [Vector2i(13, 15), Vector2i.UP],
 	"town": [Vector2i(28, 9), Vector2i.LEFT],
 }
-## Small flower clumps drawn on the grass (walkable, decoration only): [cell, colour hex].
-const FLOWERS := [
-	[Vector2i(6, 3), "c94d2e"], [Vector2i(9, 3), "e5bd7f"], [Vector2i(20, 3), "e19064"], [Vector2i(24, 5), "c94d2e"],
-	[Vector2i(27, 3), "e5bd7f"], [Vector2i(21, 7), "e5bd7f"], [Vector2i(26, 7), "e19064"], [Vector2i(19, 12), "c94d2e"],
-	[Vector2i(26, 13), "e5bd7f"], [Vector2i(5, 10), "e19064"], [Vector2i(1, 15), "c94d2e"], [Vector2i(20, 14), "e19064"],
+## Hand-placed decor on the lawn: [cell, frame of garden_decor.png]. Flowers and leaf piles are walked over;
+## pumpkins stand (is_open says no) so Granny never steps into one.
+const D_PUMPKIN := 0
+const D_FLOWERS_RED := 1
+const D_FLOWERS_GOLD := 2
+const D_LEAVES := 3
+const DECOR := [
+	[Vector2i(6, 3), D_FLOWERS_RED], [Vector2i(8, 4), D_PUMPKIN], [Vector2i(5, 2), D_LEAVES],
+	[Vector2i(20, 3), D_FLOWERS_GOLD], [Vector2i(24, 5), D_FLOWERS_RED], [Vector2i(27, 3), D_PUMPKIN],
+	[Vector2i(21, 7), D_LEAVES], [Vector2i(26, 7), D_FLOWERS_GOLD], [Vector2i(19, 12), D_FLOWERS_RED],
+	[Vector2i(16, 12), D_PUMPKIN], [Vector2i(17, 12), D_FLOWERS_GOLD], [Vector2i(6, 10), D_FLOWERS_GOLD],
+	[Vector2i(1, 15), D_FLOWERS_RED], [Vector2i(21, 12), D_LEAVES], [Vector2i(27, 14), D_PUMPKIN],
+	[Vector2i(8, 6), D_FLOWERS_GOLD], [Vector2i(16, 7), D_FLOWERS_RED], [Vector2i(6, 15), D_LEAVES],
 ]
 
 
@@ -72,14 +81,21 @@ static func in_map(c: Vector2i) -> bool:
 	return c.x >= 0 and c.y >= 0 and c.x < W and c.y < H
 
 
-## Terrain walkability: hedge, cottage and fences block; the gate and the road gap are open.
+## Terrain walkability: hedge, cottage, fences and pumpkins block; the gate and the road gap are open.
 ## Things standing in the garden (trees, beds, signs) are added by the scene.
 static func is_open(c: Vector2i) -> bool:
-	if not in_map(c) or c.y < HEDGE_ROWS or HOUSE.has_point(c):
+	if not in_map(c) or c.y < HEDGE_ROWS or HOUSE.has_point(c) or is_pumpkin(c):
 		return false
 	if c in GATE or c in ROAD_EXIT:
 		return true
 	return c.x > 0 and c.x < W - 1 and c.y < H - 1
+
+
+static func is_pumpkin(c: Vector2i) -> bool:
+	for d in DECOR:
+		if d[0] == c and d[1] == D_PUMPKIN:
+			return true
+	return false
 
 
 static func is_gate(c: Vector2i) -> bool:
@@ -90,26 +106,13 @@ static func is_road_exit(c: Vector2i) -> bool:
 	return c in ROAD_EXIT
 
 
-## Ground tile id for any cell, also outside the map (the margin keeps the path and road going).
+## Ground id for any cell, also outside the map: footstep sounds, and the tiles in the margin around the painted
+## ground (wider windows), which keep the path and road going. The lawn is a carpet of fallen leaves.
 static func ground(c: Vector2i) -> int:
 	if c.x in PATH_COLS and c.y >= HOUSE.end.y:
 		return T_PATH
 	if c.y in ROAD_ROWS and c.x > PATH_COLS[1]:
 		return T_PATH
-	if in_map(c) and (c.y < HEDGE_ROWS or HOUSE.has_point(c)):
+	if c.y < HEDGE_ROWS or HOUSE.has_point(c):
 		return T_GRASS
-	for t in TREES.values():  # fallen leaves under each canopy
-		var dx := absi(c.x - t.x)
-		var dy: int = c.y - t.y
-		if dx <= 1 and dy >= -2 and dy <= 0:
-			return T_LEAVES
-	return T_GRASS
-
-
-## Stable per-cell number for decoration choices.
-static func cell_hash(c: Vector2i) -> int:
-	return _hash(c)
-
-
-static func _hash(c: Vector2i) -> int:
-	return ((c.x * 73856093) ^ (c.y * 19349663)) & 0x7FFFFFFF
+	return T_LEAVES

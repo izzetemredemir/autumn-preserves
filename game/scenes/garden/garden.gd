@@ -54,9 +54,12 @@ func _process(_delta: float) -> void:
 	if not granny.is_moving() and menu == null and not _leaving:
 		facing = spot_at_cell(granny.facing_cell())
 	var todo := _todo_spot()
+	var near_gate := _near_gate()
 	for s in spots:
 		s.highlighted = s == facing
 		s.glow = s == todo
+		if s.kind == "gate":
+			s.set_open(near_gate)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -412,6 +415,15 @@ func _todo_spot() -> GardenSpot:
 		"town":
 			return find_spot("town_sign")
 	return null
+
+
+## The gate swings open while Granny is within two steps of it, or walking to it.
+func _near_gate() -> bool:
+	for c in [granny.current_cell(), granny.dest_cell()]:
+		for g in Layout.GATE:
+			if maxi(absi(c.x - g.x), absi(c.y - g.y)) <= 2:
+				return true
+	return false
 
 
 func _walkable(cell: Vector2i) -> bool:
