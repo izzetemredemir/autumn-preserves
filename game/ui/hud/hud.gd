@@ -5,6 +5,14 @@ extends CanvasLayer
 
 const TOAST_SECONDS := 2.0
 
+const ICON_DIR := "res://assets/sprites/ui/"
+const CURSOR_HOTSPOT := Vector2(1, 1)
+
+const WEATHER_ICONS := {
+	"sunny": "icon_weather_sun", "rainy": "icon_weather_rain",
+	"windy": "icon_weather_wind", "foggy": "icon_weather_fog",
+}
+
 const C_INK := Color("111010")
 const C_GOLD := Color("e5bd7f")
 const C_AMBER := Color("b66813")
@@ -18,7 +26,7 @@ var _energy_label: Label
 var _bag_label: Label
 var _coins_label: Label
 var _day_label: Label
-var _weather: WeatherIcon
+var _weather: TextureRect
 var _seed_btn: Button
 var _seed_label: Label
 var _toast_holder: Control
@@ -50,12 +58,14 @@ func _build() -> void:
 	root.theme = load("res://ui/theme/theme.tres")
 	add_child(root)
 	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"DarkPanel"
 	panel.position = Vector2(4, 4)
 	root.add_child(panel)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	panel.add_child(row)
 
+	row.add_child(_icon("icon_energy"))
 	_energy_label = Label.new()
 	row.add_child(_energy_label)
 	_energy_bar = ProgressBar.new()
@@ -63,15 +73,15 @@ func _build() -> void:
 	_energy_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_energy_bar.show_percentage = false
 	row.add_child(_energy_bar)
+	row.add_child(_icon("icon_bag"))
 	_bag_label = Label.new()
 	row.add_child(_bag_label)
+	row.add_child(_icon("icon_coin"))
 	_coins_label = Label.new()
 	row.add_child(_coins_label)
 	_day_label = Label.new()
 	row.add_child(_day_label)
-	_weather = WeatherIcon.new()
-	_weather.custom_minimum_size = Vector2(16, 16)
-	_weather.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_weather = _icon("icon_weather_sun")
 	row.add_child(_weather)
 
 	_seed_btn = Button.new()
@@ -85,6 +95,10 @@ func _build() -> void:
 	_seed_label.position = Vector2(4, 52)
 	_seed_label.visible = false
 	root.add_child(_seed_label)
+
+	var cursor := load(ICON_DIR + "ui_cursor.png") as Texture2D
+	if cursor != null:
+		Input.set_custom_mouse_cursor(cursor, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
 
 	_toast_holder = Control.new()
 	_toast_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -104,14 +118,13 @@ func _refresh() -> void:
 		return
 	var e := int(d.get("energy", 0))
 	var emax := int(d.get("energy_max", 80))
-	_energy_label.text = "%s %d/%d" % [tr("UI_ENERGY"), e, emax]
+	_energy_label.text = "%d/%d" % [e, emax]
 	_energy_bar.max_value = emax
 	_energy_bar.value = e
-	_bag_label.text = "%s %d" % [tr("UI_BAG"), Forage.bag_count(d)]
-	_coins_label.text = "%s %d" % [tr("UI_COINS"), int(d.get("coins", 0))]
+	_bag_label.text = str(Forage.bag_count(d))
+	_coins_label.text = str(int(d.get("coins", 0)))
 	_day_label.text = "%s %d" % [tr("UI_DAY"), int(d.get("day", 1))]
-	_weather.weather = String(d.get("weather", "sunny"))
-	_weather.queue_redraw()
+	_weather.texture = load(ICON_DIR + WEATHER_ICONS.get(String(d.get("weather", "sunny")), "icon_weather_sun") + ".png")
 	_seed_label.visible = _seed_btn.button_pressed
 	_seed_label.text = "%s %d" % [tr("UI_SEED"), int(d.get("save_seed", 0))]
 
@@ -123,6 +136,7 @@ func show_toast(key: String, args := []) -> void:
 	if not args.is_empty():
 		text = text % args
 	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"DarkPanel"
 	var label := Label.new()
 	label.text = text
 	panel.add_child(label)
@@ -140,20 +154,10 @@ func show_toast(key: String, args := []) -> void:
 	_toast_tween.tween_callback(panel.queue_free)
 
 
-## Placeholder weather icon drawn from palette rects (ART-06 swaps in icon_weather_*.png).
-class WeatherIcon:
-	extends Control
-	var weather := "sunny"
-
-	func _draw() -> void:
-		if weather == "rainy":
-			draw_rect(Rect2(2, 3, 12, 5), Color("b4b3a0"))
-			draw_rect(Rect2(4, 1, 8, 3), Color("b4b3a0"))
-			for x in [3, 7, 11]:
-				draw_rect(Rect2(x, 10, 1, 3), Color("567c7d"))
-				draw_rect(Rect2(x - 1, 13, 1, 2), Color("738c7a"))
-		else:
-			draw_rect(Rect2(4, 4, 8, 8), Color("e5bd7f"))
-			draw_rect(Rect2(2, 6, 12, 4), Color("e5bd7f"))
-			draw_rect(Rect2(6, 2, 4, 12), Color("e5bd7f"))
-			draw_rect(Rect2(6, 6, 4, 4), Color("f2d9c5"))
+func _icon(icon_name: String) -> TextureRect:
+	var t := TextureRect.new()
+	t.texture = load(ICON_DIR + icon_name + ".png")
+	t.custom_minimum_size = Vector2(16, 16)
+	t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return t

@@ -1,92 +1,112 @@
-[gd_resource type="Theme" load_steps=14 format=3]
+[gd_resource type="Theme" load_steps=24 format=3]
 
 [ext_resource type="FontFile" path="res://assets/fonts/m5x7.ttf" id="1_body"]
 [ext_resource type="FontFile" path="res://assets/fonts/m6x11plus.ttf" id="2_head"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/ui_panel_dark.png" id="3_dark"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/ui_panel_paper.png" id="4_paper"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/ui_button.png" id="5_btn"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/ui_bar_empty.png" id="6_empty"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/ui_bar_fill.png" id="7_fill"]
 
-[sub_resource type="StyleBoxFlat" id="panel_dark"]
+[sub_resource type="StyleBoxTexture" id="panel_dark"]
 resource_name = "panel_dark"
-bg_color = Color(0.2392, 0.1216, 0.1608, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.5137, 0.3412, 0.1176, 1)
-content_margin_left = 6
-content_margin_top = 4
-content_margin_right = 6
-content_margin_bottom = 4
-anti_aliasing = false
+texture = ExtResource("3_dark")
+texture_margin_left = 5
+texture_margin_top = 5
+texture_margin_right = 5
+texture_margin_bottom = 5
+content_margin_left = 7
+content_margin_top = 6
+content_margin_right = 7
+content_margin_bottom = 6
 
-[sub_resource type="StyleBoxFlat" id="btn_normal"]
+axis_stretch_horizontal = 0
+axis_stretch_vertical = 0
+[sub_resource type="AtlasTexture" id="atlas_normal"]
+atlas = ExtResource("5_btn")
+region = Rect2(0, 0, 48, 16)
+
+[sub_resource type="StyleBoxTexture" id="btn_normal"]
 resource_name = "btn_normal"
-bg_color = Color(0.5137, 0.3412, 0.1176, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.0667, 0.0627, 0.0627, 1)
+texture = SubResource("atlas_normal")
+texture_margin_left = 5
+texture_margin_top = 5
+texture_margin_right = 5
+texture_margin_bottom = 5
 content_margin_left = 6
-content_margin_top = 4
+content_margin_top = 3
 content_margin_right = 6
-content_margin_bottom = 4
-anti_aliasing = false
+content_margin_bottom = 3
 
-[sub_resource type="StyleBoxFlat" id="btn_hover"]
+axis_stretch_horizontal = 0
+axis_stretch_vertical = 0
+
+[sub_resource type="AtlasTexture" id="atlas_hover"]
+atlas = ExtResource("5_btn")
+region = Rect2(48, 0, 48, 16)
+
+[sub_resource type="StyleBoxTexture" id="btn_hover"]
 resource_name = "btn_hover"
-bg_color = Color(0.7725, 0.5333, 0.2706, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.0667, 0.0627, 0.0627, 1)
+texture = SubResource("atlas_hover")
+texture_margin_left = 5
+texture_margin_top = 5
+texture_margin_right = 5
+texture_margin_bottom = 5
 content_margin_left = 6
-content_margin_top = 4
+content_margin_top = 3
 content_margin_right = 6
-content_margin_bottom = 4
-anti_aliasing = false
+content_margin_bottom = 3
 
-[sub_resource type="StyleBoxFlat" id="btn_pressed"]
+axis_stretch_horizontal = 0
+axis_stretch_vertical = 0
+
+[sub_resource type="AtlasTexture" id="atlas_pressed"]
+atlas = ExtResource("5_btn")
+region = Rect2(96, 0, 48, 16)
+
+[sub_resource type="StyleBoxTexture" id="btn_pressed"]
 resource_name = "btn_pressed"
-bg_color = Color(0.3137, 0.2118, 0.1176, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.0667, 0.0627, 0.0627, 1)
+texture = SubResource("atlas_pressed")
+texture_margin_left = 5
+texture_margin_top = 5
+texture_margin_right = 5
+texture_margin_bottom = 5
 content_margin_left = 6
-content_margin_top = 4
+content_margin_top = 3
 content_margin_right = 6
-content_margin_bottom = 4
-anti_aliasing = false
+content_margin_bottom = 3
 
-[sub_resource type="StyleBoxFlat" id="btn_disabled"]
+axis_stretch_horizontal = 0
+axis_stretch_vertical = 0
+
+[sub_resource type="AtlasTexture" id="atlas_disabled"]
+atlas = ExtResource("5_btn")
+region = Rect2(144, 0, 48, 16)
+
+[sub_resource type="StyleBoxTexture" id="btn_disabled"]
 resource_name = "btn_disabled"
-bg_color = Color(0.2863, 0.2588, 0.2392, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.0667, 0.0627, 0.0627, 1)
+texture = SubResource("atlas_disabled")
+texture_margin_left = 5
+texture_margin_top = 5
+texture_margin_right = 5
+texture_margin_bottom = 5
 content_margin_left = 6
-content_margin_top = 4
+content_margin_top = 3
 content_margin_right = 6
-content_margin_bottom = 4
-anti_aliasing = false
+content_margin_bottom = 3
+
+axis_stretch_horizontal = 0
+axis_stretch_vertical = 0
 
 [sub_resource type="StyleBoxFlat" id="btn_focus"]
 resource_name = "btn_focus"
-bg_color = Color(0.2392, 0.1216, 0.1608, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+draw_center = false
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(0.8980, 0.7412, 0.4980, 1)
-content_margin_left = 6
-content_margin_top = 4
-content_margin_right = 6
-content_margin_bottom = 4
 anti_aliasing = false
-
 [sub_resource type="StyleBoxFlat" id="line_normal"]
 resource_name = "line_normal"
 bg_color = Color(0.9490, 0.8510, 0.7725, 1)
@@ -115,48 +135,48 @@ content_margin_right = 6
 content_margin_bottom = 4
 anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="bar_bg"]
+[sub_resource type="StyleBoxTexture" id="bar_bg"]
 resource_name = "bar_bg"
-bg_color = Color(0.2392, 0.1216, 0.1608, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.0667, 0.0627, 0.0627, 1)
+texture = ExtResource("6_empty")
+texture_margin_left = 2
+texture_margin_top = 2
+texture_margin_right = 2
+texture_margin_bottom = 2
 content_margin_left = 2
 content_margin_top = 0
 content_margin_right = 2
 content_margin_bottom = 0
-anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="bar_fill"]
+axis_stretch_horizontal = 0
+axis_stretch_vertical = 0
+[sub_resource type="StyleBoxTexture" id="bar_fill"]
 resource_name = "bar_fill"
-bg_color = Color(0.7137, 0.4078, 0.0745, 1)
-border_width_left = 0
-border_width_top = 0
-border_width_right = 0
-border_width_bottom = 0
-border_color = Color(0.7137, 0.4078, 0.0745, 1)
+texture = ExtResource("7_fill")
+texture_margin_left = 2
+texture_margin_top = 2
+texture_margin_right = 2
+texture_margin_bottom = 2
 content_margin_left = 2
 content_margin_top = 0
 content_margin_right = 2
 content_margin_bottom = 0
-anti_aliasing = false
 
-[sub_resource type="StyleBoxFlat" id="paper"]
+axis_stretch_horizontal = 0
+axis_stretch_vertical = 0
+[sub_resource type="StyleBoxTexture" id="paper"]
 resource_name = "paper"
-bg_color = Color(0.9490, 0.8510, 0.7725, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.5137, 0.3412, 0.1176, 1)
-content_margin_left = 6
-content_margin_top = 4
-content_margin_right = 6
-content_margin_bottom = 4
-anti_aliasing = false
+texture = ExtResource("4_paper")
+texture_margin_left = 5
+texture_margin_top = 5
+texture_margin_right = 5
+texture_margin_bottom = 5
+content_margin_left = 7
+content_margin_top = 6
+content_margin_right = 7
+content_margin_bottom = 6
 
+axis_stretch_horizontal = 0
+axis_stretch_vertical = 0
 [resource]
 default_font = ExtResource("1_body")
 default_font_size = 16
@@ -171,8 +191,10 @@ Heading/colors/font_color = Color(0.8980, 0.7412, 0.4980, 1)
 Heading/colors/font_shadow_color = Color(0.0667, 0.0627, 0.0627, 1)
 Heading/constants/shadow_offset_x = 1
 Heading/constants/shadow_offset_y = 1
-PanelContainer/styles/panel = SubResource("panel_dark")
-Panel/styles/panel = SubResource("panel_dark")
+PanelContainer/styles/panel = SubResource("paper")
+Panel/styles/panel = SubResource("paper")
+DarkPanel/base_type = &"PanelContainer"
+DarkPanel/styles/panel = SubResource("panel_dark")
 PaperPanel/base_type = &"PanelContainer"
 PaperPanel/styles/panel = SubResource("paper")
 Button/colors/font_color = Color(0.9490, 0.8510, 0.7725, 1)

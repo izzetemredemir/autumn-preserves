@@ -17,6 +17,19 @@ func _initialize() -> void:
 	root.add_child(rain)
 	var hud := (load("res://ui/hud/hud.tscn") as PackedScene).instantiate()
 	root.add_child(hud)
+	var demo := PanelContainer.new()
+	demo.position = Vector2(300, 90)
+	var col := VBoxContainer.new()
+	demo.add_child(col)
+	var b1 := Button.new()
+	b1.text = "UI_SEED"
+	var b2 := Button.new()
+	b2.text = "UI_SEED"
+	b2.disabled = true
+	col.add_child(b1)
+	col.add_child(b2)
+	demo.theme = load("res://ui/theme/theme.tres")
+	root.add_child(demo)
 	_run(hud)
 
 
