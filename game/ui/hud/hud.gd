@@ -89,6 +89,9 @@ func _build() -> void:
 	_seed_btn.toggle_mode = true
 	_seed_btn.focus_mode = Control.FOCUS_NONE
 	_seed_btn.position = Vector2(4, 28)
+	var settings_path := "res://scenes/title/game_settings.gd"
+	if ResourceLoader.exists(settings_path):
+		_seed_btn.button_pressed = bool(load(settings_path).show_seed())  # player setting (GD-META)
 	_seed_btn.toggled.connect(func(_on: bool) -> void: _refresh())
 	root.add_child(_seed_btn)
 	_seed_label = Label.new()
