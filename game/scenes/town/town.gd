@@ -7,10 +7,12 @@ const ICONS_JSON := "res://assets/sprites/icons/icons.json"
 const ICONS_PNG := "res://assets/sprites/icons/icons.png"
 const PANEL_Y := 146  # the panel covers the lower ~44%; the painted shopfront stays visible above it
 const ROWS := 3
+const GROUPS := ["supplies", "seeds", "upgrades"]
 const NPC_IDS := ["grocer", "baker", "postman", "vintner", "librarian"]
 
 var _tab := "grocer"
 var _sub := "buy"
+var _group := "supplies"
 var _npc := "grocer"
 var _page := 0
 var _picker: Dictionary = {}  # {} or {"kind": "order"|"gift", "id": order id or npc id}
@@ -90,7 +92,24 @@ func _icon(id: String) -> Control:
 		pic.stretch_mode = TextureRect.STRETCH_KEEP
 		pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		holder.add_child(pic)
+	else:
+		var tex := _icon_file(id)
+		if tex != null:
+			var pic2 := TextureRect.new()
+			pic2.texture = tex
+			pic2.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			pic2.stretch_mode = TextureRect.STRETCH_KEEP
+			pic2.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			holder.add_child(pic2)
 	return holder
+
+
+## Icons the atlas lacks: a single file icons/<id>.png (press, boots, bag, beds ...) or JarIcon's drawn supplies (bottle, flour).
+func _icon_file(id: String) -> Texture2D:
+	var path := "res://assets/sprites/icons/%s.png" % id
+	if ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	return JarIcon.supply_icon(id)
 
 
 func _paint_background() -> void:
@@ -307,7 +326,13 @@ func _render_grocer() -> void:
 	_mark(sell, _sub == "sell")
 	head.add_child(buy)
 	head.add_child(sell)
-	head.add_child(_label(tr("TOWN_GROCER_HELLO")))
+	if _sub == "buy":
+		for g in GROUPS:
+			var gb := _button(tr("UI_UPGRADE_GROUP_" + String(g).to_upper()), _set_group.bind(g))
+			_mark(gb, _group == g)
+			head.add_child(gb)
+	else:
+		head.add_child(_label(tr("TOWN_GROCER_HELLO")))
 	_content.add_child(head)
 	if _sub == "buy":
 		_render_buy(head)
@@ -321,34 +346,66 @@ func _set_sub(s: String) -> void:
 	_render()
 
 
-func _shop_ids() -> Array:
+func _set_group(g: String) -> void:
+	_group = g
+	_page = 0
+	_render()
+
+
+## Shop ids of one grocer group: supplies (shop.json buy), seeds, upgrades.
+func _shop_ids(group: String = "") -> Array:
 	var shop: Dictionary = Data.shop()
-	var ids: Array = shop.buy.keys()
-	for s in shop.seeds:
-		ids.append("seed_" + s)
-	ids.append("pantry_row")
-	ids.append("boots")  # BIOMES: opens the creek; Economy.price hides it until LIVE and after the purchase
-	ids.append("press")  # P1-RECIPES: the fruit press (Economy.price hides it until live, and once bought)
-	return ids
+	match group:
+		"supplies":
+			return shop.buy.keys()
+		"seeds":
+			var out: Array = []
+			for s in shop.seeds:
+				out.append("seed_" + s)
+			return out
+	var ups: Array = shop.upgrades.keys()
+	return ups
 
 
 func _shop_name(id: String) -> String:
+	if Data.shop().upgrades.has(id):
+		return tr("UI_UPGRADE_NAME_" + id.to_upper())
 	return tr("TOWN_ITEM_" + id.to_upper())
+
+
+## "Bag  Lv 1/2 - 200 coins" plus a second line with the effect, for an upgrade row.
+func _upgrade_text(d: Dictionary, id: String, price: int) -> String:
+	var up: Dictionary = Data.shop().upgrades[id]
+	var levels: int = up.prices.size() if up.has("prices") else 1
+	var next := int(d.upgrades.get(id, 0)) + 1
+	var text := tr("UI_UPGRADE_NAME_" + id.to_upper())
+	if levels > 1:
+		text += "  " + tr("UI_UPGRADE_LEVEL") % [next, levels]
+	text += "  -  " + tr("TOWN_PRICE") % price
+	var fx := tr("UI_UPGRADE_FX_" + id.to_upper())
+	if id == "bag":
+		fx = fx % int(up.capacity[next - 1])
+	return text + "\n" + fx
 
 
 func _render_buy(head: HBoxContainer) -> void:
 	var d: Dictionary = GameState.data
 	var ids: Array = []
-	for id in _shop_ids():
+	for id in _shop_ids(_group):
 		if Economy.price(d, id) >= 0:
 			ids.append(id)
-	var r := _pager(head, ids.size(), ROWS)
+	var upgrades := _group == "upgrades"
+	var r := _pager(head, ids.size(), 2 if upgrades else ROWS)
 	for id in ids.slice(r.x, r.y):
 		var price := Economy.price(d, id)
-		var text := _shop_name(id)
-		if d.cupboard.has(id):
-			text += "  " + tr("TOWN_HAVE") % int(d.cupboard[id])
-		text += "  -  " + tr("TOWN_PRICE") % price
+		var text := ""
+		if upgrades:
+			text = _upgrade_text(d, id, price)
+		else:
+			text = _shop_name(id)
+			if d.cupboard.has(id):
+				text += "  " + tr("TOWN_HAVE") % int(d.cupboard[id])
+			text += "  -  " + tr("TOWN_PRICE") % price
 		_row(_icon(id), text, tr("TOWN_BUY"), _on_buy.bind(id))
 
 

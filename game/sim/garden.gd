@@ -73,11 +73,19 @@ static func harvest(state: Dictionary, bed_index: int) -> Dictionary:
 
 ## Free bag space in items (capacity grows with the P1 bag upgrade).
 static func bag_free(state: Dictionary) -> int:
-	var cap := int(Data.rules().bag.capacity)
-	var level := int(state.upgrades.get("bag", 0))
-	if level > 0:
-		cap = int(Data.shop().upgrades.bag.capacity[level - 1])
-	return cap - Forage.bag_count(state)
+	return Forage.bag_capacity(state) - Forage.bag_count(state)
+
+
+## Pads the beds up to the "beds" upgrade size once it is bought. Old saves keep every bed they have. True when added.
+static func ensure_beds(state: Dictionary) -> bool:
+	if not Economy.unlocked(state, "beds"):
+		return false
+	var beds: Array = state.garden.beds
+	var want := int(Data.shop().upgrades.beds.beds)
+	var before := beds.size()
+	while beds.size() < want:
+		beds.append({"crop": "", "variety": "", "days_left": 0, "fertilized": false})
+	return beds.size() > before
 
 
 ## Adds an item to the bag, topping up equal stacks (same variety + days_left, or same nut type) to rules.stack.

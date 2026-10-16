@@ -548,3 +548,21 @@ WILD_SPECIAL_BEE_HIVE,Wild bee hive
 WILD_SPECIAL_ROSEHIP_THICKET,Rosehip thicket
 WILD_HONEY,+%d honey for the cupboard
 TOWN_ITEM_BOOTS,Rubber boots
+UI_UPGRADE_GROUP_SUPPLIES,Supplies
+UI_UPGRADE_GROUP_SEEDS,Seeds
+UI_UPGRADE_GROUP_UPGRADES,Upgrades
+UI_UPGRADE_LEVEL,Lv %d/%d
+UI_UPGRADE_NAME_PANTRY_ROW,Pantry shelf
+UI_UPGRADE_NAME_BAG,Bigger bag
+UI_UPGRADE_NAME_BEDS,More beds
+UI_UPGRADE_NAME_BOOTS,Rubber boots
+UI_UPGRADE_NAME_PRESS,Fruit press
+UI_UPGRADE_NAME_BIG_POT,Big pot
+UI_UPGRADE_NAME_CELLAR,Cellar
+UI_UPGRADE_FX_PANTRY_ROW,12 more pantry cells
+UI_UPGRADE_FX_BAG,Carry %d items
+UI_UPGRADE_FX_BEDS,2 more garden beds
+UI_UPGRADE_FX_BOOTS,Opens the creek bank
+UI_UPGRADE_FX_PRESS,Opens the press recipes
+UI_UPGRADE_FX_BIG_POT,Stir-pot recipes fill 2 jars
+UI_UPGRADE_FX_CELLAR,12 cool pantry cells

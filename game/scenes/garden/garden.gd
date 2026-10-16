@@ -31,6 +31,7 @@ var _leaving := false
 func _ready() -> void:
 	if not GameState.has_game():
 		GameState.start_temp(int(Router.params.get("seed", 1)))
+	Garden.ensure_beds(GameState.data)  # saves that bought the beds before they existed in the list
 	_paint_ground()
 	_build_spots()
 	granny = GRANNY.instantiate()

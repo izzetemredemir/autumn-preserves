@@ -161,7 +161,17 @@ static func _find(list: Array, id: int) -> Dictionary:
 
 
 static func _free(state: Dictionary) -> int:
-	return int(Data.rules().bag.capacity) - bag_count(state)
+	return bag_capacity(state) - bag_count(state)
+
+
+## Items the bag holds: rules.bag.capacity, or the shop.json "bag" capacity of the level bought (UPGRADES: 40, 50).
+static func bag_capacity(state: Dictionary) -> int:
+	var cap := int(Data.rules().bag.capacity)
+	var level := int(state.get("upgrades", {}).get("bag", 0))
+	var caps: Array = Data.shop().upgrades.bag.capacity
+	if level > 0:
+		cap = int(caps[mini(level, caps.size()) - 1])
+	return cap
 
 
 ## Energy through Economy.spend; while Economy is a stub (cost 0) the rules.json cost is taken here.

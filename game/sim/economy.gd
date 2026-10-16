@@ -12,6 +12,9 @@ const LIVE := {
 	"bottle": true,
 	"flour": true,
 	"cabbage": true,
+	"pumpkin": true,
+	"bag": true,
+	"beds": true,
 }
 
 
@@ -82,6 +85,8 @@ static func buy(state: Dictionary, shop_id: String, qty: int = 1) -> Dictionary:
 			PantryRules.add_shelf(state.pantry)
 		else:
 			unlock(state, shop_id)
+			if shop_id == "beds":
+				Garden.ensure_beds(state)
 	else:
 		state.cupboard[shop_id] = int(state.cupboard.get(shop_id, 0)) + qty
 	return {"ok": true, "reason": "", "coins_left": int(state.coins), "spent": cost}
