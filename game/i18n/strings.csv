@@ -202,3 +202,63 @@ MG_KNEAD_PERFECT,Perfect!
 MG_KNEAD_GOOD,Good
 MG_KNEAD_MISS,Miss
 MG_KNEAD_DONE,%d stars
+TITLE_SLOGAN,Put autumn in a jar.
+TITLE_SETTINGS,Settings
+TITLE_SEED,Seed
+TITLE_SEED_RANDOM,Random
+TITLE_OVERWRITE,This replaces your saved game.
+TITLE_START,Start
+TITLE_SET_MUSIC,Music
+TITLE_SET_SFX,Effects
+TITLE_SET_AMBIENT,Ambience
+TITLE_SET_FULLSCREEN,Fullscreen
+TITLE_SET_SHOW_SEED,Show seed
+TITLE_SET_TUTORIAL,Granny's To-Do
+TITLE_ON,On
+TITLE_OFF,Off
+TITLE_PREMISE_1,"In the valley of Everfall, autumn never ends and the forest grows anew every morning."
+TITLE_PREMISE_2,Granny Tonty puts that autumn in jars for everyone who lives through winter.
+TITLE_PREMISE_HINT,Click or tap to continue
+TUT_TITLE,Granny's To-Do
+TUT_D1_SHAKE,Shake the apple tree
+TUT_D1_JAM,Make jam on the stove
+TUT_D1_PANTRY,Put the jar in the pantry
+TUT_D1_ORDER,Bring the baker's order to town
+TUT_D1_BED,Go to bed
+TUT_D2_FOREST,Go out the gate to the forest
+TUT_D2_MUSHROOM,Pick a mushroom
+TUT_D2_BRINE,Brine it in a jar
+TUT_D2_SELL,Sell the extra at the grocer's
+TUT_ALL_DONE,"All done, dear!"
+UI_NIGHT_MORNING,Good morning! Day %d
+UI_NIGHT_QUIET,A quiet night.
+UI_NIGHT_MORE,...and %d more.
+UI_NIGHT_MATURED,%s is ready.
+UI_NIGHT_SPOILED,%s went to the compost.
+UI_NIGHT_GROWN,The %s bed is ready to pick.
+UI_NIGHT_GROWN_MANY,%d %s beds are ready to pick.
+UI_NIGHT_MATURED_MANY,%d jars of %s are ready.
+UI_NIGHT_TREE,The %s tree has fruit again.
+UI_NIGHT_ORDER,%s has a new order.
+UI_NIGHT_FERTILIZER,The compost made %d fertilizer.
+UI_NIGHT_ENERGY,You wake up with %d energy.
+UI_NIGHT_ENERGY_STARS,"A tidy pantry (%d stars): %d energy today."
+UI_NIGHT_WEATHER_SUNNY,A sunny day ahead.
+UI_NIGHT_WEATHER_RAINY,Rain today. Mushrooms love it.
+UI_NIGHT_WEATHER_WINDY,A windy day ahead.
+UI_NIGHT_WEATHER_FOGGY,Fog today. Rare finds hide in it.
+UI_DEV_TITLE,Dev panel
+UI_DEV_COINS,+100 coins
+UI_DEV_ENERGY,+20 energy
+UI_DEV_ITEMS,Give items
+UI_DEV_SKIP_DAY,Skip a day
+UI_DEV_NIGHT,Go to bed
+UI_DEV_SEED,Copy seed
+UI_DEV_DEMO,Demo save
+UI_DEV_CLOSE,Close
+UI_DEV_STATUS,"Day %d, seed %d"
+UI_DEV_NO_GAME,No game loaded.
+UI_DEV_GAVE,Added %d stacks.
+UI_DEV_DAY,Day %d
+UI_DEV_SEED_COPIED,Seed %d copied.
+UI_DEV_DEMO_BAD,No demo save at res://dev/demo_save.json
