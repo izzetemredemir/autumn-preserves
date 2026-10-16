@@ -284,7 +284,7 @@ func _line(box: Control, text: String, color := Book.TEXT) -> void:
 func _chart(row: HBoxContainer, values: Array, caption: String) -> void:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", -2)
-	col.custom_minimum_size = Vector2(50, 0)
+	col.custom_minimum_size = Vector2(54, 0)  # fits the longest add-in caption ("Cinnamon", "Hazelnut")
 	row.add_child(col)
 	var cb := CenterContainer.new()
 	col.add_child(cb)
@@ -293,7 +293,7 @@ func _chart(row: HBoxContainer, values: Array, caption: String) -> void:
 	cap.text = caption
 	cap.clip_text = true
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cap.custom_minimum_size.x = 50
+	cap.custom_minimum_size.x = 54
 	col.add_child(cap)
 
 
