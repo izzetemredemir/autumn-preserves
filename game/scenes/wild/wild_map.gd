@@ -3,11 +3,13 @@ extends Node2D
 ## Draws one WildGen map (GD-WILD): a ground TileMapLayer plus a WildObject per tree, bush, pickup and the exit.
 ## Shared by the wild scene and the Seed Lab. `objects` is y-sorted so Granny (added by the wild scene) walks
 ## behind canopies; `fx` sits above for bubbles and particles. Ground tiles come from ART-01's
-## forest_tiles.png when it exists, else from flat palette placeholders (one per WildGen.T_*).
+## forest_tiles.png when it exists, else from flat palette placeholders (one per WildGen.T_*). Stepping stones
+## (T_STONE) are water tiles with ART-FOREST's prop_stepping_stone sprite drawn on the Marks layer, under objects.
 
 const TILE := 16
 const FOREST_TILES := "res://assets/sprites/tiles/forest_tiles.png"
 const FOREST_TILES_JSON := "res://assets/sprites/tiles/forest_tiles.json"
+const STEPPING_STONE := "res://assets/sprites/forest/prop_stepping_stone.png"
 ## Placeholder colours per T_* id (GRASS, LEAVES, DIRT, WATER, PATH, STONE): [base, speckle], art-bible §1.
 const FLAT_COLORS := [["747c37", "b1a13d"], ["b66813", "c94d2e"], ["83571e", "50361e"], ["415c5d", "567c7d"],
 	["c58845", "9b8039"], ["b4b3a0", "81746a"]]
@@ -26,6 +28,8 @@ var show_marks := false:  ## Seed Lab: clearings, entrance and the special place
 
 var _objects: Array[WildObject] = []
 var _blocked := {}
+var _steps: Array[Vector2i] = []  ## T_STONE cells that get the stepping-stone sprite
+var _step_tex: Texture2D
 
 @onready var ground: TileMapLayer = $Ground
 @onready var objects: Node2D = $Objects
@@ -34,6 +38,9 @@ var _blocked := {}
 
 func _ready() -> void:
 	ground.tile_set = tileset()
+	if ResourceLoader.exists(STEPPING_STONE):
+		_step_tex = load(STEPPING_STONE)
+	$Marks.draw.connect(_draw_steps)
 	$Marks.draw.connect(_draw_marks)
 
 
@@ -49,14 +56,20 @@ func show_map(m: Dictionary, varieties: Dictionary = {}) -> void:
 			o.queue_free()
 	_objects.clear()
 	_blocked.clear()
+	_steps.clear()
 	ground.clear()
 	if m.is_empty():
+		$Marks.queue_redraw()
 		return
 	var w := int(m.w)
 	var h := int(m.h)
 	for y in h:
 		for x in w:
-			ground.set_cell(Vector2i(x, y), 0, _atlas_for(int(m.ground[y * w + x]), x, y))
+			var t := int(m.ground[y * w + x])
+			if t == WildGen.T_STONE and _step_tex != null:
+				_steps.append(Vector2i(x, y))
+				t = WildGen.T_WATER
+			ground.set_cell(Vector2i(x, y), 0, _atlas_for(t, x, y))
 	for d in m.get("decor_trees", []):
 		_add("decor", d, Color.WHITE)
 	for t in m.get("fruit_trees", []):
@@ -207,6 +220,11 @@ func _add(kind: String, info: Dictionary, color: Color) -> void:
 	_objects.append(o)
 	if o.blocks():
 		_blocked[o.cell] = true
+
+
+func _draw_steps() -> void:
+	for c in _steps:
+		$Marks.draw_texture(_step_tex, Vector2(c * TILE))
 
 
 func _draw_marks() -> void:

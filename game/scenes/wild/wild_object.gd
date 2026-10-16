@@ -1,9 +1,11 @@
 class_name WildObject
 extends Node2D
 ## One thing on a wild map. Ground pickups use ART-04's 16x16 icons (res://assets/sprites/icons/<type>.png);
-## trees and bushes are palette-coloured placeholder shapes until ART-03 lands.
-## kind: "decor" | "fruit_tree" | "bush" | "ground" | "exit". Position is the feet (bottom-centre of `cell`),
-## so the y-sorted object layer orders it against Granny.
+## trees and bushes use ART-FOREST's sprites (res://assets/sprites/forest/): decor_tree_<kind>,
+## tree_<type>_ripe|bare (bare once shaken), bush_<type>_ripe|bare (bare once picked). A type without a sprite
+## falls back to a palette-coloured placeholder shape.
+## kind: "decor" | "fruit_tree" | "bush" | "ground" | "exit". Position is the feet (bottom-centre of `cell`);
+## sprites hang bottom-centred from it, so the y-sorted object layer puts Granny behind trees she stands above.
 
 const C_INK := Color("111010")
 const C_BARK := Color("50361e")
@@ -14,6 +16,9 @@ const C_GOLD := Color("e5bd7f")
 const C_OLIVE_DARK := Color("314524")
 const C_OLIVE := Color("53612e")
 const C_OLIVE_MID := Color("747c37")
+const C_SHADOW := Color("3d1f29")  ## plum_900: hard ground shadow to the lower right (art-bible §2.5)
+## Ground-shadow half widths under sprites, by kind
+const SHADOW_HALF := {"decor": 9, "fruit_tree": 11, "bush": 8}
 ## Decor canopies by kind: [shade, base, light]
 const CANOPY := {
 	"maple": ["a22512", "c94d2e", "e19064"],
@@ -22,8 +27,10 @@ const CANOPY := {
 }
 const CANOPY_KINDS := ["maple", "birch", "oak"]
 const ICON := "res://assets/sprites/icons/%s.png"
+const SPRITE := "res://assets/sprites/forest/%s.png"
 
 static var _icons := {}
+static var _sprites := {}
 
 var kind := ""
 var id := -1
@@ -57,6 +64,14 @@ static func icon_for(type: String) -> Texture2D:
 		var path := ICON % type
 		_icons[type] = load(path) if type != "" and ResourceLoader.exists(path) else null
 	return _icons[type]
+
+
+## A forest sprite by file name (no extension), or null while it doesn't exist.
+static func sprite(file: String) -> Texture2D:
+	if not _sprites.has(file):
+		var path := SPRITE % file
+		_sprites[file] = load(path) if ResourceLoader.exists(path) else null
+	return _sprites[file]
 
 
 ## Trees stand in the way; pickups and the exit lie on walkable ground.
@@ -113,6 +128,43 @@ func _local_rect() -> Rect2:
 
 
 func _draw() -> void:
+	var tex := _texture()
+	if tex != null:
+		var hw := int(SHADOW_HALF.get(kind, 0))
+		if hw > 0:
+			draw_rect(Rect2(4 - hw, -4, hw * 2 - 4, 4), C_SHADOW)
+			draw_rect(Rect2(2 - hw, -3, hw * 2, 2), C_SHADOW)
+		draw_texture(tex, Vector2(-floorf(tex.get_width() * 0.5), -tex.get_height()))
+	else:
+		_draw_placeholder()
+	if highlighted:
+		var r := _local_rect()
+		draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), C_GOLD)
+		draw_rect(Rect2(r.position + Vector2(0, r.size.y - 1), Vector2(r.size.x, 1)), C_GOLD)
+		draw_rect(Rect2(r.position, Vector2(1, r.size.y)), C_GOLD)
+		draw_rect(Rect2(r.position + Vector2(r.size.x - 1, 0), Vector2(1, r.size.y)), C_GOLD)
+
+
+## This object's sprite in its current state, or null (ground icons and the exit draw themselves).
+func _texture() -> Texture2D:
+	var state := "bare" if done else "ripe"
+	match kind:
+		"decor":
+			return sprite("decor_tree_" + _decor_kind())
+		"fruit_tree":
+			return sprite("tree_%s_%s" % [String(info.get("type", "")), state])
+		"bush":
+			return sprite("bush_%s_%s" % [String(info.get("type", "")), state])
+	return null
+
+
+## WildGen's decor kind ("maple" | "birch" | "oak"); anything else maps onto one of them.
+func _decor_kind() -> String:
+	var k := String(info.get("kind", ""))
+	return k if CANOPY.has(k) else CANOPY_KINDS[absi(hash(k)) % CANOPY_KINDS.size()]
+
+
+func _draw_placeholder() -> void:
 	match kind:
 		"decor":
 			_draw_decor()
@@ -124,18 +176,10 @@ func _draw() -> void:
 			_draw_ground()
 		"exit":
 			_draw_exit()
-	if highlighted:
-		var r := _local_rect()
-		draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), C_GOLD)
-		draw_rect(Rect2(r.position + Vector2(0, r.size.y - 1), Vector2(r.size.x, 1)), C_GOLD)
-		draw_rect(Rect2(r.position, Vector2(1, r.size.y)), C_GOLD)
-		draw_rect(Rect2(r.position + Vector2(r.size.x - 1, 0), Vector2(1, r.size.y)), C_GOLD)
 
 
 func _draw_decor() -> void:
-	var k := String(info.get("kind", ""))
-	if not CANOPY.has(k):
-		k = CANOPY_KINDS[absi(hash(k)) % CANOPY_KINDS.size()]
+	var k := _decor_kind()
 	var c: Array = CANOPY[k]
 	var trunk := Color("b9a697") if k == "birch" else C_BARK
 	draw_rect(Rect2(-2, -12, 4, 12), trunk)
