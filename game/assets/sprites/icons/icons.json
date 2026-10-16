@@ -88,6 +88,30 @@
   "seed_pepper": [
    2,
    3
+  ],
+  "grape": [
+   3,
+   3
+  ],
+  "rosehip": [
+   4,
+   3
+  ],
+  "elderberry": [
+   5,
+   3
+  ],
+  "hazelnut": [
+   0,
+   4
+  ],
+  "chestnut": [
+   1,
+   4
+  ],
+  "oyster_mushroom": [
+   2,
+   4
   ]
  }
 }
