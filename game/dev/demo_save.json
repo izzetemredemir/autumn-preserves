@@ -1,0 +1,816 @@
+{
+	"bag": [],
+	"book": {
+		"variants": {
+			"brined_mushroom|chanterelle_1|-": {
+				"best_q": 2,
+				"best_stars": 3,
+				"count": 1,
+				"first_day": 3
+			},
+			"chutney|apple_1|cucumber_1|-": {
+				"best_q": 2,
+				"best_stars": 3,
+				"count": 1,
+				"first_day": 3
+			},
+			"fruit_butter|apple_1|-": {
+				"best_q": 3,
+				"best_stars": 3,
+				"count": 1,
+				"first_day": 3
+			},
+			"jam|apple_1|-": {
+				"best_q": 2,
+				"best_stars": 2,
+				"count": 1,
+				"first_day": 3
+			},
+			"jam|apple_1|honey": {
+				"best_q": 3,
+				"best_stars": 3,
+				"count": 1,
+				"first_day": 3
+			},
+			"jam|blackberry_1|cinnamon": {
+				"best_q": 2,
+				"best_stars": 4,
+				"count": 1,
+				"first_day": 3
+			},
+			"jam|quince_1|ginger": {
+				"best_q": 2,
+				"best_stars": 4,
+				"count": 1,
+				"first_day": 3
+			},
+			"pickle|cucumber_1|-": {
+				"best_q": 3,
+				"best_stars": 4,
+				"count": 1,
+				"first_day": 3
+			},
+			"pickle|pepper_1|chili": {
+				"best_q": 2,
+				"best_stars": 3,
+				"count": 1,
+				"first_day": 3
+			}
+		}
+	},
+	"coins": 300,
+	"cupboard": {
+		"cinnamon": 2,
+		"jar": 8,
+		"salt": 3,
+		"sugar": 6,
+		"vinegar": 3
+	},
+	"day": 3,
+	"energy": 80,
+	"energy_max": 80,
+	"flags": {
+		"completed": false,
+		"tutorial": 36639
+	},
+	"found_varieties": [],
+	"friendship": {
+		"baker": 0,
+		"grocer": 0,
+		"postman": 0
+	},
+	"garden": {
+		"beds": [
+			{
+				"crop": "cucumber",
+				"days_left": 0,
+				"fertilized": false,
+				"variety": "cucumber_3"
+			},
+			{
+				"crop": "cucumber",
+				"days_left": 0,
+				"fertilized": false,
+				"variety": "cucumber_3"
+			},
+			{
+				"crop": "",
+				"days_left": 0,
+				"fertilized": false,
+				"variety": ""
+			},
+			{
+				"crop": "",
+				"days_left": 0,
+				"fertilized": false,
+				"variety": ""
+			}
+		],
+		"compost": 0,
+		"fertilizer": 0,
+		"trees": [
+			{
+				"fruit": true,
+				"refill_in": 0,
+				"type": "apple",
+				"variety": "apple_3"
+			},
+			{
+				"fruit": true,
+				"refill_in": 0,
+				"type": "quince",
+				"variety": "quince_3"
+			},
+			{
+				"fruit": true,
+				"refill_in": 0,
+				"type": "walnut",
+				"variety": ""
+			}
+		]
+	},
+	"inbox": [],
+	"next_order_id": 4,
+	"orders": [
+		{
+			"axes": [
+				"sweet",
+				"spicy"
+			],
+			"expires_day": 8,
+			"id": 3,
+			"made_day": 3,
+			"min_stars": 1,
+			"npc": "baker",
+			"recipe": ""
+		}
+	],
+	"pantry": {
+		"items": [
+			{
+				"item": {
+					"days_left": -1,
+					"key": "jam|apple_1|-",
+					"kind": "product",
+					"q": 2,
+					"wait_left": 0
+				},
+				"rot": 0,
+				"x": 0,
+				"y": 2
+			},
+			{
+				"item": {
+					"days_left": -1,
+					"key": "jam|apple_1|honey",
+					"kind": "product",
+					"q": 3,
+					"wait_left": 0
+				},
+				"rot": 0,
+				"x": 1,
+				"y": 2
+			},
+			{
+				"item": {
+					"days_left": -1,
+					"key": "fruit_butter|apple_1|-",
+					"kind": "product",
+					"q": 3,
+					"wait_left": 0
+				},
+				"rot": 0,
+				"x": 2,
+				"y": 2
+			},
+			{
+				"item": {
+					"days_left": -1,
+					"key": "chutney|apple_1|cucumber_1|-",
+					"kind": "product",
+					"q": 2,
+					"wait_left": 0
+				},
+				"rot": 0,
+				"x": 3,
+				"y": 2
+			},
+			{
+				"item": {
+					"days_left": -1,
+					"key": "pickle|cucumber_1|-",
+					"kind": "product",
+					"q": 3,
+					"wait_left": 0
+				},
+				"rot": 0,
+				"x": 0,
+				"y": 4
+			},
+			{
+				"item": {
+					"days_left": -1,
+					"key": "brined_mushroom|chanterelle_1|-",
+					"kind": "product",
+					"q": 2,
+					"wait_left": 0
+				},
+				"rot": 0,
+				"x": 1,
+				"y": 4
+			}
+		],
+		"rows_extra": 0
+	},
+	"save_seed": 452,
+	"stats": {
+		"coins_earned": 0,
+		"items_foraged": 0,
+		"jars_made": 9,
+		"orders_done": 0
+	},
+	"upgrades": {
+		"pantry_row": 0
+	},
+	"varieties": {
+		"apple_1": {
+			"color_shift": 1,
+			"id": "apple_1",
+			"name": "Ember Apple",
+			"rarity": "common",
+			"size": "large",
+			"taste_delta": [
+				-1,
+				0,
+				0,
+				0,
+				1
+			],
+			"tier": 0,
+			"type": "apple"
+		},
+		"apple_2": {
+			"color_shift": 1,
+			"id": "apple_2",
+			"name": "Big Apple",
+			"rarity": "common",
+			"size": "large",
+			"taste_delta": [
+				0,
+				1,
+				1,
+				0,
+				0
+			],
+			"tier": 1,
+			"type": "apple"
+		},
+		"apple_3": {
+			"color_shift": 1,
+			"id": "apple_3",
+			"name": "Golden Apple",
+			"rarity": "uncommon",
+			"size": "large",
+			"taste_delta": [
+				-1,
+				0,
+				0,
+				0,
+				0
+			],
+			"tier": 2,
+			"type": "apple"
+		},
+		"apple_4": {
+			"color_shift": 0,
+			"id": "apple_4",
+			"name": "Tart Apple",
+			"rarity": "rare",
+			"size": "small",
+			"taste_delta": [
+				0,
+				1,
+				1,
+				0,
+				0
+			],
+			"tier": 3,
+			"type": "apple"
+		},
+		"blackberry_1": {
+			"color_shift": -1,
+			"id": "blackberry_1",
+			"name": "Little Blackberry",
+			"rarity": "common",
+			"size": "small",
+			"taste_delta": [
+				0,
+				1,
+				0,
+				0,
+				0
+			],
+			"tier": 0,
+			"type": "blackberry"
+		},
+		"blackberry_2": {
+			"color_shift": 0,
+			"id": "blackberry_2",
+			"name": "Ember Blackberry",
+			"rarity": "common",
+			"size": "small",
+			"taste_delta": [
+				0,
+				0,
+				1,
+				0,
+				0
+			],
+			"tier": 1,
+			"type": "blackberry"
+		},
+		"blackberry_3": {
+			"color_shift": -1,
+			"id": "blackberry_3",
+			"name": "Big Blackberry",
+			"rarity": "uncommon",
+			"size": "large",
+			"taste_delta": [
+				0,
+				0,
+				0,
+				1,
+				0
+			],
+			"tier": 2,
+			"type": "blackberry"
+		},
+		"blackberry_4": {
+			"color_shift": 1,
+			"id": "blackberry_4",
+			"name": "Hollow Blackberry",
+			"rarity": "rare",
+			"size": "medium",
+			"taste_delta": [
+				1,
+				0,
+				0,
+				0,
+				1
+			],
+			"tier": 3,
+			"type": "blackberry"
+		},
+		"chanterelle_1": {
+			"color_shift": 0,
+			"id": "chanterelle_1",
+			"name": "Tart Chanterelle",
+			"rarity": "common",
+			"size": "large",
+			"taste_delta": [
+				1,
+				1,
+				0,
+				0,
+				0
+			],
+			"tier": 0,
+			"type": "chanterelle"
+		},
+		"chanterelle_2": {
+			"color_shift": 1,
+			"id": "chanterelle_2",
+			"name": "Ember Chanterelle",
+			"rarity": "common",
+			"size": "large",
+			"taste_delta": [
+				0,
+				0,
+				0,
+				1,
+				0
+			],
+			"tier": 1,
+			"type": "chanterelle"
+		},
+		"chanterelle_3": {
+			"color_shift": -1,
+			"id": "chanterelle_3",
+			"name": "Big Chanterelle",
+			"rarity": "uncommon",
+			"size": "large",
+			"taste_delta": [
+				0,
+				0,
+				1,
+				0,
+				1
+			],
+			"tier": 2,
+			"type": "chanterelle"
+		},
+		"chanterelle_4": {
+			"color_shift": -1,
+			"id": "chanterelle_4",
+			"name": "Honey Chanterelle",
+			"rarity": "rare",
+			"size": "large",
+			"taste_delta": [
+				1,
+				0,
+				0,
+				0,
+				-1
+			],
+			"tier": 3,
+			"type": "chanterelle"
+		},
+		"crabapple_1": {
+			"color_shift": 0,
+			"id": "crabapple_1",
+			"name": "Big Crabapple",
+			"rarity": "common",
+			"size": "large",
+			"taste_delta": [
+				0,
+				0,
+				1,
+				0,
+				1
+			],
+			"tier": 0,
+			"type": "crabapple"
+		},
+		"crabapple_2": {
+			"color_shift": 0,
+			"id": "crabapple_2",
+			"name": "Ember Crabapple",
+			"rarity": "common",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				0,
+				1,
+				1,
+				0
+			],
+			"tier": 1,
+			"type": "crabapple"
+		},
+		"crabapple_3": {
+			"color_shift": -1,
+			"id": "crabapple_3",
+			"name": "Dusk Crabapple",
+			"rarity": "uncommon",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				-1,
+				0,
+				0,
+				1
+			],
+			"tier": 2,
+			"type": "crabapple"
+		},
+		"crabapple_4": {
+			"color_shift": 0,
+			"id": "crabapple_4",
+			"name": "Sharp Crabapple",
+			"rarity": "rare",
+			"size": "small",
+			"taste_delta": [
+				0,
+				1,
+				0,
+				1,
+				0
+			],
+			"tier": 3,
+			"type": "crabapple"
+		},
+		"cucumber_1": {
+			"color_shift": 0,
+			"id": "cucumber_1",
+			"name": "Ember Cucumber",
+			"rarity": "common",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				0,
+				1,
+				0,
+				0
+			],
+			"tier": 0,
+			"type": "cucumber"
+		},
+		"cucumber_2": {
+			"color_shift": 1,
+			"id": "cucumber_2",
+			"name": "Golden Cucumber",
+			"rarity": "common",
+			"size": "small",
+			"taste_delta": [
+				0,
+				0,
+				1,
+				0,
+				-1
+			],
+			"tier": 1,
+			"type": "cucumber"
+		},
+		"cucumber_3": {
+			"color_shift": -1,
+			"id": "cucumber_3",
+			"name": "Big Cucumber",
+			"rarity": "uncommon",
+			"size": "large",
+			"taste_delta": [
+				1,
+				-1,
+				0,
+				0,
+				0
+			],
+			"tier": 2,
+			"type": "cucumber"
+		},
+		"cucumber_4": {
+			"color_shift": -1,
+			"id": "cucumber_4",
+			"name": "Mill Cucumber",
+			"rarity": "rare",
+			"size": "small",
+			"taste_delta": [
+				0,
+				0,
+				1,
+				1,
+				0
+			],
+			"tier": 3,
+			"type": "cucumber"
+		},
+		"pear_1": {
+			"color_shift": 0,
+			"id": "pear_1",
+			"name": "Ember Pear",
+			"rarity": "common",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				0,
+				1,
+				1,
+				0
+			],
+			"tier": 0,
+			"type": "pear"
+		},
+		"pear_2": {
+			"color_shift": -1,
+			"id": "pear_2",
+			"name": "Dusk Pear",
+			"rarity": "common",
+			"size": "small",
+			"taste_delta": [
+				0,
+				-1,
+				0,
+				0,
+				0
+			],
+			"tier": 1,
+			"type": "pear"
+		},
+		"pear_3": {
+			"color_shift": -1,
+			"id": "pear_3",
+			"name": "Sweet Pear",
+			"rarity": "uncommon",
+			"size": "medium",
+			"taste_delta": [
+				1,
+				-1,
+				0,
+				0,
+				0
+			],
+			"tier": 2,
+			"type": "pear"
+		},
+		"pear_4": {
+			"color_shift": 0,
+			"id": "pear_4",
+			"name": "Sharp Pear",
+			"rarity": "rare",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				1,
+				1,
+				0,
+				0
+			],
+			"tier": 3,
+			"type": "pear"
+		},
+		"pepper_1": {
+			"color_shift": 1,
+			"id": "pepper_1",
+			"name": "Ember Pepper",
+			"rarity": "common",
+			"size": "medium",
+			"taste_delta": [
+				1,
+				0,
+				0,
+				0,
+				1
+			],
+			"tier": 0,
+			"type": "pepper"
+		},
+		"pepper_2": {
+			"color_shift": 1,
+			"id": "pepper_2",
+			"name": "Golden Pepper",
+			"rarity": "common",
+			"size": "small",
+			"taste_delta": [
+				1,
+				0,
+				0,
+				1,
+				0
+			],
+			"tier": 1,
+			"type": "pepper"
+		},
+		"pepper_3": {
+			"color_shift": 1,
+			"id": "pepper_3",
+			"name": "Tart Pepper",
+			"rarity": "uncommon",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				1,
+				0,
+				1,
+				0
+			],
+			"tier": 2,
+			"type": "pepper"
+		},
+		"pepper_4": {
+			"color_shift": 1,
+			"id": "pepper_4",
+			"name": "Ridge Pepper",
+			"rarity": "rare",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				0,
+				-1,
+				0,
+				1
+			],
+			"tier": 3,
+			"type": "pepper"
+		},
+		"porcini_1": {
+			"color_shift": -1,
+			"id": "porcini_1",
+			"name": "Big Porcini",
+			"rarity": "common",
+			"size": "large",
+			"taste_delta": [
+				0,
+				0,
+				1,
+				0,
+				0
+			],
+			"tier": 0,
+			"type": "porcini"
+		},
+		"porcini_2": {
+			"color_shift": 1,
+			"id": "porcini_2",
+			"name": "Hollow Porcini",
+			"rarity": "common",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				0,
+				0,
+				1,
+				1
+			],
+			"tier": 1,
+			"type": "porcini"
+		},
+		"porcini_3": {
+			"color_shift": -1,
+			"id": "porcini_3",
+			"name": "Dusk Porcini",
+			"rarity": "uncommon",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				0,
+				0,
+				1,
+				0
+			],
+			"tier": 2,
+			"type": "porcini"
+		},
+		"porcini_4": {
+			"color_shift": 1,
+			"id": "porcini_4",
+			"name": "Sweet Porcini",
+			"rarity": "rare",
+			"size": "medium",
+			"taste_delta": [
+				1,
+				0,
+				0,
+				0,
+				1
+			],
+			"tier": 3,
+			"type": "porcini"
+		},
+		"quince_1": {
+			"color_shift": 0,
+			"id": "quince_1",
+			"name": "Hollow Quince",
+			"rarity": "common",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				0,
+				0,
+				0,
+				1
+			],
+			"tier": 0,
+			"type": "quince"
+		},
+		"quince_2": {
+			"color_shift": 1,
+			"id": "quince_2",
+			"name": "Ember Quince",
+			"rarity": "common",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				0,
+				0,
+				1,
+				0
+			],
+			"tier": 1,
+			"type": "quince"
+		},
+		"quince_3": {
+			"color_shift": -1,
+			"id": "quince_3",
+			"name": "Dusk Quince",
+			"rarity": "uncommon",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				0,
+				1,
+				1,
+				0
+			],
+			"tier": 2,
+			"type": "quince"
+		},
+		"quince_4": {
+			"color_shift": -1,
+			"id": "quince_4",
+			"name": "Tart Quince",
+			"rarity": "rare",
+			"size": "medium",
+			"taste_delta": [
+				0,
+				1,
+				0,
+				1,
+				0
+			],
+			"tier": 3,
+			"type": "quince"
+		}
+	},
+	"version": 1,
+	"weather": "rainy",
+	"wild_today": {}
+}
