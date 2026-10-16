@@ -101,3 +101,62 @@ BOOK_TYPE_CUCUMBER,Cucumber
 BOOK_TYPE_PEPPER,Pepper
 BOOK_TYPE_CHANTERELLE,Chanterelle
 BOOK_TYPE_PORCINI,Porcini
+TOWN_TAB_GROCER,Grocer
+TOWN_TAB_ORDERS,Orders
+TOWN_TAB_NEIGHBOURS,Neighbours
+TOWN_BACK_GARDEN,Back
+TOWN_BUY,Buy
+TOWN_SELL,Sell
+TOWN_GIVE,Give
+TOWN_GIFT,Gift
+TOWN_DELIVER,Deliver
+TOWN_GROCER_HELLO,"Barnaby: what will it be?"
+TOWN_HAVE,have %d
+TOWN_PRICE,%d coins
+TOWN_REWARD,%d coins
+TOWN_BOUGHT,Bought %s for %d coins
+TOWN_SOLD,Sold for %d coins
+TOWN_NOTHING_TO_SELL,You have nothing to sell.
+TOWN_NO_ORDERS,No orders on the board today.
+TOWN_ORDER_ANY,"%s wants something %s, %d+ stars"
+TOWN_ORDER_PLAIN,"%s wants anything tasty, %d+ stars"
+TOWN_ORDER_RECIPE,"%s wants a %s that is %s, %d+ stars"
+TOWN_ORDER_RECIPE_PLAIN,"%s wants a %s, %d+ stars"
+TOWN_DAYS_LEFT,%d days left
+TOWN_LAST_DAY,Last day
+TOWN_DELIVERED,Delivered! +%d coins
+TOWN_DELIVERED_HEART,Delivered! +%d coins and a new heart
+TOWN_PICK_FOR_ORDER,Pick a jar to deliver
+TOWN_PICK_FOR_GIFT,Pick a gift for %s
+TOWN_NO_JARS,You have no jars to give
+TOWN_GIFT_LOVED,They loved it!
+TOWN_GIFT_OK,They accepted it politely.
+TOWN_LIKES,Likes: %s
+TOWN_ROLE_GROCER,Grocer
+TOWN_ROLE_BAKER,Baker
+TOWN_ROLE_POSTMAN,Postman
+TOWN_ITEM_JAR,Jar
+TOWN_ITEM_SUGAR,Sugar
+TOWN_ITEM_SALT,Salt
+TOWN_ITEM_VINEGAR,Vinegar
+TOWN_ITEM_HONEY,Honey
+TOWN_ITEM_CINNAMON,Cinnamon
+TOWN_ITEM_CLOVE,Clove
+TOWN_ITEM_GINGER,Ginger
+TOWN_ITEM_CHILI,Chili
+TOWN_ITEM_BOTTLE,Bottle
+TOWN_ITEM_FLOUR,Flour
+TOWN_ITEM_SEED_CUCUMBER,Cucumber seeds
+TOWN_ITEM_SEED_PEPPER,Pepper seeds
+TOWN_ITEM_SEED_CABBAGE,Cabbage seeds
+TOWN_ITEM_SEED_PUMPKIN,Pumpkin seeds
+TOWN_ITEM_PANTRY_ROW,Pantry shelf
+NPC_GROCER_0,"Welcome, dear. Mind the crates."
+NPC_GROCER_1,"Your preserves are the talk of the square."
+NPC_GROCER_2,"For you? The best prices in town."
+NPC_BAKER_0,"Oh, hello! Fresh loaves at dawn."
+NPC_BAKER_1,"Bring me something sweet and spicy, would you?"
+NPC_BAKER_2,"You and I could bake the whole autumn away."
+NPC_POSTMAN_0,"Letters, parcels, and the odd acorn."
+NPC_POSTMAN_1,"I do love a tangy pickle on my rounds."
+NPC_POSTMAN_2,"Your garden gate is my favourite stop."
