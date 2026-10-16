@@ -9,14 +9,20 @@ const LEAD_IN := 2.5  ## seconds before the first beat
 const RESULT_HOLD := 2.5
 const HIT_X := 110.0
 const PX_PER_SEC := 120.0
-const TRACK_Y := 60.0
+const TRACK_Y := 44.0
 const IGNORE_MS := 450.0  ## presses earlier than this before a beat are ignored
 
+const T_BG := preload("res://assets/sprites/minigames/press/press_bg.png")
+const T_FRAME := preload("res://assets/sprites/minigames/press/press_frame.png")
+const T_LEVER := preload("res://assets/sprites/minigames/press/press_lever.png")
+const T_BOTTLE := preload("res://assets/sprites/minigames/press/press_bottle.png")
+const T_BEAT := preload("res://assets/sprites/minigames/press/press_beat.png")
+const T_HIT := preload("res://assets/sprites/minigames/press/press_hit.png")
+const T_PANEL := preload("res://assets/sprites/ui/ui_panel_dark.png")
+const PRESS_POS := Vector2(170, 72)  ## top-left of the 72x120 press frame
+const BOTTLE_POS := Vector2(250, 140)
+
 const C_BG := Color("23282a")
-const C_WOOD := Color("83571e")
-const C_WOOD_D := Color("50361e")
-const C_METAL := Color("81746a")
-const C_RIM := Color("b9a697")
 const C_TEXT := Color("f2d9c5")
 const C_BAR_BG := Color("111010")
 const C_JUICE := Color("c94d2e")
@@ -48,7 +54,7 @@ var _l_hint: Label
 func _ready() -> void:
 	_label(Vector2(12, 8), "MG_PRESS_TITLE")
 	_l_hint = _label(Vector2(12, 252), "MG_PRESS_HINT")
-	_l_msg = _label(Vector2(0, 150), "")
+	_l_msg = _label(Vector2(0, 143), "")
 	_l_msg.size = Vector2(480, 30)
 	_l_msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_l_msg.z_index = 10
@@ -181,52 +187,62 @@ func _emit() -> void:
 	finished.emit({"stars": stars, "perfect": counts["perfect"], "good": counts["good"], "miss": counts["miss"]})
 
 
+var _panel: StyleBoxTexture
+
+
+func _box(r: Rect2) -> void:
+	if _panel == null:
+		_panel = StyleBoxTexture.new()
+		_panel.texture = T_PANEL
+		for m in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+			_panel.set_texture_margin(m, 5.0)
+	draw_style_box(_panel, r)
+
+
 func _draw() -> void:
-	draw_rect(Rect2(0, 0, 480, 270), C_BG)
-	_draw_track()
+	draw_texture(T_BG, Vector2.ZERO)
+	_box(Rect2(0, -6, 480, 32))  # title strip
+	_box(Rect2(0, 248, 480, 28))  # hint strip
 	_draw_press()
+	_draw_track()
 	if phase == Phase.DONE:
-		draw_rect(Rect2(90, 140, 300, 40), C_BAR_BG)
-		draw_rect(Rect2(90, 140, 300, 40), C_RIM, false, 1.0)
+		_box(Rect2(14, 134, 452, 36))
 
 
 func _draw_track() -> void:
-	draw_rect(Rect2(20, TRACK_Y - 14, 440, 28), C_BAR_BG)
+	_box(Rect2(14, TRACK_Y - 18, 452, 36))
 	var now := _now_ms() / 1000.0 if phase != Phase.IDLE else 0.0
 	for i in BEATS:
 		var x := roundf(HIT_X + (LEAD_IN + i * INTERVAL - now) * PX_PER_SEC)
-		if x < 20 or x > 458:
+		if x < 22 or x > 456:
 			continue
-		var col := C_TEXT
+		var f := 0
 		match grades[i] if i < grades.size() else "":
-			"perfect": col = C_PERFECT
-			"good": col = C_GOOD
-			"miss": col = C_MISS
-		draw_rect(Rect2(x - 3, TRACK_Y - 10, 6, 20), col)
-	draw_rect(Rect2(HIT_X - 1, TRACK_Y - 16, 2, 32), C_RIM)
-	draw_rect(Rect2(HIT_X - 12, TRACK_Y - 16, 24, 32), C_RIM, false, 1.0)
+			"perfect": f = 1
+			"good": f = 2
+			"miss": f = 3
+		draw_texture_rect_region(T_BEAT, Rect2(x - 4, TRACK_Y - 10, 8, 20), Rect2(f * 8, 0, 8, 20))
+	draw_texture(T_HIT, Vector2(HIT_X - 14, TRACK_Y - 18))
 	if _flash_t > 0.0:
 		var fc := C_PERFECT if _flash == "perfect" else (C_GOOD if _flash == "good" else C_MISS)
 		draw_rect(Rect2(HIT_X - 12, TRACK_Y + 20, 24, 3), fc)
 
 
 func _draw_press() -> void:
-	var drop := roundf(_lever * 14.0)
-	draw_rect(Rect2(150, 110, 10, 130), C_WOOD_D)
-	draw_rect(Rect2(250, 110, 10, 130), C_WOOD_D)
-	draw_rect(Rect2(140, 100, 130, 12), C_WOOD)
-	draw_rect(Rect2(130, 238, 150, 12), C_WOOD)
-	draw_rect(Rect2(200, 112, 10, 40 + drop), C_METAL)
-	draw_rect(Rect2(172, 152 + drop, 66, 8), C_WOOD)
-	draw_rect(Rect2(205, 90 + drop, 90, 6), C_WOOD)
-	draw_rect(Rect2(293, 84 + drop, 8, 18), C_WOOD_D)
-	draw_rect(Rect2(172, 200, 66, 38), C_WOOD_D)
-	draw_rect(Rect2(172, 200, 66, 38), C_RIM, false, 1.0)
-	var bx := 340
-	var by := 130
-	draw_rect(Rect2(bx, by, 40, 100), C_BAR_BG)
-	var h := roundf(96.0 * juice)
-	draw_rect(Rect2(bx + 2, by + 98 - h, 36, h), fill_color)
-	draw_rect(Rect2(bx + 12, by - 12, 16, 12), C_BAR_BG)
-	draw_rect(Rect2(bx, by, 40, 100), C_RIM, false, 1.0)
-	draw_rect(Rect2(238, 224, 102, 2), fill_color if juice > 0.0 else C_WOOD_D)
+	draw_texture_rect_region(T_FRAME, Rect2(PRESS_POS, Vector2(72, 120)), Rect2(16, 0, 72, 120))
+	var lf := 0 if _lever < 0.34 else (1 if _lever < 0.67 else 2)
+	draw_texture_rect_region(T_LEVER, Rect2(PRESS_POS + Vector2(30, 21), Vector2(56, 30)), Rect2(lf * 56, 0, 56, 30))
+	# drips from the spout while pressing
+	if juice > 0.0 and (_lever > 0.0 or _flash_t > 0.0):
+		draw_rect(Rect2(PRESS_POS.x + 73, 172, 2, 5), fill_color)
+	# bottle: dark inside, liquid in the fill colour (two tones), glass on top
+	var b := BOTTLE_POS
+	draw_rect(Rect2(b.x + 4, b.y + 21, 16, 34), C_BAR_BG)
+	draw_rect(Rect2(b.x + 9, b.y + 2, 6, 19), C_BAR_BG)
+	var h := roundf(34.0 * juice)
+	if h > 0.0:
+		draw_rect(Rect2(b.x + 4, b.y + 55 - h, 16, h), fill_color)
+		if h > 3.0:
+			draw_rect(Rect2(b.x + 4, b.y + 55 - h, 16, 2), fill_color.lightened(0.3))
+			draw_rect(Rect2(b.x + 4, b.y + 53, 16, 2), fill_color.darkened(0.3))
+	draw_texture(T_BOTTLE, b)

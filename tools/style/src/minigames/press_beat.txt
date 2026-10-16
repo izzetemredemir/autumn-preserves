@@ -1,0 +1,101 @@
+legend . transparent
+legend k ink
+legend d bark_900
+legend b bark_700
+legend t bark_500
+legend g gold_300
+legend c cream_100
+legend r cream_400
+legend s stone_500
+legend S stone_700
+legend w wine_700
+legend R leaf_red_500
+legend G water_600
+legend H gold_200
+legend e olive_800
+legend p leaf_peach_300
+legend P amber_600
+frame
+.kkkkkk.
+kcccccck
+kcrcccck
+kcrcccck
+kcrcccck
+kcrcccck
+kcccccck
+kcccccck
+kcccccck
+kcccccck
+kcccccck
+kcccccck
+kcccccck
+kcccccck
+kcccccck
+kcccccck
+kcccccck
+kcccccck
+kcccccck
+.kkkkkk.
+frame
+.kkkkkk.
+kHHHHHHk
+kHgHHHHk
+kHgHHHHk
+kHgHHHHk
+kHgHHHHk
+kHHHHHHk
+kHHHHHHk
+kHHHHHHk
+kHHHHHHk
+kHHHHHHk
+kHHHHHHk
+kHHHHHHk
+kHHHHHHk
+kHHHHHHk
+kHHHHHHk
+kHHHHHHk
+kHHHHHHk
+kHHHHHHk
+.kkkkkk.
+frame
+.kkkkkk.
+keeeeeek
+keceeeek
+keceeeek
+keceeeek
+keceeeek
+keeeeeek
+keeeeeek
+keeeeeek
+keeeeeek
+keeeeeek
+keeeeeek
+keeeeeek
+keeeeeek
+keeeeeek
+keeeeeek
+keeeeeek
+keeeeeek
+keeeeeek
+.kkkkkk.
+frame
+.kkkkkk.
+kwwwwwwk
+kwRwwwwk
+kwRwwwwk
+kwRwwwwk
+kwRwwwwk
+kwwwwwwk
+kwwwwwwk
+kwwwwwwk
+kwwwwwwk
+kwwwwwwk
+kwwwwwwk
+kwwwwwwk
+kwwwwwwk
+kwwwwwwk
+kwwwwwwk
+kwwwwwwk
+kwwwwwwk
+kwwwwwwk
+.kkkkkk.

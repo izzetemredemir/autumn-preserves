@@ -13,6 +13,17 @@ const CENTER := Vector2(240, 140)
 const RING_R := 72.0
 const JUDGE_KEYS := {"miss": "MG_KNEAD_MISS", "good": "MG_KNEAD_GOOD", "perfect": "MG_KNEAD_PERFECT"}
 
+const T_BG := preload("res://assets/sprites/minigames/knead/knead_bg.png")
+const T_DOUGH := preload("res://assets/sprites/minigames/knead/knead_dough.png")
+const T_HANDS := preload("res://assets/sprites/minigames/knead/knead_hands.png")
+const T_PLATE := preload("res://assets/sprites/minigames/knead/pie_plate.png")
+const T_FILLING := preload("res://assets/sprites/minigames/knead/pie_filling.png")
+const T_CRUST_FX := preload("res://assets/sprites/minigames/knead/pie_crust_fx.png")
+const T_POINT := preload("res://assets/sprites/minigames/knead/knead_point.png")
+const T_BEAT := preload("res://assets/sprites/minigames/press/press_beat.png")
+const T_HIT := preload("res://assets/sprites/minigames/press/press_hit.png")
+const T_PANEL := preload("res://assets/sprites/ui/ui_panel_dark.png")
+
 const C_BG := Color("23282a")
 const C_BOARD := Color("83571e")
 const C_DOUGH := Color("e5bd7f")
@@ -64,7 +75,7 @@ func _ready() -> void:
 	_l_title = _label(Vector2(12, 8), "MG_KNEAD_PART1")
 	_l_stat = _label(Vector2(12, 24), "")
 	_l_hint = _label(Vector2(12, 252), "MG_KNEAD_HINT1")
-	_l_msg = _label(Vector2(0, 90), "")
+	_l_msg = _label(Vector2(0, 94), "")
 	_l_msg.size = Vector2(480, 30)
 	_l_msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_l_msg.z_index = 10
@@ -305,29 +316,45 @@ func _emit() -> void:
 	finished.emit(res)
 
 
+var _panel: StyleBoxTexture
+
+
+func _box(r: Rect2) -> void:
+	if _panel == null:
+		_panel = StyleBoxTexture.new()
+		_panel.texture = T_PANEL
+		for m in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+			_panel.set_texture_margin(m, 5.0)
+	draw_style_box(_panel, r)
+
+
 func _draw() -> void:
-	draw_rect(Rect2(0, 0, 480, 270), C_BG)
+	draw_texture(T_BG, Vector2.ZERO)
+	_box(Rect2(0, -6, 480, 48))  # title + timer strip
+	_box(Rect2(0, 248, 480, 28))  # hint strip
 	if phase == Phase.TRACE or phase == Phase.DONE:
 		_draw_pie()
 	else:
 		_draw_dough()
+	if phase == Phase.DONE or phase == Phase.READY:
+		_box(Rect2(130, _l_msg.position.y - 6, 220, 30))
 
 
 func _draw_dough() -> void:
-	draw_rect(Rect2(60, 190, 360, 14), C_BOARD)
 	var step := KneadRules.squash_step(perfect + good)
-	var w := 56 + step * 8
-	var h := 56 - step * 4
-	draw_rect(Rect2(240 - w / 2, 190 - h, w, h), C_DOUGH)
-	draw_rect(Rect2(240 - w / 2, 184, w, 6), C_DOUGH_D)
-	# Hands as blocks; the one that just pressed moves in and down.
+	var f := clampi(roundi(step * 4.0 / KneadRules.MAX_SQUASH), 0, 4)
+	draw_texture_rect_region(T_DOUGH, Rect2(204, 128, 72, 44), Rect2(f * 72, 0, 72, 44))
+	# Hands; the one that just pressed moves in and down.
 	var l_down := _press_flash > 0.0 and _last_side < 0
 	var r_down := _press_flash > 0.0 and _last_side > 0
-	draw_rect(Rect2(150 if l_down else 130, 150 if l_down else 130, 28, 20), C_DOUGH_D)
-	draw_rect(Rect2(302 if r_down else 322, 150 if r_down else 130, 28, 20), C_DOUGH_D)
+	var lp := Vector2(166, 140) if l_down else Vector2(140, 124)
+	var rp := Vector2(282, 140) if r_down else Vector2(308, 124)
+	draw_texture_rect_region(T_HANDS, Rect2(lp, Vector2(32, 24)), Rect2(32 if l_down else 0, 0, 32, 24))
+	draw_texture_rect_region(T_HANDS, Rect2(rp + Vector2(32, 0), Vector2(-32, 24)), Rect2(32 if r_down else 0, 0, 32, 24))
 	# Beat lane: upcoming beats slide toward the centre hit mark.
 	var ms := _elapsed_ms() if phase == Phase.KNEAD else 0.0
-	draw_rect(Rect2(238, 60, 4, 16), C_POINT)
+	_box(Rect2(30, 48, 420, 40))
+	draw_texture(T_HIT, Vector2(226, 52))
 	for i in beats:
 		if _judged[i]:
 			continue
@@ -335,17 +362,18 @@ func _draw_dough() -> void:
 		if dt < -200.0 or dt > 2400.0:
 			continue
 		var off := int(dt / 2400.0 * 200.0) * KneadRules.beat_side(i)
-		draw_rect(Rect2(240 + off - 4, 62, 8, 12), C_BEAT)
+		draw_texture_rect_region(T_BEAT, Rect2(240 + off - 4, 58, 8, 20), Rect2(0 if off != 0 else 8, 0, 8, 20))
 
 
 func _draw_pie() -> void:
+	draw_texture(T_PLATE, CENTER - Vector2(92, 92))
 	draw_circle(CENTER, RING_R + 12, crust)
-	draw_circle(CENTER, RING_R - 10, C_DOUGH)
+	draw_texture(T_FILLING, CENTER - Vector2(62, 62))
+	draw_texture(T_CRUST_FX, CENTER - Vector2(84, 84))
 	for i in points.size():
-		var c: Color = C_DONE if hit_points[i] else C_POINT
-		draw_rect(Rect2(points[i] - Vector2(2, 2), Vector2(4, 4)), c)
+		draw_texture_rect_region(T_POINT, Rect2(points[i] - Vector2(3, 3), Vector2(6, 6)), Rect2(6 if hit_points[i] else 0, 0, 6, 6))
 	if phase == Phase.TRACE and not autoplay:
 		var cp := _cursor_pos()
-		draw_rect(Rect2(cp - Vector2(3, 3), Vector2(6, 6)), C_CURSOR)
+		draw_texture_rect_region(T_POINT, Rect2(cp - Vector2(3, 3), Vector2(6, 6)), Rect2(12, 0, 6, 6))
 		if _dragging:
-			draw_rect(Rect2(_pointer.round() - Vector2(2, 2), Vector2(4, 4)), C_CURSOR)
+			draw_texture_rect_region(T_POINT, Rect2(_pointer.round() - Vector2(3, 3), Vector2(6, 6)), Rect2(12, 0, 6, 6))
