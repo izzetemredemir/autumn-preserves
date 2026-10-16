@@ -1,0 +1,1 @@
+liquid mask top-left on the 480x270 screen: 112 64

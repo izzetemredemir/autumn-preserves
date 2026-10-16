@@ -16,16 +16,13 @@ const BRINE_RATE := 2.5
 const DROP_TAP_DELAY := 0.25
 const FALL_TIME := 0.1
 
-const C_BG := Color("23282a")
-const C_JAR_IN := Color("2e3f3f")
-const C_GLASS := Color("b4b3a0")
+const ART := "res://assets/sprites/minigames/pack_jar/"
+const C_TEXT := Color("f2d9c5")
 const C_LINE := Color("e19064")
 const C_BRINE := Color("738c7a")
-const C_LID := Color("c58845")
-const C_LID_DARK := Color("83571e")
+const C_BRINE_DEEP := Color("4e7664")
+const C_BRINE_TOP := Color("b4b3a0")
 const C_GHOST := Color("415c5d")
-const C_STAR := Color("e5bd7f")
-const C_STAR_OFF := Color("49423d")
 const FALLBACK_FILL := Color("b7b768")
 const FALLBACK_EDGE := Color("747c37")
 
@@ -34,7 +31,9 @@ var _ctx: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 var _types: Array = []
 var _grid: Array = []  # _grid[row][col] = 0 empty, else piece id
-var _piece_colors: Dictionary = {}  # piece id -> [fill, edge]
+var _piece_info: Dictionary = {}  # piece id -> {type, x, row, w, h}
+var _tex := {}
+var _ramp_cache := {}
 var _next_id := 1
 var _piece: Dictionary = {}  # {type, w, h, x}
 var _next_type := ""
@@ -63,14 +62,44 @@ var _fill_label: Label
 var _done_btn: Button
 
 
+func _t(name: String) -> Texture2D:
+	if not _tex.has(name):
+		_tex[name] = load(ART + name + ".png")
+	return _tex[name]
+
+
+func _ui(name: String) -> Texture2D:
+	var key := "ui/" + name
+	if not _tex.has(key):
+		_tex[key] = load("res://assets/sprites/ui/" + name + ".png")
+	return _tex[key]
+
+
+func _panel(rect: Rect2) -> void:
+	var p := NinePatchRect.new()
+	p.texture = _ui("ui_panel_dark")
+	p.position = rect.position
+	p.size = rect.size
+	for m in ["left", "top", "right", "bottom"]:
+		p.set("patch_margin_" + m, 5)
+	p.z_index = 1
+	add_child(p)
+
+
 func _ready() -> void:
-	_hint = _make_label(Vector2(0, 8), 480, HORIZONTAL_ALIGNMENT_CENTER)
-	_fill_label = _make_label(Vector2(300, 112), 170, HORIZONTAL_ALIGNMENT_LEFT)
+	_panel(Rect2(16, 4, 448, 44))
+	_panel(Rect2(304, 106, 124, 32))
+	_hint = _make_label(Vector2(24, 8), 432, HORIZONTAL_ALIGNMENT_CENTER)
+	_hint.size = Vector2(432, 36)
+	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_fill_label = _make_label(Vector2(314, 112), 108, HORIZONTAL_ALIGNMENT_LEFT)
 	_done_btn = Button.new()
 	_done_btn.text = "MG_PACK_DONE"
 	_done_btn.position = Vector2(300, 196)
 	_done_btn.size = Vector2(110, 24)
 	_done_btn.focus_mode = Control.FOCUS_NONE
+	_done_btn.z_index = 2
 	_done_btn.pressed.connect(_start_brine)
 	_done_btn.visible = false
 	add_child(_done_btn)
@@ -83,6 +112,9 @@ func _make_label(pos: Vector2, w: float, align: HorizontalAlignment) -> Label:
 	l.position = pos
 	l.size = Vector2(w, 20)
 	l.horizontal_alignment = align
+	l.add_theme_color_override("font_color", C_TEXT)
+	l.add_theme_font_size_override("font_size", 18)
+	l.z_index = 2
 	add_child(l)
 	return l
 
@@ -125,12 +157,49 @@ func _texture_of(type: String) -> String:
 	return str(info.get("texture", "rings"))
 
 
-func _ramp_colors(type: String) -> Array:
+const MARKERS := [Color("111010"), Color("49423d"), Color("81746a"), Color("b9a697"), Color("f2d9c5")]
+const PIECE_SPRITES := ["rings", "slices", "strips", "caps", "shreds", "seeds", "chunks"]
+
+
+func _ramp(type: String) -> Array:
 	var info: Dictionary = Data.ingredients().get(type, {})
 	var ramp: Array = info.get("ramp", [])
-	if ramp.size() >= 3:
-		return [Color(str(ramp[2])), Color(str(ramp[0]))]
-	return [FALLBACK_FILL, FALLBACK_EDGE]
+	var out: Array = []
+	if ramp.size() >= 5:
+		for c in ramp:
+			out.append(Color(str(c)))
+	else:
+		out = [FALLBACK_EDGE.darkened(0.3), FALLBACK_EDGE, FALLBACK_FILL, FALLBACK_FILL.lightened(0.2), FALLBACK_FILL.lightened(0.5)]
+	return out
+
+
+## Piece sprites are drawn with five marker greys; recolour them with the ingredient's palette ramp (cached).
+func _piece_tex(type: String, w: int, h: int) -> Texture2D:
+	var tex_name := _texture_of(type)
+	if not PIECE_SPRITES.has(tex_name):
+		tex_name = "chunks"
+	var base := PackJarRules.piece_size(tex_name)
+	var rotated := base.x != w
+	var key := "%s|%s|%d" % [type, tex_name, 1 if rotated else 0]
+	if _ramp_cache.has(key):
+		return _ramp_cache[key]
+	var src: Image = _t("piece_" + tex_name + ("_r" if rotated else "")).get_image()
+	if src.is_compressed():
+		src.decompress()
+	src.convert(Image.FORMAT_RGBA8)
+	var ramp := _ramp(type)
+	for y in src.get_height():
+		for x in src.get_width():
+			var c := src.get_pixel(x, y)
+			if c.a == 0.0:
+				continue
+			for i in 5:
+				if c.is_equal_approx(MARKERS[i]):
+					src.set_pixel(x, y, ramp[i])
+					break
+	var t := ImageTexture.create_from_image(src)
+	_ramp_cache[key] = t
+	return t
 
 
 # ---------------------------------------------------------------- pieces
@@ -214,7 +283,7 @@ func _drop_piece() -> void:
 		return
 	var id := _next_id
 	_next_id += 1
-	_piece_colors[id] = _ramp_colors(str(_piece.type))
+	_piece_info[id] = {"type": str(_piece.type), "x": x, "row": row, "w": w, "h": h}
 	for r in range(row, row + h):
 		for c in range(x, x + w):
 			_grid[r][c] = id
@@ -447,56 +516,55 @@ func _cell_rect(col: int, row: int) -> Rect2:
 	return Rect2(JAR_X + col * CELL, JAR_Y + (ROWS - 1 - row) * CELL, CELL, CELL)
 
 
-func _draw_cell(pos: Vector2, cols: Array) -> void:
-	draw_rect(Rect2(pos, Vector2(CELL, CELL)), cols[1])
-	draw_rect(Rect2(pos + Vector2(1, 1), Vector2(CELL - 2, CELL - 2)), cols[0])
+func _draw_piece(pos: Vector2, type: String, w: int, h: int) -> void:
+	draw_texture(_piece_tex(type, w, h), pos)
 
 
 func _draw() -> void:
-	draw_rect(Rect2(0, 0, 480, 270), C_BG)
+	draw_texture(_t("jar_bg"), Vector2.ZERO)
 	var jar := Rect2(JAR_X, JAR_Y, COLS * CELL, ROWS * CELL)
-	draw_rect(Rect2(jar.position + Vector2(-3, 0), Vector2(3, jar.size.y + 3)), C_GLASS)
-	draw_rect(Rect2(jar.position + Vector2(jar.size.x, 0), Vector2(3, jar.size.y + 3)), C_GLASS)
-	draw_rect(Rect2(jar.position + Vector2(-3, jar.size.y), Vector2(jar.size.x + 6, 3)), C_GLASS)
-	draw_rect(jar, C_JAR_IN)
+	draw_texture(_t("jar_back"), jar.position)
 	if _brine > 0.0:
 		var bh := int(round(_brine * CELL))
-		draw_rect(Rect2(JAR_X, JAR_Y + jar.size.y - bh, jar.size.x, bh), C_BRINE)
+		var top := JAR_Y + int(jar.size.y) - bh
+		draw_rect(Rect2(JAR_X, top, jar.size.x, bh), C_BRINE)
+		if bh > 24:
+			draw_rect(Rect2(JAR_X, top + 24, jar.size.x, bh - 24), C_BRINE_DEEP)
+		draw_rect(Rect2(JAR_X, top, jar.size.x, 1), C_BRINE_TOP)
+		for bx in range(JAR_X + 6, JAR_X + COLS * CELL - 4, 22):
+			draw_rect(Rect2(bx, top + 3 + (bx * 7) % 9, 2, 2), C_BRINE_TOP)
 	var falling_id: int = int(_fall.id) if not _fall.is_empty() else -1
-	for r in _grid.size():
-		for c in COLS:
-			var id := int(_grid[r][c])
-			if id != 0 and id != falling_id:
-				_draw_cell(_cell_rect(c, r).position, _piece_colors.get(id, [FALLBACK_FILL, FALLBACK_EDGE]))
+	for id in _piece_info:
+		if int(id) == falling_id:
+			continue
+		var pi: Dictionary = _piece_info[id]
+		var pos := _cell_rect(int(pi.x), int(pi.row) + int(pi.h) - 1).position
+		_draw_piece(pos, str(pi.type), int(pi.w), int(pi.h))
 	if not _fall.is_empty():
-		var cols2: Array = _piece_colors.get(falling_id, [FALLBACK_FILL, FALLBACK_EDGE])
 		var k := clampf(float(_fall.t) / FALL_TIME, 0.0, 1.0)
 		var off := int(round((1.0 - k) * 2.0 * CELL))
-		for r2 in range(int(_fall.row), int(_fall.row) + int(_fall.h)):
-			for c2 in range(int(_fall.x), int(_fall.x) + int(_fall.w)):
-				_draw_cell(_cell_rect(c2, r2).position - Vector2(0, off), cols2)
+		var fi: Dictionary = _piece_info[falling_id]
+		var fpos := _cell_rect(int(fi.x), int(fi.row) + int(fi.h) - 1).position - Vector2(0, off)
+		_draw_piece(fpos, str(fi.type), int(fi.w), int(fi.h))
 	var ly := JAR_Y + (ROWS - LINE_ROWS) * CELL
 	for x in range(JAR_X, JAR_X + COLS * CELL, 8):
 		draw_rect(Rect2(x, ly, 4, 1), C_LINE)
 	if phase == Phase.PACK and not _piece.is_empty() and _fall.is_empty():
 		_draw_current_piece()
+	draw_texture(_t("jar_front"), Vector2(JAR_X - 8, JAR_Y - 4))
 	if phase == Phase.LID or phase == Phase.DONE:
 		_draw_lid()
 	if phase == Phase.DONE:
 		_draw_stars()
 	if phase == Phase.PACK:
 		var sz := PackJarRules.piece_size(_texture_of(_next_type))
-		var cols3 := _ramp_colors(_next_type)
-		for i in sz.x:
-			for j in sz.y:
-				_draw_cell(Vector2(120 + i * CELL, 130 + j * CELL), cols3)
+		_draw_piece(Vector2(120, 130), _next_type, sz.x, sz.y)
 
 
 func _draw_current_piece() -> void:
 	var w := int(_piece.w)
 	var h := int(_piece.h)
 	var x := int(_piece.x)
-	var cols := _ramp_colors(str(_piece.type))
 	var row := PackJarRules.landing_row(PackJarRules.heights_of(_grid), x, w)
 	if row + h <= ROWS:
 		for r in range(row, row + h):
@@ -506,9 +574,7 @@ func _draw_current_piece() -> void:
 				draw_rect(Rect2(gp + Vector2(0, CELL - 1), Vector2(CELL, 1)), C_GHOST)
 	var sx := int(round(sin(_shake * 80.0) * 2.0)) if _shake > 0.0 else 0
 	var top := JAR_Y - 8 - h * CELL
-	for i in w:
-		for j in h:
-			_draw_cell(Vector2(JAR_X + (x + i) * CELL + sx, top + j * CELL), cols)
+	_draw_piece(Vector2(JAR_X + x * CELL + sx, top), str(_piece.type), w, h)
 
 
 func _draw_lid() -> void:
@@ -516,17 +582,12 @@ func _draw_lid() -> void:
 	if phase == Phase.LID:
 		k = clampf(maxf(_lid_clicks / 3.0, _lid_angle / TAU), 0.0, 1.0)
 	var y := JAR_Y - 14 + int(round(k * 12.0))
-	var x0 := JAR_X - 4
-	draw_rect(Rect2(x0, y, COLS * CELL + 8, 10), C_LID_DARK)
-	draw_rect(Rect2(x0 + 1, y + 1, COLS * CELL + 6, 8), C_LID)
-	for i in range(0, COLS * CELL + 8, 8):
-		draw_rect(Rect2(x0 + i + 2, y + 2, 2, 6), C_LID_DARK)
+	draw_texture(_t("jar_lid"), Vector2(JAR_X - 8, y))
 
 
 func _draw_stars() -> void:
+	var full := _ui("icon_star_full")
+	var empty := _ui("icon_star_empty")
 	for i in 3:
-		var c := C_STAR if i < _stars else C_STAR_OFF
-		var cx := 240 - 30 + i * 30
-		draw_rect(Rect2(cx - 5, 40, 10, 10), c)
-		draw_rect(Rect2(cx - 2, 36, 4, 18), c)
-		draw_rect(Rect2(cx - 9, 43, 18, 4), c)
+		var cx := 240 - 40 + i * 40
+		draw_texture_rect_region(full if i < _stars else empty, Rect2(cx - 16, 56, 32, 32), Rect2(0, 0, 16, 16))

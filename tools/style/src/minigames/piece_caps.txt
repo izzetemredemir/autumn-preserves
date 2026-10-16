@@ -1,0 +1,44 @@
+# piece_caps 32x16 ramp markers 0-4
+legend . transparent
+legend k ink
+legend T stone_700
+legend S stone_500
+legend s stone_300
+legend h sage_400
+legend c cream_100
+legend C cream_400
+legend g gold_300
+legend G gold_200
+legend y gold_700
+legend a amber_600
+legend b bark_500
+legend B bark_700
+legend D bark_900
+legend w water_700
+legend W water_900
+legend v water_600
+legend e wine_700
+legend r leaf_red_500
+legend p leaf_peach_300
+legend 0 111010
+legend 1 49423d
+legend 2 81746a
+legend 3 b9a697
+legend 4 f2d9c5
+frame
+..............0000..............
+.........00000111100000.........
+.......001111111111111100.......
+.....0011111332222421111100.....
+....011114433322222222211110....
+...01113343333222222222221110...
+..0111222222222222222242221110..
+.011124222222224222222222221110.
+01112222222222222222222222221110
+01112222222222222222222222221110
+01111111111111111111111111111110
+.000000000004444433300000000000.
+...........0444443330...........
+...........0444443330...........
+...........0444443330...........
+............00000000............

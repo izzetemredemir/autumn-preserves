@@ -1,0 +1,60 @@
+# piece_caps_r 16x32 ramp markers 0-4, rotated 90
+legend . transparent
+legend k ink
+legend T stone_700
+legend S stone_500
+legend s stone_300
+legend h sage_400
+legend c cream_100
+legend C cream_400
+legend g gold_300
+legend G gold_200
+legend y gold_700
+legend a amber_600
+legend b bark_500
+legend B bark_700
+legend D bark_900
+legend w water_700
+legend W water_900
+legend v water_600
+legend e wine_700
+legend r leaf_red_500
+legend p leaf_peach_300
+legend 0 111010
+legend 1 49423d
+legend 2 81746a
+legend 3 b9a697
+legend 4 f2d9c5
+frame
+.....000........
+....01110.......
+....011110......
+....0111110.....
+....01221110....
+....012221110...
+....012242110...
+....0122223110..
+....0122223110..
+....01222244110.
+....01222234110.
+.00001222233110.
+044441222233310.
+044441222233310.
+0444412222222110
+0444412242222110
+0444412222222110
+0333312222222110
+033331222222410.
+033331222222210.
+.00001222222110.
+....01222222110.
+....01222422110.
+....0122222110..
+....0122222110..
+....012222110...
+....012221110...
+....01221110....
+....0111110.....
+....011110......
+....01110.......
+.....000........

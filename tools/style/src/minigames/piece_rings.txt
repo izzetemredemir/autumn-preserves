@@ -1,0 +1,44 @@
+# piece_rings 16x16 ramp markers 0-4
+legend . transparent
+legend k ink
+legend T stone_700
+legend S stone_500
+legend s stone_300
+legend h sage_400
+legend c cream_100
+legend C cream_400
+legend g gold_300
+legend G gold_200
+legend y gold_700
+legend a amber_600
+legend b bark_500
+legend B bark_700
+legend D bark_900
+legend w water_700
+legend W water_900
+legend v water_600
+legend e wine_700
+legend r leaf_red_500
+legend p leaf_peach_300
+legend 0 111010
+legend 1 49423d
+legend 2 81746a
+legend 3 b9a697
+legend 4 f2d9c5
+frame
+.......00.......
+....00011000....
+...0411321110...
+..041233323110..
+.01123333333110.
+.01233424433310.
+.01334444443210.
+0133344444433210
+0123324442433310
+.01234424443310.
+.01333444433210.
+.01133333332110.
+..011323332110..
+...0111231110...
+....00011000....
+.......00.......
