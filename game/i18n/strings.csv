@@ -11,3 +11,24 @@ UI_TIRED,I'm tired
 UI_ENERGY,Energy
 UI_COINS,Coins
 UI_SEED,Seed
+KITCHEN_RECIPES,Recipes
+KITCHEN_MAIN,Main ingredient
+KITCHEN_SECOND,Second ingredient
+KITCHEN_ADDIN,Add-in
+KITCHEN_NO_ADDIN,No add-in
+KITCHEN_COOK,Cook
+KITCHEN_TO_PANTRY,Pantry
+KITCHEN_TO_GARDEN,Garden
+KITCHEN_BED,Go to bed
+KITCHEN_INBOX,Just arrived
+KITCHEN_STATUS,"Day %d · Energy %d · %d coins"
+KITCHEN_PICK_RECIPE,Pick a recipe.
+KITCHEN_NEW_VARIANT,Something new...
+KITCHEN_COOK_FAILED,Could not cook that.
+KITCHEN_MORNING,"Good morning! Day %d (%d things happened overnight)"
+MG_STIR_TITLE,Stir the pot
+MG_STIR_CONSISTENCY,Thickness
+MG_STIR_HINT,Circle the pot or tap Space to stir. Click foam or press E to skim.
+MG_STIR_TIME,Time: %d
+MG_STIR_GO,Stir!
+MG_STIR_RESULT,Done! %d / 3 stars (%d%%)
