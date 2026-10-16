@@ -7,7 +7,7 @@ const ICONS_JSON := "res://assets/sprites/icons/icons.json"
 const ICONS_PNG := "res://assets/sprites/icons/icons.png"
 const PANEL_Y := 146  # the panel covers the lower ~44%; the painted shopfront stays visible above it
 const ROWS := 3
-const NPC_IDS := ["grocer", "baker", "postman"]
+const NPC_IDS := ["grocer", "baker", "postman", "vintner", "librarian"]
 
 var _tab := "grocer"
 var _sub := "buy"
@@ -26,6 +26,7 @@ func _ready() -> void:
 		GameState.start_temp(1)
 		_debug_fill()
 	Forage.empty_bag_to_inbox(GameState.data)
+	Economy.sync_neighbours(GameState.data)  # old saves: new neighbours and rewards already earned
 	_load_icons()
 	_paint_background()
 	_build()
@@ -33,6 +34,7 @@ func _ready() -> void:
 	Audio.play_music("mus_town")
 	Audio.play_ambient("amb_town")
 	_render()
+	_show_rewards(0.4)
 
 
 ## Run-alone helper: coins, a few fresh items and real jars so the board and the neighbours can be tested.
@@ -451,19 +453,19 @@ func _on_deliver(order_id: int) -> void:
 
 func _render_neighbours() -> void:
 	var d: Dictionary = GameState.data
-	var split := HBoxContainer.new()
-	split.add_theme_constant_override("separation", 10)
-	_content.add_child(split)
-	var list := VBoxContainer.new()
-	list.custom_minimum_size.x = 110
-	split.add_child(list)
+	var list := HBoxContainer.new()  # five neighbours: names in a row, not a column
+	list.add_theme_constant_override("separation", 4)
+	_content.add_child(list)
 	for id in NPC_IDS:
 		var b := Button.new()
 		b.text = Data.npcs()[id].name
-		b.custom_minimum_size = Vector2(104, 22)
+		b.custom_minimum_size = Vector2(80, 18)
 		_mark(b, id == _npc)
 		b.pressed.connect(_select_npc.bind(id))
 		list.add_child(b)
+	var split := HBoxContainer.new()
+	split.add_theme_constant_override("separation", 10)
+	_content.add_child(split)
 	var npc: Dictionary = Data.npcs()[_npc]
 	var hearts := Economy.hearts(d, _npc)
 	var bust := Bust.new()
@@ -478,12 +480,17 @@ func _render_neighbours() -> void:
 	var hr := HeartRow.new()
 	hr.filled = hearts
 	hr.custom_minimum_size = Vector2(80, 12)
-	info.add_child(hr)
+	var top := HBoxContainer.new()  # hearts and the gift button share a row to fit five neighbours
+	top.add_theme_constant_override("separation", 12)
+	top.add_child(hr)
+	var gift := _button(tr("TOWN_GIFT"), _on_gift)
+	gift.custom_minimum_size = Vector2(72, 18)
+	top.add_child(gift)
+	info.add_child(top)
 	info.add_child(_label(tr("TOWN_LIKES") % _axis_text(npc.likes)))
 	info.add_child(_label(tr("NPC_%s_%d" % [_npc.to_upper(), clampi(hearts / 2, 0, 2)])))
-	var gift := _button(tr("TOWN_GIFT"), _on_gift)
-	gift.custom_minimum_size = Vector2(72, 20)
-	info.add_child(gift)
+	if Economy.unlocked(d, "hints") and _npc == "librarian":
+		info.add_child(_label(tr("NPC_LIBRARIAN_HINT")))
 
 
 func _select_npc(id: String) -> void:
@@ -546,11 +553,12 @@ func _do_fulfill(ref: Dictionary) -> void:
 		Hud.toast(res.reason)
 		_render()
 		return
-	_save_and_notify(["coins", "inbox", "pantry", "orders", "friendship", "stats"])
+	_save_and_notify(["coins", "inbox", "pantry", "orders", "friendship", "stats", "flags", "unlocks", "cupboard"])
 	if int(res.hearts_after) > int(res.hearts_before):
 		Hud.toast("TOWN_DELIVERED_HEART", [int(res.coins)])
 	else:
 		Hud.toast("TOWN_DELIVERED", [int(res.coins)])
+	_show_rewards(1.6)
 
 
 func _do_gift(ref: Dictionary) -> void:
@@ -560,8 +568,23 @@ func _do_gift(ref: Dictionary) -> void:
 		Hud.toast(res.reason)
 		_render()
 		return
-	_save_and_notify(["inbox", "pantry", "friendship", "flags"])
+	_save_and_notify(["inbox", "pantry", "friendship", "flags", "unlocks", "cupboard"])
 	Hud.toast("TOWN_GIFT_LOVED" if int(res.points) > 0 else "TOWN_GIFT_OK")
+	_show_rewards(1.6)
+
+
+## Toasts the heart rewards earned since last time (one by one) with the level jingle; `delay` lets the
+## previous toast be read first.
+func _show_rewards(delay: float) -> void:
+	var earned := Economy.take_rewards(GameState.data)
+	if earned.is_empty():
+		return
+	Save.save_game(GameState.data)  # the queue is empty now: do not toast twice after a reload
+	await get_tree().create_timer(delay).timeout
+	for r: Dictionary in earned:
+		Hud.toast(r.key)
+		Audio.play_jingle("jgl_level")
+		await get_tree().create_timer(2.2).timeout
 
 
 # ------------------------------------------------------------------ palette-rect drawings
@@ -569,7 +592,7 @@ func _do_gift(ref: Dictionary) -> void:
 ## Neighbour portrait (48x48): the final one if present, else the approved candidate.
 class Bust:
 	extends Control
-	const FILES := {"grocer": "barnaby", "baker": "rosie", "postman": "pip"}
+	const FILES := {"grocer": "barnaby", "baker": "rosie", "postman": "pip", "vintner": "vito", "librarian": "edith"}
 	var npc_id := "grocer"
 	var _tex: Texture2D
 

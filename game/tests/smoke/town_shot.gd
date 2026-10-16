@@ -21,4 +21,12 @@ func _run(scene: Node) -> void:
 		RenderingServer.force_draw(false)  # macOS skips drawing a covered window
 		root.get_texture().get_image().save_png("%s/town_%s.png" % [dir, tab])
 		print("saved town_", tab)
+	root.get_node("GameState").data.friendship.librarian = 4
+	for id in ["vintner", "librarian"]:
+		scene._select_npc(id)
+		scene._on_tab("neighbours")
+		for i in 12:
+			await process_frame
+		RenderingServer.force_draw(false)
+		root.get_texture().get_image().save_png("%s/town_npc_%s.png" % [dir, id])
 	quit()

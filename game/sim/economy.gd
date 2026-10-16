@@ -125,13 +125,95 @@ static func hearts(state: Dictionary, npc_id: String) -> int:
 
 
 ## Adds friendship points, capped at max_hearts. Returns the points actually added.
+## Heart rewards crossed by this change are applied once and queued for the scene: see take_rewards().
 static func add_friendship(state: Dictionary, npc_id: String, points: int) -> int:
 	var f: Dictionary = Data.rules().friendship
 	var cap := int(f.max_hearts) * int(f.points_per_heart)
 	var before := int(state.friendship.get(npc_id, 0))
 	var after := clampi(before + points, 0, cap)
 	state.friendship[npc_id] = after
+	claim_rewards(state, npc_id)
 	return after - before
+
+
+## Rewards beyond the single npcs.json `reward` (tech-spec §16 keeps that field one dict per neighbour).
+const EXTRA_REWARDS := {
+	"librarian": [{"hearts": 3, "kind": "addin", "value": "mint", "count": 3}],
+}
+
+
+## Every heart reward of a neighbour: the npcs.json one first, then EXTRA_REWARDS.
+static func rewards_of(npc_id: String) -> Array:
+	var out: Array = []
+	var reward: Variant = Data.npcs().get(npc_id, {}).get("reward")
+	if typeof(reward) == TYPE_DICTIONARY:
+		out.append(reward)
+	out.append_array(EXTRA_REWARDS.get(npc_id, []))
+	return out
+
+
+## Toast key of a reward, e.g. UI_REWARD_KNEAD, UI_REWARD_VINEYARD, UI_REWARD_SHOP_DISCOUNT.
+static func reward_key(reward: Dictionary) -> String:
+	var tail := String(reward.value) if String(reward.kind).begins_with("unlock") else String(reward.kind)
+	return "UI_REWARD_" + tail.to_upper()
+
+
+## Adds friendship keys of neighbours an old save lacks (vintner, librarian ...). Never lowers anything.
+static func ensure_neighbours(state: Dictionary) -> void:
+	var npcs := Data.npcs()
+	for id in npcs:
+		if npcs[id].has("likes") and not state.friendship.has(id):
+			state.friendship[id] = 0
+
+
+## Applies every reward of `npc_id` whose heart threshold is reached and was not claimed yet.
+## Queues each one in state.flags.reward_queue and returns the new ones ({"npc","hearts","kind","value","key"}).
+static func claim_rewards(state: Dictionary, npc_id: String) -> Array:
+	var fresh: Array = []
+	var claimed: Dictionary = state.flags.get("rewards", {})
+	var h := hearts(state, npc_id)
+	for r: Dictionary in rewards_of(npc_id):
+		var tag := "%s:%d:%s" % [npc_id, int(r.hearts), r.kind]
+		if h < int(r.hearts) or claimed.has(tag):
+			continue
+		claimed[tag] = true
+		_apply_reward(state, r)
+		fresh.append({"npc": npc_id, "hearts": int(r.hearts), "kind": r.kind, "value": r.value, "key": reward_key(r)})
+	state.flags.rewards = claimed
+	if not fresh.is_empty():
+		var q: Array = state.flags.get("reward_queue", [])
+		q.append_array(fresh)
+		state.flags.reward_queue = q
+	return fresh
+
+
+## Upgrades an old save: adds missing neighbours and claims rewards already earned. Returns the new rewards.
+static func sync_neighbours(state: Dictionary) -> Array:
+	ensure_neighbours(state)
+	var fresh: Array = []
+	var ids: Array = state.friendship.keys()
+	ids.sort()
+	for id in ids:
+		fresh.append_array(claim_rewards(state, id))
+	return fresh
+
+
+## Pops the rewards earned since the last call; the scene toasts them and plays the level jingle.
+static func take_rewards(state: Dictionary) -> Array:
+	var q: Array = state.flags.get("reward_queue", [])
+	state.flags.reward_queue = []
+	return q
+
+
+static func _apply_reward(state: Dictionary, r: Dictionary) -> void:
+	match String(r.kind):
+		"unlock", "unlock_biome":
+			unlock(state, String(r.value))
+		"hints":
+			unlock(state, "hints")
+		"addin":
+			state.cupboard[r.value] = int(state.cupboard.get(r.value, 0)) + int(r.get("count", 1))
+		# "shop_discount" (discount()) and "letters_more_often" (Letters.gap) are derived from hearts.
 
 
 ## Points a gift earns: gift_points when one of the neighbour's liked axes is >= gift_like_min.

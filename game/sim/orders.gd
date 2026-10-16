@@ -160,6 +160,7 @@ static func npc_pool(state: Dictionary) -> Array:
 		return [Data.rules().start.first_order.npc]
 	var out: Array = []
 	var npcs := Data.npcs()
+	Economy.ensure_neighbours(state)  # old saves lack vintner and librarian
 	for id in state.friendship:
 		if npcs.has(id) and npcs[id].has("likes"):
 			out.append(id)

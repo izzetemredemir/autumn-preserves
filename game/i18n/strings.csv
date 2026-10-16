@@ -455,3 +455,18 @@ UI_NIGHT_LETTER,A letter from %s arrived!
 BOOK_FOUND,%d/%d varieties found
 BOOK_HOW_KEY,seed key
 KITCHEN_DAYS_TIP,%d days
+TOWN_ROLE_VINTNER,Vintner
+TOWN_ROLE_LIBRARIAN,Librarian
+NPC_VINTNER_0,"A new face! Care for a grape?"
+NPC_VINTNER_1,"Sweet and earthy, that is my cup."
+NPC_VINTNER_2,"My vines are yours to wander, friend."
+NPC_LIBRARIAN_0,"Shh. Well, hello there."
+NPC_LIBRARIAN_1,"Earthy and spicy, my sort of shelf."
+NPC_LIBRARIAN_2,"I saved the best pages for you."
+NPC_LIBRARIAN_HINT,"Tip: nuts love earthy mushrooms."
+UI_REWARD_SHOP_DISCOUNT,"Barnaby gives you 10% off at the shop!"
+UI_REWARD_KNEAD,"Rosie gave you her dough board!"
+UI_REWARD_LETTERS_MORE_OFTEN,"Pip will bring the grandkids' letters more often!"
+UI_REWARD_VINEYARD,"Vito gave you the key to the vineyard!"
+UI_REWARD_HINTS,"Edith will share recipe tips with you!"
+UI_REWARD_ADDIN,"Edith gave you three sprigs of mint!"

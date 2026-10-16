@@ -1,0 +1,6 @@
+Using the reference image only as a style guide (same pixel art style, palette, thick dark brown outline, chunky shapes, bust framing and lighting), draw a NEW 2x2 sheet of four square bust portraits (head and shoulders, facing the viewer, slightly three-quarter), each in its own equal square cell, on a fully flat plain cream background. Portraits designed to stay readable at a tiny 48x48 pixel size: BOLD SIMPLE chunky shapes, big clear eyes and mouth, thick dark brown outline, 3-4 tone shading lit warmly from the upper left.
+Top-left: Vito the vintner, a jovial stocky middle-aged man with rosy cheeks, curly dark hair, a straw hat, a plum-purple vest over a cream shirt, a bunch of grapes at his shoulder.
+Top-right: Edith the librarian, a tall thin elderly woman with a silver bun, narrow half-moon glasses on a chain, a mustard cardigan and a small book held to her chest, calm smile.
+Bottom-left: the same Vito again, a second take. Bottom-right: the same Edith again, a second take.
+No text, no letters, no labels, no frames, no logos.
+No watermark, no brand names, no copyrighted characters, no blur, no soft gradients, no anti-aliasing, no photorealism, no 3D render look, no pure black, no neon colors.
