@@ -1,7 +1,7 @@
 extends SceneTree
 ## QA-UI: loads every scene and overlay with the demo save, walks visible Label / RichTextLabel / Button nodes and reports
 ## text that overflows its rect, font sizes other than 18/36, text closer than 2 px to the screen edge and overlapping
-## text boxes. Writes docs/qa/ui_audit.md. Exit 1 when a finding sits in an owned folder (see OWNED).
+## text boxes. Writes docs/qa/ui_audit.md. Exit 1 on any finding (CI runs it with --report=user://ui_audit.md).
 ##   godot --headless --path game -s res://tests/smoke/ui_audit.gd
 ## Extra args after `--`: `--report=<path>` to write elsewhere.
 
@@ -84,7 +84,7 @@ func _run() -> void:
 	_write(Time.get_ticks_msec() - t0)
 	var owned := _findings.filter(func(f): return f.owned).size()
 	print("ui_audit: %d states, %d texts, %d findings (%d in owned folders)" % [_states, _texts, _findings.size(), owned])
-	quit(1 if owned > 0 else 0)
+	quit(1 if _findings.size() > 0 else 0)
 
 
 func _title_panels(s: Node) -> void:
