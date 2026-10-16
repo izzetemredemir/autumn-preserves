@@ -1,0 +1,13 @@
+{
+  "background": "tools/style/anchor_scene.png",
+  "crop": [120, 176, 160, 90],
+  "layers": [
+    {"img": "game/assets/sprites/granny/granny_idle.png", "pos": [14, 10], "frame": [0, 2]},
+    {"img": "game/assets/sprites/granny/granny_idle.png", "pos": [44, 40], "frame": [1, 2]},
+    {"img": "game/assets/sprites/granny/granny_walk_left.png", "pos": [78, 14], "frame": [0, 4]},
+    {"img": "game/assets/sprites/granny/granny_walk_up.png", "pos": [104, 46], "frame": [0, 4]},
+    {"img": "game/assets/sprites/granny/granny_walk_right.png", "pos": [132, 20], "frame": [0, 4]}
+  ],
+  "scale": 1,
+  "out": "tools/style/review/granny_idle_on_anchor_x1.png"
+}

@@ -1,0 +1,124 @@
+# Granny Tonty shake tree (facing down), 3 frames 16x32, pivot (8,31). ART-02 candidate.
+# Both hands up on a low branch, basket set down at her right. 1 hands high, 2 pull down (head + hands -1 px), 3 hands mid.
+legend . transparent
+legend k ink
+legend W cream_100
+legend h stone_300
+legend g stone_500
+legend G stone_700
+legend s gold_300
+legend S leaf_peach_300
+legend r leaf_red_500
+legend R leaf_red_700
+legend P leaf_peach_300
+legend w cream_100
+legend c cream_400
+legend o olive_800
+legend O olive_900
+legend l olive_600
+legend b bark_900
+legend B bark_700
+legend y bark_500
+legend Y bark_700
+legend j gold_300
+legend a leaf_red_500
+legend A leaf_red_700
+frame
+.kk..........kk.
+kssk..kkkk..kssk
+kssk.khWhgk.kssk
+krRk.khhggk.kRRk
+krRkkkGGGGkkkRRk
+krkhWhhhhhhhgkRk
+.khWhhhhhhhhggk.
+.khhhhhhhhhhggk.
+.khhhssssssggGk.
+.khgsGGssGGsgGk.
+.khgGWkGGkWGgGk.
+.kggsGGssGGsgGk.
+kRkgSssSSssSgkRk
+krRkkSssssSkkRrk
+krPrrrWWWWrrrRRk
+.krrrrwwwwrrRRk.
+..krrrwwwwrrRk..
+..krRrwwwwrRRk..
+..krrcwwwwcrRk..
+..kRRwwwwwwRRk..
+..klowwwwwwoOk..
+..klowwwwwwoOk..
+..klowwwwwcoOk..
+.kloowwwwwcoOOk.
+.kloowwwwwcoOOk.
+.kloocccccoooOk.
+.klooooooookaaAk
+.kooooooookjjjyk
+..kOOOOOOOkyYyYk
+...kBbk..kkYyYYk
+...kbbk..kkYYYYk
+....kk.....kkkk.
+frame
+................
+.kk..........kk.
+kssk..kkkk..kssk
+kssk.khWhgk.kssk
+krRk.khhggk.kRRk
+krRkkkGGGGkkkRRk
+krkhWhhhhhhhgkRk
+.khWhhhhhhhhggk.
+.khhhhhhhhhhggk.
+.khhhssssssggGk.
+.khgsGGssGGsgGk.
+.khgGWkGGkWGgGk.
+.kggsGGssGGsgGk.
+kRkgSssSSssSgkRk
+krRkkSssssSkkRrk
+.krrrrwwwwrrRRk.
+..krrrwwwwrrRk..
+..krRrwwwwrRRk..
+..krrcwwwwcrRk..
+..kRRwwwwwwRRk..
+..klowwwwwwoOk..
+..klowwwwwwoOk..
+..klowwwwwcoOk..
+.kloowwwwwcoOOk.
+.kloowwwwwcoOOk.
+.kloocccccoooOk.
+.klooooooookaaAk
+.kooooooookjjjyk
+..kOOOOOOOkyYyYk
+...kBbk..kkYyYYk
+...kbbk..kkYYYYk
+....kk.....kkkk.
+frame
+................
+.kk...kkkk...kk.
+kssk.khWhgk.kssk
+kssk.khhggk.kssk
+krRkkkGGGGkkkRRk
+krkhWhhhhhhhgkRk
+.khWhhhhhhhhggk.
+.khhhhhhhhhhggk.
+.khhhssssssggGk.
+.khgsGGssGGsgGk.
+.khgGWkGGkWGgGk.
+.kggsGGssGGsgGk.
+kRkgSssSSssSgkRk
+krRkkSssssSkkRrk
+krPrrrWWWWrrrRRk
+.krrrrwwwwrrRRk.
+..krrrwwwwrrRk..
+..krRrwwwwrRRk..
+..krrcwwwwcrRk..
+..kRRwwwwwwRRk..
+..klowwwwwwoOk..
+..klowwwwwwoOk..
+..klowwwwwcoOk..
+.kloowwwwwcoOOk.
+.kloowwwwwcoOOk.
+.kloocccccoooOk.
+.klooooooookaaAk
+.kooooooookjjjyk
+..kOOOOOOOkyYyYk
+...kBbk..kkYyYYk
+...kbbk..kkYYYYk
+....kk.....kkkk.

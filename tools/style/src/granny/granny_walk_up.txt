@@ -1,0 +1,157 @@
+# Granny Tonty walk up (back view), 4 frames 16x32, pivot (8,31). ART-02 candidate.
+# Basket stays in her left hand (viewer's left from behind). 1 contact, 2 passing (+1 px up), 3 contact, 4 passing.
+legend . transparent
+legend k ink
+legend W cream_100
+legend h stone_300
+legend g stone_500
+legend G stone_700
+legend s gold_300
+legend S leaf_peach_300
+legend r leaf_red_500
+legend R leaf_red_700
+legend P leaf_peach_300
+legend w cream_100
+legend c cream_400
+legend o olive_800
+legend O olive_900
+legend l olive_600
+legend b bark_900
+legend B bark_700
+legend y bark_500
+legend Y bark_700
+legend j gold_300
+legend a leaf_red_500
+legend A leaf_red_700
+frame
+................
+......kkkk......
+.....khWhgk.....
+.....khhggk.....
+...kkkGGGGkkk...
+..khWhhhhhhhgk..
+.khWhhhhhhhhggk.
+.khhhhhhhhhhggk.
+.khhhhhhhhhgggk.
+.khhhhhhhhhgggk.
+.kghhhhhhhgggGk.
+.kgghhhhhgggGGk.
+..kgggggggGGGk..
+...kkGGGGGGkk...
+..krrrrWWrrRRk..
+.krPrrrrrrrrRRk.
+.krrrrrrrrrrRRk.
+.krRrrrrrrrrRRk.
+ksskrrrrrrrrssk.
+kaaAkccWWccRssk.
+kjjjykowcooOOOk.
+kyYyYkowcooOOOk.
+kYyYYkoooooOOOk.
+.kkkklooooooOOk.
+.klooooooooOOOk.
+.kloooooooooOOk.
+.kloooooooooOOk.
+.kooooooooooOOk.
+.kOOOOOOOOOOk...
+...kBbk..kBbk...
+...kbbk...kk....
+....kk..........
+frame
+......kkkk......
+.....khWhgk.....
+.....khhggk.....
+...kkkGGGGkkk...
+..khWhhhhhhhgk..
+.khWhhhhhhhhggk.
+.khhhhhhhhhhggk.
+.khhhhhhhhhgggk.
+.khhhhhhhhhgggk.
+.kghhhhhhhgggGk.
+.kgghhhhhgggGGk.
+..kgggggggGGGk..
+...kkGGGGGGkk...
+..krrrrWWrrRRk..
+.krPrrrrrrrrRRk.
+.krrrrrrrrrrRRk.
+.krRrrrrrrrrRRk.
+ksskrrrrrrrrRRk.
+kaaAkccWWccRssk.
+kjjjykowcooOssk.
+kyYyYkowcooOOOk.
+kYyYYkoooooOOOk.
+.kkkklooooooOOk.
+.klooooooooOOOk.
+.kloooooooooOOk.
+.kloooooooooOOk.
+.kooooooooooOOk.
+..kOOOOOOOOOOk..
+...kBbk..kBbk...
+...kbbk..kbbk...
+....kk....kk....
+................
+frame
+................
+......kkkk......
+.....khWhgk.....
+.....khhggk.....
+...kkkGGGGkkk...
+..khWhhhhhhhgk..
+.khWhhhhhhhhggk.
+.khhhhhhhhhhggk.
+.khhhhhhhhhgggk.
+.khhhhhhhhhgggk.
+.kghhhhhhhgggGk.
+.kgghhhhhgggGGk.
+..kgggggggGGGk..
+...kkGGGGGGkk...
+..krrrrWWrrRRk..
+.krPrrrrrrrrRRk.
+.krrrrrrrrrrRRk.
+.krRrrrrrrrrRRk.
+ksskrrrrrrrrRRk.
+kaaAkccWWccRRRk.
+kjjjykowcooOssk.
+kyYyYkowcooOssk.
+kYyYYkoooooOOOk.
+.kkkklooooooOOk.
+.klooooooooOOOk.
+.kloooooooooOOk.
+.kloooooooooOOk.
+.kooooooooooOOk.
+...kOOOOOOOOOOk.
+...kBbk..kBbk...
+....kk...kbbk...
+..........kk....
+frame
+......kkkk......
+.....khWhgk.....
+.....khhggk.....
+...kkkGGGGkkk...
+..khWhhhhhhhgk..
+.khWhhhhhhhhggk.
+.khhhhhhhhhhggk.
+.khhhhhhhhhgggk.
+.khhhhhhhhhgggk.
+.kghhhhhhhgggGk.
+.kgghhhhhgggGGk.
+..kgggggggGGGk..
+...kkGGGGGGkk...
+..krrrrWWrrRRk..
+.krPrrrrrrrrRRk.
+.krrrrrrrrrrRRk.
+.krRrrrrrrrrRRk.
+ksskrrrrrrrrRRk.
+kaaAkccWWccRssk.
+kjjjykowcooOssk.
+kyYyYkowcooOOOk.
+kYyYYkoooooOOOk.
+.kkkklooooooOOk.
+.klooooooooOOOk.
+.kloooooooooOOk.
+.kloooooooooOOk.
+.kooooooooooOOk.
+..kOOOOOOOOOOk..
+...kBbk..kBbk...
+...kbbk..kbbk...
+....kk....kk....
+................

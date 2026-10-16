@@ -1,0 +1,157 @@
+# Granny Tonty walk right, 4 frames 16x32, pivot (8,31). ART-02 candidate.
+# GENERATED: horizontal mirror of granny_walk_left.txt (every sprite row reversed). Edit walk_left, then regenerate this file.
+legend . transparent
+legend k ink
+legend W cream_100
+legend h stone_300
+legend g stone_500
+legend G stone_700
+legend s gold_300
+legend S leaf_peach_300
+legend r leaf_red_500
+legend R leaf_red_700
+legend P leaf_peach_300
+legend w cream_100
+legend c cream_400
+legend o olive_800
+legend O olive_900
+legend l olive_600
+legend b bark_900
+legend B bark_700
+legend y bark_500
+legend Y bark_700
+legend j gold_300
+legend a leaf_red_500
+legend A leaf_red_700
+frame
+................
+...kkkk.........
+..kghWhk........
+..kgghhk........
+...kGGGGkkk.....
+..khhhhhhhWhk...
+.kghhhhhhhhWhk..
+.kghhhhhhhhhhk..
+.kgghhhhsssssk..
+.kgghhhhssGGGsk.
+.kgghhhhGGGkWGk.
+.kggghhhssGGGSsk
+..kgghhhhssSssk.
+....kGGGGksskk..
+...kRrrrrrrwk...
+..kRRrrrrPrwwk..
+..kRRrrrrrrwwk..
+..kRRrrrrRrwwk..
+..kRRrrrrRrwwk..
+..kRRRrrsskwwk..
+.kOOoookAaakwwk.
+.kOoookyjjjjkwk.
+kOooookYYyYykwk.
+kOOoookYYYyYklk.
+kOOooookkkkkllk.
+kOOOooooooooolk.
+kOOOooooooooolk.
+.kOOooooooooook.
+.kOOOOOOOOOOOOk.
+..kbbk.....kbbBk
+..kbbk.....kbbbk
+...kk.......kkk.
+frame
+...kkkk.........
+..kghWhk........
+..kgghhk........
+...kGGGGkkk.....
+..khhhhhhhWhk...
+.kghhhhhhhhWhk..
+.kghhhhhhhhhhk..
+.kgghhhhsssssk..
+.kgghhhhssGGGsk.
+.kgghhhhGGGkWGk.
+.kggghhhssGGGSsk
+..kgghhhhssSssk.
+....kGGGGksskk..
+...kRrrrrrrwk...
+..kRRrrrrPrwwk..
+..kRRrrrrrrwwk..
+..kRRrrrrRrwwk..
+..kRRrrrrRrwwk..
+..kRRRrrsskwwk..
+.kOOoookAaakwwk.
+.kOoookyjjjjkwk.
+kOooookYYyYykwk.
+kOOoookYYYyYklk.
+kOOooookkkkkllk.
+kOOOooooooooolk.
+kOOOooooooooolk.
+.kOOooooooooook.
+..kOOOOOOOOOOk..
+......kbbBk.....
+......kbbbk.....
+.......kkk......
+................
+frame
+................
+...kkkk.........
+..kghWhk........
+..kgghhk........
+...kGGGGkkk.....
+..khhhhhhhWhk...
+.kghhhhhhhhWhk..
+.kghhhhhhhhhhk..
+.kgghhhhsssssk..
+.kgghhhhssGGGsk.
+.kgghhhhGGGkWGk.
+.kggghhhssGGGSsk
+..kgghhhhssSssk.
+....kGGGGksskk..
+...kRrrrrrrwk...
+..kRRrrrrPrwwk..
+..kRRrrrrrrwwk..
+..kRRrrrrRrwwk..
+..kRRrrrrRrwwk..
+..kRRRrrsskwwk..
+.kOOoookAaakwwk.
+.kOoookyjjjjkwk.
+kOooookYYyYykwk.
+kOOoookYYYyYklk.
+kOOooookkkkkllk.
+kOOOooooooooolk.
+kOOOooooooooolk.
+.kOOooooooooook.
+.kOOOOOOOOOOOOk.
+..kbBk.....kbbbk
+..kbbk.....kbbbk
+...kk.......kkk.
+frame
+...kkkk.........
+..kghWhk........
+..kgghhk........
+...kGGGGkkk.....
+..khhhhhhhWhk...
+.kghhhhhhhhWhk..
+.kghhhhhhhhhhk..
+.kgghhhhsssssk..
+.kgghhhhssGGGsk.
+.kgghhhhGGGkWGk.
+.kggghhhssGGGSsk
+..kgghhhhssSssk.
+....kGGGGksskk..
+...kRrrrrrrwk...
+..kRRrrrrPrwwk..
+..kRRrrrrrrwwk..
+..kRRrrrrRrwwk..
+..kRRrrrrRrwwk..
+..kRRRrrsskwwk..
+.kOOoookAaakwwk.
+.kOoookyjjjjkwk.
+kOooookYYyYykwk.
+kOOoookYYYyYklk.
+kOOooookkkkkllk.
+kOOOooooooooolk.
+kOOOooooooooolk.
+.kOOooooooooook.
+..kOOOOOOOOOOk..
+.....kbbBk......
+.....kbbbk......
+......kkk.......
+................
