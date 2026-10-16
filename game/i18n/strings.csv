@@ -50,3 +50,6 @@ MG_PACK_HINT_LID,Click 3 times or circle the lid.
 MG_PACK_HINT_DONE,Sealed!
 UI_DAY,Day
 UI_BAG,Bag
+UI_KITCHEN_WRONG,That doesn't go in this recipe
+UI_KITCHEN_MISSING,Something is missing
+UI_KITCHEN_SAME_VARIETY,Needs all of the same variety
