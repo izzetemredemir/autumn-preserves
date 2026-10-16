@@ -26,7 +26,9 @@ const PAGE_H := 192
 const SPINE_W := 6
 const LINE_H := 18
 const PANEL_TEX := preload("res://assets/sprites/ui/ui_panel_paper.png")
-const RECIPE_ORDER := ["jam", "fruit_butter", "chutney", "pickle", "brined_mushroom"]
+const RECIPE_ORDER := ["jam", "fruit_butter", "chutney", "pickle", "brined_mushroom", "kraut", "juice",
+	"fruit_vinegar", "syrup", "pie", "bread"]
+const RECIPES_PER_PAGE := 5  ## base recipes on the left page; P1 ones join once their station is unlocked
 
 var _tab := 0
 var _page := 0
@@ -275,9 +277,21 @@ func _types() -> Array:
 	return out
 
 
+## Base recipes the save can cook (Kitchen.available), in book order.
+func _recipe_ids() -> Array:
+	var d := _data()
+	var out: Array = []
+	for id: String in RECIPE_ORDER:
+		if Data.recipes().has(id) and (d.is_empty() or Kitchen.available(d, id)):
+			out.append(id)
+	return out
+
+
 func _page_count() -> int:
 	if _tab == 0:
-		return maxi(ceili(_variant_keys().size() / float(VARIANTS_PER_PAGE)), 1)
+		var variant_pages := ceili(_variant_keys().size() / float(VARIANTS_PER_PAGE))
+		var recipe_pages := ceili(_recipe_ids().size() / float(RECIPES_PER_PAGE))
+		return maxi(maxi(variant_pages, recipe_pages), 1)
 	return maxi(ceili(_types().size() / float(TYPES_PER_PAGE * 2)), 1)
 
 
@@ -334,9 +348,9 @@ func _fill_recipes() -> void:
 	_left.add_theme_constant_override("separation", 0)
 	_heading(_left, tr("BOOK_BASE_RECIPES"))
 	var recipes := Data.recipes()
-	for id: String in RECIPE_ORDER:
-		if recipes.has(id):
-			_left.add_child(_recipe_entry(id, recipes[id]))
+	var ids := _recipe_ids()
+	for i in range(_page * RECIPES_PER_PAGE, mini(ids.size(), (_page + 1) * RECIPES_PER_PAGE)):
+		_left.add_child(_recipe_entry(ids[i], recipes[ids[i]]))
 	var hr := _heading(_right, tr("BOOK_VARIANTS"))
 	hr.add_theme_constant_override("line_spacing", 0)
 	var keys := _variant_keys()
@@ -365,13 +379,19 @@ func _recipe_entry(id: String, r: Dictionary) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 0)
 	v.add_child(row)
+	var has_main := typeof(r.get("main")) == TYPE_DICTIONARY
 	_add_slot(row, r.get("main"))
 	if r.has("second"):
 		_plus(row)
 		_add_slot(row, r.second)
-	_plus(row)
+	if has_main:  # bread has no slot: just its flour
+		_plus(row)
 	for item: String in r.get("base", {}):
 		_icon(row, item)
+		if int(r.base[item]) > 1:
+			var n := _label(FONT_BODY, 18, TEXT)
+			n.text = "x%d" % int(r.base[item])
+			row.add_child(n)
 	return v
 
 
@@ -394,10 +414,11 @@ func _add_slot(row: Control, slot: Variant) -> void:
 				names.append(t)
 	elif slot.has("recipe"):
 		var l := _label(FONT_BODY, 18, TEXT)
-		l.text = tr("BOOK_RECIPE_" + String(slot.recipe).to_upper())
+		l.text = tr("BOOK_RECIPE_" + String(slot.recipe).to_upper()) + " "
 		row.add_child(l)
-	for t in names:
-		if int(ings.get(t, {}).get("priority", 0)) == 0:
+	for t in names:  # "types" slots list every type that has an icon (kraut: cabbage, vinegar: apple, grape)
+		var drawn := _icon_names.has(t) or JarIcon.supply_icon(t) != null
+		if int(ings.get(t, {}).get("priority", 0)) == 0 or (slot.has("types") and drawn):
 			_icon(row, t)
 	var c := _label(FONT_BODY, 18, TEXT)
 	c.text = "x%d" % int(slot.get("count", 1))
@@ -413,6 +434,8 @@ func _icon(row: Control, icon_name: String, tint := Color.WHITE) -> TextureRect:
 	var path := "res://assets/sprites/icons/%s.png" % icon_name
 	if _icon_names.has(icon_name) and ResourceLoader.exists(path):
 		t.texture = load(path)
+	else:
+		t.texture = JarIcon.supply_icon(icon_name)  # P1 supplies (bottle, flour, cabbage) without an icon file yet
 	row.add_child(t)
 	return t
 

@@ -35,6 +35,7 @@ const PEACH := "e19064"
 		_refresh()
 
 static var _snap_cache := {}
+static var _supply_cache := {}
 
 var _desc: Dictionary = {}
 var _tex: Texture2D
@@ -78,6 +79,54 @@ static func pixel_size(desc: Dictionary, v: String) -> Vector2i:
 	if _vessel(desc) == "bottle":
 		return Vector2i(24, 48)
 	return Vector2i(24, 24)
+
+
+## 16x16 icon for a P1 supply the icon atlas does not have yet: "bottle" (empty, corked), "flour" (sack),
+## "cabbage" and "mint". null for anything else. Palette colours only, cached.
+static func supply_icon(id: String) -> Texture2D:
+	if _supply_cache.has(id):
+		return _supply_cache[id]
+	var img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+	var ink := col(INK)
+	match id:
+		"bottle":
+			_paint_silhouette(img, [Rect2i(6, 3, 4, 5), Rect2i(4, 8, 8, 7), Rect2i(3, 9, 10, 5)], 99, _tones({}))
+			_rect(img, Rect2i(6, 0, 4, 4), ink)
+			_rect(img, Rect2i(7, 1, 2, 2), col(BARK_MID))
+			_px(img, 5, 10, col(CREAM_HI))
+			_px(img, 5, 11, col(CREAM_HI))
+		"flour":
+			_paint_silhouette(img, [Rect2i(3, 5, 10, 10), Rect2i(2, 7, 12, 7)], 5, [col(CREAM_HI), col(CREAM_HI), col(CREAM_LO)])
+			for p in [Rect2i(5, 1, 2, 3), Rect2i(9, 1, 2, 3)]:
+				_rect(img, p, ink)
+				_px(img, p.position.x, p.position.y + 1, col(CREAM_HI))
+			_rect(img, Rect2i(5, 4, 6, 1), col(BARK_DK))
+			for p in [Vector2i(7, 9), Vector2i(8, 8), Vector2i(8, 10), Vector2i(9, 9), Vector2i(8, 11), Vector2i(8, 12)]:
+				_px(img, p.x, p.y, col(GOLD_LO))
+		"cabbage":
+			_paint_silhouette(img, [Rect2i(4, 3, 8, 11), Rect2i(3, 4, 10, 9), Rect2i(2, 6, 12, 5)], 3, [col("b7b768"), col("747c37"), col("53612e")])
+			for y in range(5, 13):
+				_px(img, 8, y, col("53612e"))
+			for p in [Vector2i(6, 6), Vector2i(5, 8), Vector2i(10, 6), Vector2i(11, 8), Vector2i(6, 11), Vector2i(10, 11)]:
+				_px(img, p.x, p.y, col("53612e"))
+			_px(img, 5, 5, col("dbcc83"))
+		"mint":  # a sprig: stem and three leaf pairs
+			_rect(img, Rect2i(7, 1, 2, 15), ink)
+			_rect(img, Rect2i(8, 2, 1, 13), col("275e4c"))
+			for i in 3:
+				var y := 2 + i * 4
+				var w := 5 - i
+				for leaf in [Rect2i(7 - w, y, w, 4), Rect2i(9, y + 1, w, 4)]:
+					_rect(img, leaf, ink)
+					_rect(img, Rect2i(leaf.position.x + 1, leaf.position.y + 1, leaf.size.x - 2, 1), col("738c7a"))
+					_rect(img, Rect2i(leaf.position.x + 1, leaf.position.y + 2, leaf.size.x - 2, 1), col("4e7664"))
+					_px(img, leaf.end.x - 2 if leaf.position.x > 8 else leaf.position.x + 1, leaf.position.y + 1, col("b7b768"))
+		_:
+			_supply_cache[id] = null
+			return null
+	var tex := ImageTexture.create_from_image(img)
+	_supply_cache[id] = tex
+	return tex
 
 
 ## Pixel-exact image of the product (transparent background, palette colours only).

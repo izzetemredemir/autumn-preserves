@@ -26,8 +26,10 @@ static func run_with(state: Dictionary, seams: Dictionary) -> Array:
 		else:
 			waits = func(e: Dictionary) -> bool: return PantryRules.wait_counts(b, e)
 			fresh_zone = func(e: Dictionary) -> bool: return PantryRules.in_correct_zone(b, e)
-	# 1-2. Waiting products, then fresh decay and compost.
+	# 1-2. Waiting products (matured fruit vinegar empties into the cupboard), then fresh decay, pie and bread
+	# going stale, and compost.
 	events.append_array(tick_waiting(state, waits))
+	events.append_array(empty_to_cupboard(state))
 	events.append_array(tick_fresh(state, fresh_zone))
 	# 3. Beds grow (fertilizer was applied at planting), trees refill.
 	events.append_array(grow_garden(state))
@@ -64,6 +66,29 @@ static func tick_waiting(state: Dictionary, waits: Callable) -> Array:
 			item.wait_left = int(item.wait_left) - 1
 			if int(item.wait_left) == 0:
 				events.append({"type": "matured", "key": item.key})
+	return events
+
+
+## Step 1b (P1, spec §6.3). Matured products whose recipe has "output_cupboard" (fruit vinegar: 2 vinegar) leave
+## the pantry or inbox and add those units to the cupboard; home vinegar is used like the grocer's.
+## Events {"type": "to_cupboard", "key", "items": {cupboard id: count}}.
+static func empty_to_cupboard(state: Dictionary) -> Array:
+	var events: Array = []
+	var recipes := Data.recipes()
+	for where in ["pantry", "inbox"]:
+		var list: Array = state.pantry.items if where == "pantry" else state.inbox
+		for i in range(list.size() - 1, -1, -1):
+			var item: Dictionary = list[i].item if where == "pantry" else list[i]
+			if String(item.get("kind", "")) != "product" or int(item.get("wait_left", 0)) > 0:
+				continue
+			var row: Dictionary = recipes.get(State.item_type(item), {})
+			if typeof(row.get("output_cupboard")) != TYPE_DICTIONARY:
+				continue
+			var out: Dictionary = row.output_cupboard
+			list.remove_at(i)
+			for id in out:
+				state.cupboard[id] = int(state.cupboard.get(id, 0)) + int(out[id])
+			events.append({"type": "to_cupboard", "key": item.key, "items": out.duplicate()})
 	return events
 
 

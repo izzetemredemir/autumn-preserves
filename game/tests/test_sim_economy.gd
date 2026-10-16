@@ -79,7 +79,7 @@ func test_buy_cupboard_seed_and_upgrade() -> void:
 	assert_eq(int(s.upgrades.pantry_row), 1)
 	assert_eq(int(s.pantry.rows_extra), 1)
 	assert_eq(Economy.price(s, "pantry_row"), int(Data.shop().upgrades.pantry_row.prices[1]), "next shelf level")
-	for id in ["nothing", "bottle", "seed_pumpkin", "press"]:
+	for id in ["nothing", "seed_pumpkin", "cellar"]:  # P1 rows outside Economy.LIVE, P2
 		assert_eq(Economy.buy(s, id).reason, "UI_NOT_AVAILABLE", id)
 	assert_eq(Economy.buy(s, "jar", 0).reason, "UI_NOT_AVAILABLE")
 

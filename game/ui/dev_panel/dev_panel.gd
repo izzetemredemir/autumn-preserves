@@ -57,6 +57,7 @@ func _build() -> void:
 	_add(grid, "UI_DEV_SKIP_DAY", _on_skip_day, true)
 	_add(grid, "UI_DEV_NIGHT", _on_night, true)
 	_add(grid, "UI_DEV_SEED", _on_seed, true)
+	_add(grid, "UI_DEV_UNLOCK_P1", _on_unlock_p1, true)
 	_demo = _add(grid, "UI_DEV_DEMO", _on_demo, false)
 	_add(grid, "UI_DEV_CLOSE", func() -> void: _panel.visible = false, false)
 	_status = Label.new()
@@ -127,6 +128,12 @@ func _on_skip_day() -> void:
 func _on_night() -> void:
 	_panel.visible = false
 	Night.start()
+
+
+func _on_unlock_p1() -> void:
+	var n := DevTools.unlock_p1(GameState.data)
+	GameState.notify(PackedStringArray(["unlocks", "upgrades", "varieties", "cupboard", "inbox"]))
+	_say(tr("UI_DEV_P1_DONE") % n)
 
 
 func _on_seed() -> void:

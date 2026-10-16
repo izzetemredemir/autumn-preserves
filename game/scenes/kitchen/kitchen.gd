@@ -1,6 +1,7 @@
 extends Control
 ## GD-KITCHEN · Kitchen (spec §5, §7.2, §11; tech-spec §7-8): one 480x270 click scene.
-## Stove = stir_pot recipes, jar counter = pack_jar recipes, cupboard counts, recipe book, waiting jars on the
+## Stove = stir_pot recipes, jar counter = pack_jar recipes, P1 fruit press = press recipes and dough board = knead
+## recipes (shown once Economy.unlocked "press" / "knead"), cupboard counts, recipe book, waiting jars on the
 ## window sill, doors to the garden and the pantry, the bed nook (Night). Cooking: CookPanel picks -> the
 ## recipe's mini-game -> Kitchen.cook -> result card. Rules stay in res://sim; this scene shows and routes.
 ## Run alone it starts a throwaway game (GameState.start_temp, never saved) with a debug inventory.
@@ -109,11 +110,14 @@ func _build_room() -> void:
 	var captions := {
 		"garden": tr("KITCHEN_TO_GARDEN"), "stove": tr("KITCHEN_STOVE"), "counter": tr("KITCHEN_COUNTER"),
 		"cupboard": tr("KITCHEN_CUPBOARD"), "pantry": tr("KITCHEN_TO_PANTRY"), "bed": tr("KITCHEN_BED_CAPTION"),
+		"press": tr("KITCHEN_PRESS"), "board": tr("KITCHEN_BOARD"),
 	}
-	for kind: String in Art.OBJECTS:
+	var rects: Dictionary = Art.OBJECTS.duplicate()
+	rects.merge(Art.P1_OBJECTS)
+	for kind: String in rects:
 		var h: Button = Hotspot.new()
 		_room.add_child(h)
-		h.setup(kind, Art.OBJECTS[kind], captions.get(kind, ""))
+		h.setup(kind, rects[kind], captions.get(kind, ""))
 		h.pressed.connect(_on_spot.bind(kind))
 		h.mouse_entered.connect(_on_spot_hover.bind(kind, true))
 		h.focus_entered.connect(_on_spot_hover.bind(kind, false))
@@ -195,6 +199,8 @@ func _refresh() -> void:
 		return
 	_spots.cupboard.set_info({"cupboard": d.cupboard})
 	_spots.pantry.set_info({"inbox": d.inbox.size()})
+	for kind: String in Art.UNLOCK_OF:  # P1 stations appear once bought / given
+		_spots[kind].visible = Economy.unlocked(d, String(Art.UNLOCK_OF[kind]))
 	_shelf.show_items(_waiting(d))
 	if _panel.visible and _mg == null:
 		_panel.refresh()
@@ -286,6 +292,10 @@ func _spot_hint(kind: String) -> String:
 			return tr("KITCHEN_GARDEN_HINT")
 		"bed":
 			return tr("KITCHEN_BED_HINT")
+		"press":
+			return tr("KITCHEN_PRESS_HINT")
+		"board":
+			return tr("KITCHEN_BOARD_HINT")
 	return ""
 
 
@@ -324,6 +334,10 @@ func _on_spot(kind: String) -> void:
 			_open_panel("stir_pot")
 		"counter":
 			_open_panel("pack_jar")
+		"press":
+			_open_panel("press")
+		"board":
+			_open_panel("knead")
 		"book":
 			_open_book()
 		"cupboard":
@@ -419,10 +433,8 @@ func _on_cook_requested(recipe_id: String, main_v: String, second_v: String, add
 	if not Kitchen.check(d, recipe_id, main_v, second_v, addin_id).ok:
 		return
 	_cooking = {"recipe": recipe_id, "main": main_v, "second": second_v, "addin": addin_id}
-	var varieties: Array = [main_v]
-	if second_v != "":
-		varieties.append(second_v)
-	var key := ProductGen.make_key(recipe_id, varieties, addin_id)
+	var key := Kitchen.product_key(recipe_id, main_v, second_v, addin_id)
+	var varieties: Array = ProductGen.parse_key(key).varieties  # bread has none, syrup the juice's fruit
 	var types: Array = []
 	for v: String in varieties:
 		types.append(State.type_of_variety(v))
@@ -587,3 +599,4 @@ func _debug_fill() -> void:
 			d.inbox.append(State.fresh(v, 5, int(Data.ingredients()[t].shelf_days)))
 	d.inbox.append(State.nut("walnut", 3))
 	d.cupboard["cinnamon"] = 1
+	DevTools.unlock_p1(d)  # press and dough board on show, bottles, flour and cabbage

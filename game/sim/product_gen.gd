@@ -160,10 +160,20 @@ static func value(key: String, varieties: Dictionary, quality: int) -> int:
 	var stars := total_stars(quality, harmony(taste(key, varieties)))
 	var star_mult: Array = cfg.star_mult
 	var mult := float(cfg.rarity_mult[rarity(key, varieties)]) * float(star_mult[stars])
-	var v := floori(float(recipe.get("base_value", 0)) * mult + 0.000001)
+	var v := floori(float(base_value(recipe)) * mult + 0.000001)
 	if p.addin != "":
 		var addin: Dictionary = Data.addins().get(p.addin, {})
 		v += int(cfg.addin_bonus.get(addin.get("kind", ""), 0))
+	return v
+
+
+## Base value of a recipe row. Fruit vinegar has none of its own: it is worth sell_each per cupboard unit it makes
+## (spec §6.3: 2 vinegar, 10 each).
+static func base_value(recipe: Dictionary) -> int:
+	var v := int(recipe.get("base_value", 0))
+	if v <= 0 and recipe.has("sell_each") and typeof(recipe.get("output_cupboard")) == TYPE_DICTIONARY:
+		for id in recipe.output_cupboard:
+			v += int(recipe.sell_each) * int(recipe.output_cupboard[id])
 	return v
 
 

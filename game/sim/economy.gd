@@ -8,6 +8,10 @@ const MAX_PRIORITY := 0
 ## Seeds use their bare id ("cabbage"). One line per id so parallel cards merge cleanly.
 const LIVE := {
 	"boots": true,
+	"press": true,
+	"bottle": true,
+	"flour": true,
+	"cabbage": true,
 }
 
 

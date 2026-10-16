@@ -5,11 +5,16 @@ extends RefCounted
 ## Same-variety rule: every main slot takes only `main_variety`, the chutney vegetable slot only `second_variety`.
 ## Reasons: UI_KITCHEN_WRONG (recipe/variety/add-in does not fit), UI_KITCHEN_SAME_VARIETY (enough of the type, not of
 ## one variety), UI_KITCHEN_MISSING (see "missing": {variety_id | nut type | cupboard id: count short}), UI_TIRED.
+## P1 (spec §6.3, §8.3): press and knead recipes need their station (Economy.unlocked "press" / "knead"); a recipe slot
+## ({"recipe": "juice"}) takes matured products of that recipe whose main variety is `main_variety` (syrup); bread
+## has no slot at all. A locked or unknown recipe answers UI_KITCHEN_WRONG.
 
 const R_WRONG := "UI_KITCHEN_WRONG"
 const R_MISSING := "UI_KITCHEN_MISSING"
 const R_SAME := "UI_KITCHEN_SAME_VARIETY"
 const R_TIRED := "UI_TIRED"
+## Cooking method -> unlock id of the station it needs (tech-spec §16). Stove and jar counter are always there.
+const STATION_UNLOCK := {"press": "press", "knead": "knead"}
 
 
 ## {"ok": bool, "reason": i18n key ("" when ok), "missing": {id: count}}
@@ -47,6 +52,64 @@ static func cook(state: Dictionary, recipe_id: String, main_variety: String, sec
 	return {"ok": true, "item": item, "desc": desc, "is_new": is_new}
 
 
+## True when the recipe can be cooked in this save: P0 always; P1 once its station is unlocked and, for a recipe
+## slot (syrup), once the input recipe is available too.
+static func available(state: Dictionary, recipe_id: String) -> bool:
+	var recipes := Data.recipes()
+	if not recipes.has(recipe_id):
+		return false
+	var recipe: Dictionary = recipes[recipe_id]
+	if int(recipe.get("priority", 0)) <= 0:
+		return true
+	var gate := String(STATION_UNLOCK.get(String(recipe.method), ""))
+	if gate != "" and not Economy.unlocked(state, gate):
+		return false
+	var main: Variant = recipe.get("main")
+	if typeof(main) == TYPE_DICTIONARY and main.has("recipe") and String(main.recipe) != recipe_id:
+		return available(state, String(main.recipe))
+	return true
+
+
+## Available recipes cooked with `method`: P0 first, each priority in recipes.json order (stove: jam, butter,
+## chutney, syrup; counter: pickles, brine, kraut; press: juice, vinegar; board: pie, bread).
+static func recipes_at(state: Dictionary, method: String) -> Array:
+	var all := Data.recipes()
+	var out: Array = []
+	for prio in [0, 1, 2]:
+		for id: String in all:
+			var r: Dictionary = all[id]
+			if int(r.get("priority", 0)) == prio and String(r.get("method", "")) == method and available(state, id):
+				out.append(id)
+	return out
+
+
+## The product key cook() would make: only the slots the recipe has count (bread -> "bread|-").
+static func product_key(recipe_id: String, main_variety: String, second_variety: String, addin_id: String) -> String:
+	var recipe: Dictionary = Data.recipes().get(recipe_id, {})
+	var vs: Array = []
+	if typeof(recipe.get("main")) == TYPE_DICTIONARY:
+		vs.append(main_variety)
+	if typeof(recipe.get("second")) == TYPE_DICTIONARY:
+		vs.append(second_variety)
+	return ProductGen.make_key(recipe_id, vs, addin_id)
+
+
+## Matured products of `recipe_id` in inbox + pantry, counted per main variety (the syrup slot's stock).
+static func product_stock(state: Dictionary, recipe_id: String) -> Dictionary:
+	var out := {}
+	var items: Array = state.inbox.duplicate()
+	for e: Dictionary in state.pantry.items:
+		items.append(e.item)
+	for item: Dictionary in items:
+		if String(item.get("kind", "")) != "product" or int(item.get("wait_left", 0)) > 0:
+			continue
+		var p := ProductGen.parse_key(String(item.key))
+		if p.recipe == recipe_id and not p.varieties.is_empty():
+			var vid := String(p.varieties[0])
+			out[vid] = int(out.get(vid, 0)) + int(item.get("count", 1))
+	return out
+
+
 ## Energy of a cooking method. Falls back to rules.energy.costs while Economy (SIM-04) returns 0.
 static func energy_cost(action: String) -> int:
 	var c := Economy.energy_cost(action)
@@ -60,7 +123,7 @@ static func energy_cost(action: String) -> int:
 static func _plan(state: Dictionary, recipe_id: String, main_variety: String, second_variety: String, addin_id: String) -> Dictionary:
 	var out := {"ok": false, "reason": "", "missing": {}, "takes": [], "cupboard": {}, "varieties": [], "action": ""}
 	var recipes := Data.recipes()
-	if not recipes.has(recipe_id):
+	if not available(state, recipe_id):
 		out.reason = R_WRONG
 		return out
 	var recipe: Dictionary = recipes[recipe_id]

@@ -455,6 +455,16 @@ UI_NIGHT_LETTER,A letter from %s arrived!
 BOOK_FOUND,%d/%d varieties found
 BOOK_HOW_KEY,seed key
 KITCHEN_DAYS_TIP,%d days
+KITCHEN_PRESS,Fruit press
+KITCHEN_BOARD,Dough board
+KITCHEN_PRESS_HINT,Fruit press: juice and fruit vinegar.
+KITCHEN_BOARD_HINT,Dough board: pie and bread.
+KITCHEN_NO_JUICE,No juice yet. Press some at the fruit press.
+KITCHEN_PRESS_FIRST,Press more juice of this fruit first.
+KITCHEN_NO_SLOTS,"Nothing fresh needed, just flour from the cupboard."
+TOWN_ITEM_PRESS,Fruit press
+UI_DEV_UNLOCK_P1,Unlock P1
+UI_DEV_P1_DONE,P1 unlocked (%d things added).
 TOWN_ROLE_VINTNER,Vintner
 TOWN_ROLE_LIBRARIAN,Librarian
 NPC_VINTNER_0,"A new face! Care for a grape?"

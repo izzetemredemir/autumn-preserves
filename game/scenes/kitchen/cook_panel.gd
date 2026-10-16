@@ -3,6 +3,8 @@ extends Panel
 ## stacks from the inbox + pantry list, add-in picker (cupboard add-ins + nut stacks), Kitchen.check feedback in
 ## words, name preview only for variants already in the book, Cook button. Rules stay in Kitchen/ProductGen:
 ## this panel only routes picks into the slot they belong to and shows what Kitchen.check() answers.
+## P1: stations "press" and "knead"; a recipe slot (syrup: 2 juices) lists matured products of that recipe by their
+## fruit variety (Kitchen.product_stock); a recipe without slots (bread) only needs the cupboard.
 
 signal cook_requested(recipe_id: String, main_variety: String, second_variety: String, addin_id: String)
 signal close_requested
@@ -46,6 +48,7 @@ var _list: VBoxContainer
 var _rows: Dictionary = {}  # variety id -> Button
 var _ok := false
 var _tween: Tween
+var _product_icons := {}  # product key -> 16x16 JarIcon texture
 
 
 func _ready() -> void:
@@ -54,15 +57,9 @@ func _ready() -> void:
 
 # ---------------------------------------------------------------- pure helpers (state in, plain data out)
 
-## P0 recipes cooked with `method`, cheapest first (jam, butter, chutney / pickles, brine).
+## Recipes this save can cook with `method` (Kitchen.recipes_at): P0 first, then unlocked P1.
 static func recipes_for(method: String) -> Array:
-	var all := Data.recipes()
-	var out: Array = []
-	for id in Data.ids_up_to("recipes", 0):
-		if String(all[id].method) == method:
-			out.append(id)
-	out.sort_custom(func(a: String, b: String) -> bool: return int(all[a].base_value) < int(all[b].base_value))
-	return out
+	return Kitchen.recipes_at(GameState.data, method)
 
 
 ## Fresh units per variety id in the inbox and the pantry.
@@ -91,9 +88,11 @@ static func addin_count(d: Dictionary, id: String) -> int:
 	return int(d.cupboard.get(id, 0))
 
 
+## Add-ins the picker offers, in data order: every add-in the player has in hand, whatever its priority (shop
+## spices, P1 nuts, Edith's gifted mint). Unowned ones stay hidden; the grocer hint covers buying more.
 static func available_addins(d: Dictionary) -> Array:
 	var out: Array = []
-	for id in Data.ids_up_to("addins", 0):
+	for id: String in Data.addins():
 		if addin_count(d, id) > 0:
 			out.append(id)
 	return out
@@ -109,22 +108,22 @@ static func _all_items(d: Dictionary) -> Array:
 # ---------------------------------------------------------------- open / refresh
 
 func open(station_id: String) -> void:
-	if station_id != station or _tabs.is_empty():
+	if station_id != station:
 		station = station_id
 		recipe = ""
 		picks = {"main": "", "second": ""}
 		addin = ""
-		_build_tabs()
-	if recipe == "" and not _recipes.is_empty():
-		recipe = _recipes[0]
+	_build_tabs()  # every time: a new unlock can add a tab (syrup once the press is bought)
+	if not _recipes.has(recipe):
+		recipe = _recipes[0] if not _recipes.is_empty() else ""
 	var d := GameState.data
-	var stock := fresh_stock(d)
 	for which in SLOTS:
-		if picks[which] != "" and int(stock.get(picks[which], 0)) == 0:
+		if picks[which] != "" and int(_slot_stock(which).get(picks[which], 0)) == 0:
 			picks[which] = ""
 	if addin != "" and addin_count(d, addin) == 0:
 		addin = ""
-	_title.text = tr("KITCHEN_STOVE") if station == "stir_pot" else tr("KITCHEN_COUNTER")
+	var titles := {"stir_pot": "KITCHEN_STOVE", "pack_jar": "KITCHEN_COUNTER", "press": "KITCHEN_PRESS", "knead": "KITCHEN_BOARD"}
+	_title.text = tr(String(titles.get(station, "KITCHEN_STOVE")))
 	visible = true
 	refresh()
 	_slide_in()
@@ -259,33 +258,54 @@ func _build_tabs() -> void:
 	_tabs.clear()
 	_recipes = recipes_for(station)
 	var all := Data.recipes()
+	# Three tabs keep the full width; the stove with syrup squeezes four in and shows one icon per slot.
+	var n := maxi(_recipes.size(), 1)
+	var tab_w := mini(TAB_W, floori((W - 16 - 5 * (n - 1)) / float(n)))
+	var compact := tab_w < TAB_W
 	for i in _recipes.size():
 		var id: String = _recipes[i]
 		var r: Dictionary = all[id]
 		var b := Button.new()
-		b.position = Vector2(i * (TAB_W + 5), 0)
-		b.size = Vector2(TAB_W, TAB_H)
+		b.position = Vector2(i * (tab_w + 5), 0)
+		b.size = Vector2(tab_w, TAB_H)
+		b.clip_contents = true
 		b.pressed.connect(_select_recipe.bind(id))
 		_tab_box.add_child(b)
-		var nm := _label(b, Vector2(6, 1), TAB_W - 12)
+		var nm := _label(b, Vector2(6, 1), tab_w - 12)
 		nm.text = String(r.name)
+		nm.clip_text = true
 		var row := HBoxContainer.new()
 		row.position = Vector2(6, 19)
 		row.add_theme_constant_override("separation", 1)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		b.add_child(row)
 		var two := typeof(r.get("second")) == TYPE_DICTIONARY
+		var any_slot := false
 		for which in SLOTS:
 			var spec: Variant = r.get(which)
 			if typeof(spec) != TYPE_DICTIONARY:
 				continue
+			any_slot = true
+			if spec.has("recipe"):  # syrup: "2 Juice"
+				_icon_text(row, "%d %s" % [int(spec.count), tr("BOOK_RECIPE_" + String(spec.recipe).to_upper())], Art.CREAM)
+				continue
 			_icon_text(row, str(int(spec.count)), Art.CREAM)
-			for ic in Art.slot_icon_ids(spec, 2 if two else 3):
+			for ic in Art.slot_icon_ids(spec, 1 if compact else (2 if two else 3)):
 				_icon(row, ic)
-		_icon_text(row, "+", Art.CREAM_LO)
+		if any_slot:
+			_icon_text(row, "+", Art.CREAM_LO)
 		for base_id in r.get("base", {}):
+			if int(r.base[base_id]) > 1:
+				_icon_text(row, str(int(r.base[base_id])), Art.CREAM_LO)
 			_icon(row, base_id)
 		_tabs[id] = b
+	# Left / right walk the tabs (the wide slot row below would otherwise catch "right").
+	for i in _recipes.size():
+		var b: Button = _tabs[_recipes[i]]
+		if i > 0:
+			b.focus_neighbor_left = b.get_path_to(_tabs[_recipes[i - 1]])
+		if i < _recipes.size() - 1:
+			b.focus_neighbor_right = b.get_path_to(_tabs[_recipes[i + 1]])
 
 
 func _build_addins() -> void:
@@ -299,9 +319,11 @@ func _build_addins() -> void:
 	if addin != "" and not ids.has(addin):
 		ids.append(addin)
 	var x := 0
+	# Up to six add-ins at 26 px; more (P1 nuts, herbs) narrow down so the row stays left of the stock list.
+	var each := clampi(floori((RIGHT_X - 56 - 38) / float(maxi(ids.size() - 1, 1))) - 2, 18, 26)
 	for id: String in ids:
 		var b := Button.new()
-		var w := 36 if id == "" else 26
+		var w := 36 if id == "" else each
 		b.position = Vector2(x, 0)
 		b.size = Vector2(w, 24)
 		if id == "":
@@ -309,7 +331,8 @@ func _build_addins() -> void:
 		else:
 			b.icon = Art.icon(id)
 			b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			var n := _label(b, Vector2(11, 8), 13)
+			b.expand_icon = false
+			var n := _label(b, Vector2(w - 15, 8), 13)
 			n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			n.text = str(addin_count(d, id))
 		_style(b, id == addin)
@@ -324,8 +347,7 @@ func _build_list() -> void:
 		_list.remove_child(c)
 		c.queue_free()
 	_rows.clear()
-	var d := GameState.data
-	var stock := fresh_stock(d)
+	var stock := _list_stock()
 	var ids: Array = stock.keys()
 	var fit := {}
 	for vid in ids:
@@ -334,16 +356,18 @@ func _build_list() -> void:
 		if fit[a] != fit[b]:
 			return fit[a]
 		return _variety_name(a) < _variety_name(b))
-	if ids.is_empty():
+	if ids.is_empty() or _slot_count() == 0:
 		var empty := Label.new()
-		empty.text = tr("KITCHEN_LIST_EMPTY")
+		empty.text = tr(_empty_list_key())
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		empty.custom_minimum_size = Vector2(ROW_W, 72)
 		_list.add_child(empty)
+		if _slot_count() == 0:
+			return
 	for vid: String in ids:
 		var b := Button.new()
 		b.custom_minimum_size = Vector2(ROW_W, 20)
-		b.icon = Art.icon(State.type_of_variety(vid))
+		b.icon = _row_icon(vid)
 		b.text = _variety_name(vid)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var picked: bool = vid == picks.main or vid == picks.second
@@ -365,9 +389,8 @@ func _update_tabs() -> void:
 
 
 func _update_slots() -> void:
-	var stock := fresh_stock(GameState.data)
-	# Everything under the slots moves up one row when the recipe has no second slot.
-	var y0 := 100 if _spec("second") == null else 126
+	# Everything under the slots moves up one row per missing slot (one for jam, two for bread).
+	var y0 := 74 + _slot_count() * (SLOT_H + 2)
 	_addin_label.position = Vector2(8, y0 + 3)
 	_addin_box.position = Vector2(52, y0)
 	_preview_frame.position = Vector2(8, y0 + 30)
@@ -382,6 +405,7 @@ func _update_slots() -> void:
 			continue
 		var vid: String = picks[which]
 		var need := int(spec.count)
+		var stock := _slot_stock(which)
 		s.caption.text = tr("KITCHEN_SLOT_MAIN") if which == "main" else tr("KITCHEN_SLOT_SECOND")
 		if vid == "":
 			s.need.text = "x%d" % need
@@ -393,7 +417,7 @@ func _update_slots() -> void:
 			var have := int(stock.get(vid, 0))
 			s.need.text = "%d/%d" % [mini(have, 99), need]
 			s.need.add_theme_color_override("font_color", Art.CREAM if have >= need else Art.PEACH)
-			s.icon.texture = Art.icon(State.type_of_variety(vid))
+			s.icon.texture = _row_icon(vid)
 			s.name.text = _variety_name(vid)
 			s.name.add_theme_color_override("font_color", Art.CREAM)
 
@@ -408,16 +432,16 @@ func _update_check() -> void:
 	_preview_jar.visible = false
 	_preview_unknown.visible = true
 	_preview_name.text = ""
-	if picks.main == "" or (_spec("second") != null and picks.second == ""):
+	if (_spec("main") != null and picks.main == "") or (_spec("second") != null and picks.second == ""):
 		_ok = false
 		var any_fit := false
-		for vid in fresh_stock(d):
+		for vid in _list_stock():
 			any_fit = any_fit or _fits("main", vid) or _fits("second", vid)
-		_set_feedback(tr("KITCHEN_FILL_SLOTS") if any_fit else tr("KITCHEN_NOTHING_FITS"), Art.CREAM_LO)
+		_set_feedback(tr("KITCHEN_FILL_SLOTS") if any_fit else tr(_nothing_fits_key()), Art.CREAM_LO)
 		_set_cook_look()
 		return
-	var c := Kitchen.check(d, recipe, picks.main, _second(), addin)
-	var key := ProductGen.make_key(recipe, _pick_list(), addin)
+	var c := Kitchen.check(d, recipe, _main(), _second(), addin)
+	var key := Kitchen.product_key(recipe, _main(), _second(), addin)
 	var known: bool = d.book.variants.has(key)
 	if known:
 		_preview_jar.show_product(ProductGen.describe(key, d.varieties))
@@ -443,6 +467,8 @@ func _hint_for(c: Dictionary) -> String:
 		Kitchen.R_TIRED:
 			return tr("KITCHEN_SLEEP_HINT")
 		Kitchen.R_MISSING:
+			if _is_product_slot("main") and c.missing.has(picks.main):
+				return tr("KITCHEN_PRESS_FIRST")
 			var buy: Dictionary = Data.shop().get("buy", {})
 			for id in c.missing:
 				if buy.has(id):
@@ -474,9 +500,56 @@ func _spec(which: String) -> Variant:
 	if recipe == "":
 		return null
 	var s: Variant = Data.recipes()[recipe].get(which)
-	if typeof(s) != TYPE_DICTIONARY or s.has("recipe"):
+	if typeof(s) != TYPE_DICTIONARY:
 		return null
 	return s
+
+
+## A slot that takes finished products of another recipe (syrup's juices), not fresh varieties.
+func _is_product_slot(which: String) -> bool:
+	var spec: Variant = _spec(which)
+	return spec != null and spec.has("recipe")
+
+
+func _slot_count() -> int:
+	var n := 0
+	for which in SLOTS:
+		if _spec(which) != null:
+			n += 1
+	return n
+
+
+## Units per variety id a slot can draw from: matured products for a recipe slot, fresh stock otherwise.
+func _slot_stock(which: String) -> Dictionary:
+	if _is_product_slot(which):
+		return Kitchen.product_stock(GameState.data, String(_spec(which).recipe))
+	return fresh_stock(GameState.data)
+
+
+## What the list on the right offers: juices for syrup, fresh stacks for everything else.
+func _list_stock() -> Dictionary:
+	return _slot_stock("main")
+
+
+func _empty_list_key() -> String:
+	if _slot_count() == 0:
+		return "KITCHEN_NO_SLOTS"
+	return "KITCHEN_NO_JUICE" if _is_product_slot("main") else "KITCHEN_LIST_EMPTY"
+
+
+func _nothing_fits_key() -> String:
+	return "KITCHEN_NO_JUICE" if _is_product_slot("main") else "KITCHEN_NOTHING_FITS"
+
+
+## Row and slot icon: the fruit for fresh stacks, a little bottle in the juice's colour for a recipe slot.
+func _row_icon(vid: String) -> Texture2D:
+	if not _is_product_slot("main"):
+		return Art.icon(State.type_of_variety(vid))
+	var key := ProductGen.make_key(String(_spec("main").recipe), [vid], "")
+	if not _product_icons.has(key):
+		var img := JarIcon.render(ProductGen.describe(key, GameState.data.varieties), "icon")
+		_product_icons[key] = ImageTexture.create_from_image(img)
+	return _product_icons[key]
 
 
 ## Slot routing only (which slot a variety goes to); the verdict always comes from Kitchen.check().
@@ -484,6 +557,8 @@ func _fits(which: String, vid: String) -> bool:
 	var spec: Variant = _spec(which)
 	if spec == null:
 		return false
+	if spec.has("recipe"):
+		return _slot_stock(which).has(vid)
 	var v: Dictionary = GameState.data.varieties.get(vid, {})
 	var type := String(v.get("type", State.type_of_variety(vid)))
 	if spec.has("types"):
@@ -491,15 +566,12 @@ func _fits(which: String, vid: String) -> bool:
 	return spec.has("groups") and spec.groups.has(String(Data.ingredients().get(type, {}).get("group", "")))
 
 
+func _main() -> String:
+	return picks.main if _spec("main") != null else ""
+
+
 func _second() -> String:
 	return picks.second if _spec("second") != null else ""
-
-
-func _pick_list() -> Array:
-	var out: Array = [picks.main]
-	if _second() != "":
-		out.append(picks.second)
-	return out
 
 
 func _variety_name(vid: String) -> String:
@@ -565,7 +637,7 @@ func _on_cook() -> void:
 		Audio.play_ui("ui_error")
 		_shake(_cook)
 		return
-	cook_requested.emit(recipe, picks.main, _second(), addin)
+	cook_requested.emit(recipe, _main(), _second(), addin)
 
 
 func _row_drag(_at: Vector2, vid: String, row: Button) -> Variant:

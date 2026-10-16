@@ -48,6 +48,14 @@ const OBJECTS := {
 ## book and the pantry's inbox tag are drawn. When no painting loads, Kitchen sets `painted = false` and the
 ## placeholder objects below draw instead.
 static var painted := true
+## P1 stations (spec §8.3), drawn on top of the painting once unlocked (Economy.unlocked): the fruit press on the
+## floor right of the stove, the dough board on a little table in the window light. Kitchen shows each when its
+## unlock id (UNLOCK_OF) is set.
+const P1_OBJECTS := {
+	"press": Rect2i(112, 158, 44, 60),
+	"board": Rect2i(322, 150, 56, 46),
+}
+const UNLOCK_OF := {"press": "press", "board": "knead"}
 ## Window sill over the bench where the waiting jars stand (WaitingShelf).
 const SILL := Rect2i(124, 66, 76, 38)
 const ICONS_JSON := "res://assets/sprites/icons/icons.json"
@@ -78,6 +86,8 @@ static func icon(id: String) -> Texture2D:
 		at.atlas = load(ICONS_PNG)
 		at.region = Rect2(int(cells[id][0]) * int(cell[0]), int(cells[id][1]) * int(cell[1]), int(cell[0]), int(cell[1]))
 		tex = at
+	if tex == null:
+		tex = JarIcon.supply_icon(id)  # P1 supplies (bottle, flour, cabbage) until the atlas has them
 	_icons[id] = tex
 	return tex
 
@@ -89,7 +99,8 @@ static func slot_icon_ids(spec: Variant, max_n: int) -> Array:
 		return out
 	if spec.has("types"):
 		for t in spec.types:
-			out.append(String(t))
+			if icon(String(t)) != null:  # P1 types without an icon yet (grape) are left out
+				out.append(String(t))
 	elif spec.has("groups"):
 		var ings := Data.ingredients()
 		for t in Data.ids_up_to("ingredients", 0):
@@ -98,15 +109,16 @@ static func slot_icon_ids(spec: Variant, max_n: int) -> Array:
 	return out.slice(0, max_n)
 
 
-## Cupboard contents: base items the grocer sells (P0), then shop add-ins (P0), in data order.
+## Cupboard contents: base items the grocer sells (Economy.on_sale: P0 + live P1 rows such as bottle and flour),
+## then shop add-ins (P0), in data order.
 static func cupboard_ids() -> Array:
 	var out: Array = []
 	var addins := Data.addins()
 	var buy: Dictionary = Data.shop().get("buy", {})
 	for id in buy:
 		var row: Variant = buy[id]
-		var prio := int(row.get("priority", 0)) if typeof(row) == TYPE_DICTIONARY else 0
-		if prio == 0 and not addins.has(id):
+		var live := Economy.on_sale(id, row) if typeof(row) == TYPE_DICTIONARY else true
+		if live and not addins.has(id):
 			out.append(id)
 	for id in addins:
 		if addins[id].source == "shop" and int(addins[id].priority) == 0:
@@ -211,6 +223,12 @@ static func _r(img: Image, x: int, y: int, w: int, h: int, c: Color) -> void:
 
 ## Draws object `kind` into `ci` in its local space. `t` = seconds (animation), `info` = live numbers.
 static func draw_object(ci: CanvasItem, kind: String, t: float, info: Dictionary) -> void:
+	if kind == "press":  # P1 stations are not in the painting: always drawn
+		_press(ci)
+		return
+	if kind == "board":
+		_board(ci)
+		return
 	if painted:
 		if kind == "book":
 			_book(ci)
@@ -362,9 +380,9 @@ static func _cupboard(ci: CanvasItem, cupboard: Dictionary) -> void:
 	var addins := Data.addins()
 	for i in ids.size():
 		var x := 5 + (i % 2) * 30
-		var y := 6 + int(i / 2.0) * 18
+		var y := 6 + int(i / 2.0) * 16
 		if i % 2 == 0:
-			_d(ci, 4, y + 16, 60, 1, TAN)
+			_d(ci, 4, y + 15, 60, 1, TAN)
 		var tex := icon(ids[i])
 		if tex != null:
 			ci.draw_texture(tex, Vector2(x, y))
@@ -428,3 +446,88 @@ static func _bed(ci: CanvasItem, w: int) -> void:
 	_d(ci, w - 12, 50, 4, 32, BROWN)
 	_d(ci, 14, 82, 3, 4, BARK)
 	_d(ci, w - 12, 82, 3, 4, BARK)
+
+
+## Fruit press (44x60): screw and T-handle through a crossbeam, two posts, a slatted cage full of fruit on a tub
+## whose spout drips into a waiting bottle.
+static func _press(ci: CanvasItem) -> void:
+	_d(ci, 7, 1, 30, 4, INK)  # T-handle with gold knobs
+	_d(ci, 8, 2, 28, 2, IRON)
+	_d(ci, 5, 1, 3, 4, INK)
+	_d(ci, 6, 2, 1, 2, GOLD)
+	_d(ci, 36, 1, 3, 4, INK)
+	_d(ci, 37, 2, 1, 2, GOLD)
+	_d(ci, 19, 0, 6, 24, INK)  # screw
+	_d(ci, 20, 4, 4, 19, IRON)
+	for y in range(5, 22, 3):
+		_d(ci, 20, y, 4, 1, IRON_DK)
+	_d(ci, 2, 8, 40, 7, INK)  # crossbeam
+	_d(ci, 3, 9, 38, 5, BROWN)
+	_d(ci, 3, 9, 38, 1, TAN)
+	_d(ci, 3, 13, 38, 1, BARK)
+	_d(ci, 19, 9, 6, 5, IRON_DK)
+	_d(ci, 20, 10, 4, 3, IRON)
+	for x in [4, 34]:  # posts
+		_d(ci, x, 15, 6, 34, INK)
+		_d(ci, x + 1, 15, 4, 33, BROWN)
+		_d(ci, x + 1, 15, 1, 33, TAN)
+	_d(ci, 11, 22, 22, 4, INK)  # pressing plate
+	_d(ci, 12, 23, 20, 2, TAN)
+	_d(ci, 12, 26, 20, 19, INK)  # slatted cage, fruit showing between the slats
+	_d(ci, 13, 26, 18, 18, WINE)
+	for i in 6:
+		var fx := 14 + i * 3
+		_d(ci, fx, 28 + (i * 5) % 9, 2, 2, RED_HI if i % 2 == 0 else AMBER)
+		_d(ci, fx, 36 + (i * 3) % 6, 2, 2, PEACH if i % 2 == 0 else RED)
+	for x in range(13, 31, 3):
+		_d(ci, x, 26, 2, 18, BROWN)
+		_d(ci, x, 26, 1, 18, TAN)
+	for y in [28, 40]:  # iron hoops
+		_d(ci, 12, y, 20, 2, IRON_DK)
+		_d(ci, 12, y, 20, 1, IRON)
+	_d(ci, 4, 44, 36, 9, INK)  # tub with a spout
+	_d(ci, 5, 45, 34, 7, AMBER)
+	_d(ci, 5, 45, 34, 1, GOLD)
+	_d(ci, 5, 49, 34, 3, BROWN)
+	_d(ci, 8, 45, 1, 7, BROWN)
+	_d(ci, 35, 45, 1, 7, BROWN)
+	_d(ci, 39, 46, 5, 3, INK)
+	_d(ci, 39, 47, 4, 1, TAN)
+	_d(ci, 42, 49, 1, 2, RED_HI)  # drip
+	for x in [7, 33]:  # legs
+		_d(ci, x, 53, 4, 7, INK)
+		_d(ci, x + 1, 53, 2, 6, BARK)
+	_d(ci, 39, 52, 5, 8, INK)  # little bottle under the spout
+	_d(ci, 40, 53, 3, 6, GLASS)
+	_d(ci, 40, 56, 3, 3, RED_HI)
+	_d(ci, 41, 53, 1, 2, CREAM)
+
+
+## Dough board (56x46): a little table with a floured board, a dough ball and a rolling pin.
+static func _board(ci: CanvasItem) -> void:
+	_d(ci, 4, 13, 46, 7, INK)  # board
+	_d(ci, 5, 14, 44, 5, GOLD_PALE)
+	_d(ci, 5, 18, 44, 1, TAN)
+	for p in [Vector2i(9, 15), Vector2i(13, 17), Vector2i(36, 15), Vector2i(41, 17), Vector2i(26, 17)]:
+		_d(ci, p.x, p.y, 1, 1, CREAM)  # flour dust
+	_d(ci, 13, 5, 16, 10, INK)  # dough ball
+	_d(ci, 15, 4, 12, 1, INK)
+	_d(ci, 14, 6, 14, 8, CREAM)
+	_d(ci, 16, 5, 10, 1, CREAM)
+	_d(ci, 14, 11, 14, 3, CREAM_LO)
+	_d(ci, 17, 7, 3, 2, GOLD)
+	_d(ci, 29, 8, 24, 5, INK)  # rolling pin
+	_d(ci, 30, 9, 16, 3, TAN)
+	_d(ci, 30, 9, 16, 1, GOLD)
+	_d(ci, 46, 10, 6, 1, BROWN)
+	_d(ci, 0, 20, 56, 6, INK)  # table top and apron
+	_d(ci, 1, 21, 54, 4, BROWN)
+	_d(ci, 1, 21, 54, 1, TAN)
+	_d(ci, 3, 25, 50, 4, INK)
+	_d(ci, 4, 25, 48, 3, BARK)
+	for x in [4, 46]:  # legs and stretcher
+		_d(ci, x, 28, 6, 18, INK)
+		_d(ci, x + 1, 28, 4, 17, BROWN)
+		_d(ci, x + 1, 28, 1, 17, TAN)
+	_d(ci, 10, 38, 36, 3, INK)
+	_d(ci, 10, 39, 36, 1, BARK)
