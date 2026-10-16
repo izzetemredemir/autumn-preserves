@@ -246,9 +246,11 @@ func _on_minigame_done(result: Dictionary, mg: Node) -> void:
 		return
 	Save.save_game(GameState.data)
 	if ResourceLoader.exists(RESULT_CARD):
+		var desc: Dictionary = res.desc.duplicate()
+		desc["value"] = ProductGen.value(res.item.key, GameState.data.varieties, stars)
 		var card: Node = load(RESULT_CARD).instantiate()
 		add_child(card)
-		card.show_result(res.desc, stars, res.is_new)
+		card.show_result(desc, stars, res.is_new)
 		card.closed.connect(card.queue_free, CONNECT_ONE_SHOT)
 	else:
 		_info.text = "%s (%d)" % [res.desc.get("name", "?"), stars]
