@@ -6,7 +6,7 @@ extends CanvasLayer
 ## Sits under the seed corner (layer 9) and the HUD (10). wild.gd: add_child(WildWeather.make(weather, granny)).
 
 const FOG_SHADER := preload("res://scenes/wild/fog.gdshader")
-const FOG_COLOR := Color("b9a697")
+const FOG_COLOR := Color("f2d9c5")  ## warm cream morning mist (palette), keeps the scene warm
 const LEAF_COLORS := ["a22512", "c94d2e", "e19064", "e5bd7f", "b66813", "c58845"]
 const LEAF_OUTLINE := Color("3d1f29")
 ## Tumbling leaf frames ("L" leaf colour, "o" outline): slanted, edge-on, mirrored, upright. Outlined like the sprites so

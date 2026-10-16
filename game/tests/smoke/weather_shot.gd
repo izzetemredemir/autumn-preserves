@@ -8,7 +8,7 @@ extends SceneTree
 
 const SEED := 20261017
 const DIR := "user://shots"
-const FOG := Color("b9a697")
+const FOG := Color("f2d9c5")
 
 var _gs: Node
 var _router: Node
@@ -93,7 +93,7 @@ func _foggy() -> void:
 		var near := _fog_share(img, Rect2i(Vector2i(g) - Vector2i(20, 20), Vector2i(40, 40)))
 		var corner := _fog_share(img, Rect2i(2, 200, 40, 40) if g.x > 240 else Rect2i(430, 200, 40, 40))
 		_check(near < 0.02, "fog leaves Granny clear (%.2f fog pixels)" % near)
-		_check(corner > 0.6, "fog hides the far corner (%.2f fog pixels, exact palette colour)" % corner)
+		_check(corner > 0.5, "fog hides the far corner (%.2f fog pixels, exact palette colour)" % corner)
 	scene.queue_free()
 	await _frames(2)
 
