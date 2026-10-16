@@ -1,0 +1,1767 @@
+extends SceneTree
+## QA-WEEK · One-week play-through bot (spec §8.4-8.5, tech-spec §7). A new game (seed 452) played from day 1 to day 8
+## through the real scenes with clicks, taps, drags and key presses, the way a player would: Granny's To-Do of days 1
+## and 2, shaking trees and foraging, cooking at every station it can reach (stove, counter, and from day 3, after the
+## dev panel's "Unlock P1", the fruit press and the dough board), jars into the pantry, orders, selling and buying in
+## town, letters from the mailbox (read, pack, send), the day-7 market, the bed every night, day 8's harvest calendar
+## and weather (HUD, morning card, the wild).
+## Records every SCRIPT ERROR and engine error (an OS logger), warnings and warning floods, soft-locks (no progress for
+## 10 s), scenes that fail to load and coin/energy anomalies (each action's cost or gain checked against the rules,
+## plus coins/energy moving outside an action). One screenshot per scene visit in user://week_bot/.
+## Writes the problem table to docs/qa/week_bot.md (everything from "## Triage notes" on is kept) and exits 1 when a
+## high-severity problem was found. The player's save is backed up first and restored at the end.
+## Mini-games run on the kitchen's QA autoplay (Kitchen.debug_ctx). The jar packer has none: its own demo packer stacks
+## the pieces, the bot pours the brine by holding the mouse and twists the lid with three clicks.
+##   perl -e 'alarm shift; exec @ARGV' 900 godot --path game --audio-driver Dummy -s res://tests/smoke/week_bot.gd
+##   [-- --speed 1]   default 2 (Engine.time_scale, so the week fits in 10 minutes). Windowed, not headless.
+## Scene and UI scripts are reached by path or duck typing (a SceneTree script cannot name classes that use autoloads).
+
+const SEED := 452
+const LAST_DAY := 8
+const DIR := "user://week_bot"
+const SAVE_PATH := "user://save.json"  ## Save.PATH
+const REPORT := "../docs/qa/week_bot.md"  ## next to res://
+const NOTES := "## Triage notes"
+const STALL_MS := 10000  ## no progress this long = soft-lock
+const MG_STALL_MS := 45000  ## a mini-game may sit in one phase this long
+const BUDGET_MS := 570000  ## the run must end within 10 minutes
+const FLOOD_SAME := 10  ## the same warning this often = warning flood
+const FLOOD_VISIT := 30  ## this many warnings in one scene visit = warning flood
+const KEEP_ENERGY := 28  ## energy kept for the kitchen while foraging
+const SUPPLIES := {"jar": 4, "sugar": 3, "salt": 2, "vinegar": 2}
+const P1_SUPPLIES := {"bottle": 2, "flour": 4}
+const AUTOPLAY := {"autoplay": true, "duration": 4.0, "knead_time": 3.0, "trace_time": 2.0}
+## Stations in the order the bot cooks, each with its recipes in order of preference.
+const STATIONS := {
+	"stove": ["jam", "fruit_butter", "chutney", "syrup"],
+	"counter": ["brined_mushroom", "pickle", "kraut"],
+	"press": ["juice", "fruit_vinegar"],
+	"board": ["bread", "pie"],
+}
+const STATION_UNLOCK := {"press": "press", "board": "knead"}
+const USE_COST := {"fruit_tree": "shake_tree", "bush": "pick_bush", "ground": "pick_ground"}
+const SEVERITY := ["high", "medium", "low", "info"]
+const TITLE := "res://scenes/title/title.tscn"
+const NIGHT_GD := "res://ui/transition/night.gd"
+const TRANSITION_GD := "res://ui/transition/transition.gd"
+const TODO_GD := "res://ui/tutorial/granny_todo.gd"
+const WEATHER_GD := "res://scenes/wild/wild_weather.gd"
+## Pack jar phases (PackJar.Phase).
+const PACK := 1
+const BRINE := 2
+const LID := 3
+
+var _log := Capture.new()
+var _gs: Node
+var _router: Node
+var _save: Node
+var _speed := 2.0
+var _t0 := 0
+var _dt := 0.016
+var _had_save := false
+var _backup := ""
+var _aborted := ""
+var _problems: Array = []
+var _keys := {}
+var _warns := {}
+var _visit_warns := 0
+var _visit_flooded := false
+var _trail: Array[String] = []
+var _shots := 0
+var _visits: Array[String] = []
+var _mask := 0
+var _last_coins := -1
+var _last_energy := -1
+var _last_earned := 0
+var _allow_coins := false
+var _allow_energy := false
+var _days: Array = []  ## one row per day: {"day", "weather", "coins", "energy", "energy_max", "cooked", "orders", "sold", "notes"}
+var _mg_count := {}
+var _morning: Array[String] = []  ## the last morning card's lines
+var _notes: Array[String] = []  ## coverage lines for the report
+var _seen_unlocks := {}
+var _recipe_count := {}
+var _first_letter := 0
+
+
+## Logger that queues engine and script errors (any thread); the bot drains it every frame.
+class Capture extends Logger:
+	var _m := Mutex.new()
+	var _queue: Array = []
+
+	func _log_error(function: String, file: String, line: int, code: String, rationale: String, _editor_notify: bool,
+			error_type: int, script_backtraces: Array[ScriptBacktrace]) -> void:
+		var where := "%s:%d" % [file, line]
+		var fn := function
+		for bt in script_backtraces:
+			if bt != null and bt.get_frame_count() > 0:
+				where = "%s:%d" % [bt.get_frame_file(0), bt.get_frame_line(0)]
+				fn = bt.get_frame_function(0)
+				for j in range(1, bt.get_frame_count()):  # the first caller outside that file (a shared helper says little)
+					if bt.get_frame_file(j) != bt.get_frame_file(0):
+						where += " via %s:%d" % [bt.get_frame_file(j), bt.get_frame_line(j)]
+						break
+				break
+		var text := code if rationale == "" else "%s (%s)" % [rationale, code]
+		_m.lock()
+		_queue.append({"type": error_type, "where": where.replace("res://", "game/"), "fn": fn, "text": text})
+		_m.unlock()
+
+	func take() -> Array:
+		_m.lock()
+		var out := _queue
+		_queue = []
+		_m.unlock()
+		return out
+
+
+func _initialize() -> void:
+	OS.add_logger(_log)
+	_gs = root.get_node("GameState")
+	_router = root.get_node("Router")
+	_save = root.get_node("Save")
+	var args := OS.get_cmdline_user_args()
+	for i in args.size():
+		if args[i] == "--speed" and i + 1 < args.size():
+			_speed = clampf(args[i + 1].to_float(), 1.0, 4.0)
+	_run()
+
+
+func _process(delta: float) -> bool:
+	_dt = delta
+	_drain_log()
+	_watch()
+	return false
+
+
+# ================================================================ the week
+
+func _run() -> void:
+	await process_frame
+	_t0 = Time.get_ticks_msec()
+	Engine.time_scale = _speed
+	_prepare_dir()
+	_had_save = FileAccess.file_exists(SAVE_PATH)
+	if _had_save:
+		_backup = FileAccess.get_file_as_string(SAVE_PATH)
+	if await _new_game():
+		for n in range(1, LAST_DAY + 1):
+			if _aborted != "":
+				break
+			await _play_day(n)
+	_finish()
+
+
+func _play_day(n: int) -> void:
+	_trail.clear()
+	var d: Dictionary = _gs.data
+	if _day() != n:
+		_problem("high", "day", "expected day %d, the save is on day %d" % [n, _day()])
+	_days.append({"day": n, "weather": String(d.get("weather", "")), "coins": int(d.coins), "energy": int(d.energy),
+		"energy_max": int(d.get("energy_max", 0)), "cooked": [], "orders": 0, "sold": 0, "notes": []})
+	_act("morning of day %d in the %s" % [n, _router.current])
+	var unlocks: Dictionary = d.get("unlocks", {})
+	for id in unlocks:
+		if bool(unlocks[id]) and not _seen_unlocks.has(id):
+			_seen_unlocks[id] = n
+			_notes.append("Day %d: '%s' is unlocked (%s)." % [n, id, "dev panel" if n == 3 and id in ["press", "knead"] else "in play"])
+	if n == 1 and _open_biomes() >= 1:
+		_problem("low", "spec", "the garden gate opens the forest on day 1; spec 8.4 opens it on day 2 (To-Do day 2, step 1)", "game/scenes/garden/garden.gd:282")
+	if n == LAST_DAY:
+		await _day_eight()
+		return
+	var ok := true
+	if n == 3:
+		ok = await _dev_unlock()
+	if ok and _router.current == "kitchen":
+		ok = await _kitchen_door("garden")
+	if ok:
+		ok = await _garden_round(n)
+	if ok and n == 1 and _pick_cook({}, _home_state()).is_empty():
+		var got: Array[String] = []
+		for it in _gs.data.bag:
+			got.append(_item_label(it))
+		_problem("medium", "tutorial", "To-Do day 1 'make jam' cannot be done from the garden: after shaking every tree the bag holds %s and jam needs 3 of one fruit (tree_yield 2-3); only the forest (step 1 of day 2) helps" % ", ".join(got),
+			"game/data/rules.json:5 (forage.tree_yield) / game/sim/garden.gd:19")
+	if ok and (n >= 2 or _pick_cook({}, _home_state()).is_empty()):
+		ok = await _wild_trip(false)
+	if ok:
+		ok = await _garden_leave("door", "kitchen")
+	if ok:
+		ok = await _kitchen_round()
+	if ok:
+		ok = await _kitchen_door("pantry")
+	if ok:
+		ok = await _pantry_round()
+	if ok:
+		ok = await _kitchen_door("garden")
+	if ok:
+		ok = await _garden_leave("town_sign", "town")
+	if ok:
+		ok = await _town_round(n)
+	if ok and Letters.unread_count(_gs.data) > 0:
+		ok = await _mailbox()
+	if ok:
+		ok = await _garden_leave("door", "kitchen")
+	_check_todo(n)
+	if not ok:
+		await _recover()
+	if _aborted == "":
+		await _sleep()
+
+
+## New Game from the title: seed typed into the field, Enter, premise tapped through, the garden.
+func _new_game() -> bool:
+	change_scene_to_file(TITLE)
+	if not await _arrive("title"):
+		return false
+	var title := current_scene
+	_act("title: click New Game")
+	await _click_ctrl(title.get_node("%NewGame") as Control)
+	var edit: LineEdit = title.get("_seed_edit")
+	if not await _wait(func() -> bool: return edit.is_visible_in_tree() and edit.has_focus(), "the New Game panel"):
+		return false
+	_act("title: type the seed %d and press Enter" % SEED)
+	await _type(str(SEED))
+	await _frames(4)
+	_shot("title_new_game")
+	_key(KEY_ENTER)
+	if not await _wait(func() -> bool: return _premise(title) != null, "the premise after New Game"):
+		return false
+	await _frames(20)
+	_shot("premise")
+	_act("premise: tap twice")
+	await _click(Vector2(240, 135))
+	await _frames(4)
+	await _click(Vector2(240, 135))
+	if not await _arrive("garden"):
+		return false
+	var d: Dictionary = _gs.data
+	_expect(int(d.get("save_seed", -1)) == SEED, "high", "new game", "the typed seed %d was not used (save_seed %s)" % [SEED, d.get("save_seed")])
+	_expect(FileAccess.file_exists(SAVE_PATH), "high", "save", "New Game wrote no save file")
+	_expect(get_first_node_in_group("granny_todo") != null, "medium", "tutorial", "Granny's To-Do note missing on day 1")
+	return true
+
+
+func _premise(title: Node) -> Node:
+	for c in title.get_children():
+		if c.has_method("_skip_or_leave"):
+			return c
+	return null
+
+
+# ================================================================ garden
+
+func _garden_round(n: int) -> bool:
+	var d: Dictionary = _gs.data
+	var trees: Array = d.garden.trees
+	var order: Array = []
+	for i in trees.size():
+		if String(trees[i].type) == "apple":
+			order.push_front(i)  # the first To-Do step
+		else:
+			order.append(i)
+	for i in order:
+		if not await _shake(int(i)):
+			return false
+	for i in d.garden.beds.size():
+		var bed: Dictionary = d.garden.beds[i]
+		if String(bed.crop) != "" and int(bed.days_left) <= 0 and not await _harvest(i):
+			return false
+	for i in d.garden.beds.size():
+		if String(d.garden.beds[i].crop) == "" and int(d.cupboard.get("seed_cucumber", 0)) > 0 and int(d.energy) > KEEP_ENERGY:
+			if not await _plant(i, "cucumber"):
+				return false
+	if n == 1:
+		_expect(TodoRules.is_done(TodoRules.bits_of(d), "d1_shake"), "medium", "tutorial", "To-Do step 'shake the apple tree' did not tick after shaking it")
+	if Letters.unread_count(d) > 0:
+		return await _mailbox()
+	return true
+
+
+func _shake(i: int) -> bool:
+	var d: Dictionary = _gs.data
+	var t: Dictionary = d.garden.trees[i]
+	if not bool(t.fruit) or int(d.energy) < KEEP_ENERGY or Garden.bag_free(d) < int(Data.rules().bag.shake_needs_free):
+		return true
+	var s: Node = current_scene.find_spot("tree", i)
+	if s == null:
+		_problem("medium", "garden", "no spot for garden tree %d (%s)" % [i, t.type])
+		return true
+	var e0 := int(d.energy)
+	var b0 := Forage.bag_count(d)
+	_act("garden: tap the %s tree" % t.type)
+	_allow_energy = true
+	_garden_tap(current_scene, s)
+	var ok: bool = await _wait(func() -> bool: return not bool(t.fruit), "Granny to shake the %s tree" % t.type)
+	await _frames(2)
+	_allow_energy = false
+	if not ok:
+		return false
+	var cost := e0 - int(d.energy)
+	_expect(cost == Economy.energy_cost("shake_tree"), "medium", "energy anomaly",
+		"shaking the %s tree cost %d energy (rule %d)" % [t.type, cost, Economy.energy_cost("shake_tree")])
+	var got := Forage.bag_count(d) - b0
+	var y: Array = Data.rules().forage.tree_yield
+	_expect(got >= int(y[0]) and got <= int(y[1]), "medium", "garden", "the %s tree gave %d (rule %d-%d)" % [t.type, got, y[0], y[1]])
+	return true
+
+
+func _harvest(i: int) -> bool:
+	var d: Dictionary = _gs.data
+	var bed: Dictionary = d.garden.beds[i]
+	var s: Node = current_scene.find_spot("bed", i)
+	if s == null:
+		return true
+	var need := int(Data.shop().seeds.get(String(bed.crop), {}).get("yield", 1))
+	if Garden.bag_free(d) < need or int(d.energy) < Economy.energy_cost("bed_harvest"):
+		return true
+	var e0 := int(d.energy)
+	_act("garden: tap the ripe %s bed" % bed.crop)
+	_allow_energy = true
+	_garden_tap(current_scene, s)
+	var ok: bool = await _wait(func() -> bool: return String(_gs.data.garden.beds[i].crop) == "", "Granny to harvest bed %d" % i)
+	await _frames(2)
+	_allow_energy = false
+	if ok:
+		_expect(e0 - int(d.energy) == Economy.energy_cost("bed_harvest"), "medium", "energy anomaly",
+			"harvesting cost %d energy (rule %d)" % [e0 - int(d.energy), Economy.energy_cost("bed_harvest")])
+	return ok
+
+
+func _plant(i: int, crop: String) -> bool:
+	var g := current_scene
+	var s: Node = g.find_spot("bed", i)
+	if s == null:
+		return true
+	var d: Dictionary = _gs.data
+	var e0 := int(d.energy)
+	_act("garden: tap the empty bed %d" % i)
+	_garden_tap(g, s)
+	if not await _wait(func() -> bool: return g.get("menu") != null, "the plant menu"):
+		return false
+	await _frames(6)
+	_shot("garden_plant_menu")
+	_act("garden: plant %s" % crop)
+	_allow_energy = true
+	g.get("menu").choose(crop)
+	var ok: bool = await _wait(func() -> bool: return String(_gs.data.garden.beds[i].crop) == crop, "the %s to be planted" % crop)
+	await _frames(2)
+	_allow_energy = false
+	if ok:
+		_expect(e0 - int(d.energy) == Economy.energy_cost("bed_plant"), "medium", "energy anomaly",
+			"planting cost %d energy (rule %d)" % [e0 - int(d.energy), Economy.energy_cost("bed_plant")])
+	await _wait(func() -> bool: return g.get("menu") == null, "the plant menu to close")
+	return ok
+
+
+## Walks to a garden exit ("door", "gate", "town_sign") and arrives in `target`.
+func _garden_leave(kind: String, target: String) -> bool:
+	var g := current_scene
+	var s: Node = g.find_spot(kind)
+	if s == null:
+		_problem("high", "garden", "the garden has no '%s'" % kind)
+		return false
+	_act("garden: tap the %s" % kind)
+	_garden_tap(g, s)
+	if target == "wild" and _open_biomes() > 1:
+		if await _wait(func() -> bool: return g.get("menu") != null, "the biome picker"):
+			await _frames(6)
+			_shot("biome_picker")
+			_act("garden: pick the forest")
+			g.get("menu").chosen.emit("forest")
+	return await _arrive(target)
+
+
+## Taps a garden spot where neither the cat nor another spot covers it (a tap on the cat pets it).
+func _garden_tap(g: Node, s: Node) -> void:
+	var r: Rect2 = s.hit_rect()
+	var cat: Node = g.get("cat")
+	for f: Vector2 in [Vector2(0.5, 0.5), Vector2(0.5, 0.8), Vector2(0.25, 0.5), Vector2(0.75, 0.5), Vector2(0.5, 0.25)]:
+		var p := (r.position + r.size * f).floor()
+		if (cat == null or not cat.hit_rect().has_point(p)) and (g.spot_at_point(p) == s or s.get("kind") in ["door", "gate"]):
+			g.tap_world(p)
+			return
+	g.tap_world(r.get_center())
+
+
+func _open_biomes() -> int:
+	var n := 0
+	for c in WildGen.biome_choices(_gs.data):
+		if bool(c.open):
+			n += 1
+	return n
+
+
+func _mailbox() -> bool:
+	var g := current_scene
+	var s: Node = g.find_spot("mailbox")
+	if s == null:
+		return true
+	_act("garden: tap the mailbox (flag up)")
+	_garden_tap(g, s)
+	if not await _wait(func() -> bool: return get_first_node_in_group("letters_ui") != null, "the letters to open"):
+		return false
+	var ok: bool = await _letters()
+	if ok:
+		ok = await _wait(func() -> bool: return g.get("menu") == null, "the garden after the letters")
+		_expect(Letters.unread_count(_gs.data) == 0, "low", "letters", "letters still unread after reading the newest")
+	return ok
+
+
+## The letters overlay: reads the newest letter; a request gets a parcel (jars dragged into the box, straw, Send).
+func _letters() -> bool:
+	var ui: Node = get_first_node_in_group("letters_ui")
+	await _frames(10)
+	_shot("letters")
+	var d: Dictionary = _gs.data
+	var letter: Dictionary = Letters.find_letter(d, int(ui.get("_letter_id")))
+	if _first_letter == 0:
+		_first_letter = _day()
+		if _first_letter < 7:
+			_problem("low", "spec", "the first grandchild letter comes on day %d; spec 8.4 brings it on day 7 (Letters.FIRST_GAP 2-3 days)" % _first_letter, "game/sim/letters.gd:46")
+	_note_day("letter from %s (%s)" % [letter.get("from", "?"), letter.get("kind", "?")])
+	_notes.append("Day %d: a %s letter from %s came; read in the mailbox." % [_day(), letter.get("kind", "?"), letter.get("from", "?")])
+	_expect(not letter.is_empty() and bool(letter.get("read", false)), "medium", "letters", "the opened letter is not marked read")
+	var pack_btn: Button = ui.get("_pack_btn")
+	if String(letter.get("kind", "")) == "request" and pack_btn.visible:
+		_act("letters: click Pack a parcel")
+		await _click_ctrl(pack_btn)
+		if not await _wait(func() -> bool: return (ui.get("_pack_page") as Control).visible, "the parcel page"):
+			return false
+		await _frames(4)
+		var source: Array = ui.get("_source")
+		var view: Control = ui.get("_source_view")
+		var board: Control = ui.get("_board")
+		var entries: Array = ui.get("_entries")
+		var box: Dictionary = Letters.box_board()
+		var cell := 0
+		var tries := 0
+		while not source.is_empty() and entries.size() < 3 and tries < 12 and cell < int(box.cols) * int(box.rows):
+			var c := Vector2i(cell % int(box.cols), floori(cell / float(box.cols)))
+			var pick := _parcel_pick(d, letter, source, entries)
+			_act("letters: drag %s into the box" % _item_label(source[pick]))
+			await _drag(_slot_pos(view, pick), board.get_global_rect().position + Vector2(board.cell_rect(c).position) + Vector2(12, 12))
+			await _frames(3)
+			cell += 1
+			tries += 1
+		_expect(not entries.is_empty() or source.is_empty(), "medium", "letters", "dragging jars into the parcel box placed none (%d jars offered)" % source.size())
+		_act("letters: click Straw")
+		await _click_ctrl(ui.get("_straw_btn"))
+		await _frames(6)
+		_shot("letters_parcel")
+		var send: Button = ui.get("_send_btn")
+		if send.disabled:
+			_problem("low", "letters", "Send stays disabled with %d items in the box" % entries.size())
+		else:
+			_act("letters: click Send")
+			await _click_ctrl(send)
+			await _frames(6)
+			var after: Dictionary = Letters.find_letter(_gs.data, int(letter.get("id", -1)))
+			_expect(bool(after.get("done", false)), "medium", "letters", "the parcel was sent but the request is not done")
+			_notes.append("Day %d: packed a parcel for %s (%s)." % [_day(), letter.get("from", "?"), "sent" if bool(after.get("done", false)) else "not sent"])
+	_act("letters: click Close")
+	var close: Button = ui.get("_close_btn")
+	if close != null and close.is_visible_in_tree():
+		await _click_ctrl(close)
+	else:
+		_key(KEY_ESCAPE)
+	return await _wait(func() -> bool: return get_first_node_in_group("letters_ui") == null, "the letters to close")
+
+
+## The jar in the column that ticks one more request line, else the first one.
+func _parcel_pick(d: Dictionary, letter: Dictionary, source: Array, entries: Array) -> int:
+	var base := _ticks(Letters.evaluate(d, letter, entries))
+	for i in source.size():
+		var trial := entries.duplicate()
+		trial.append({"item": source[i], "x": 0, "y": 0, "rot": 0})
+		if _ticks(Letters.evaluate(d, letter, trial)) > base:
+			return i
+	return 0
+
+
+func _ticks(ev: Dictionary) -> int:
+	var n := 0
+	for t in ev.get("ticks", []):
+		n += 1 if bool(t) else 0
+	return n
+
+
+# ================================================================ wild
+
+func _wild_trip(day8: bool) -> bool:
+	if not await _garden_leave("gate", "wild"):
+		return false
+	var w := current_scene
+	var view: Node = w.get("view")
+	var granny: Node = w.get("granny")
+	if view == null or granny == null:
+		_problem("high", "wild", "the wild scene has no map or no Granny")
+		return false
+	if day8:
+		_check_wild_weather(w)
+	var tried := {}
+	var uses := 0
+	while uses < (4 if day8 else 9) and _aborted == "":
+		var d: Dictionary = _gs.data
+		if int(d.energy) <= KEEP_ENERGY or Garden.bag_free(d) < int(Data.rules().bag.shake_needs_free):
+			break
+		var o: Node2D = _next_object(view, granny, tried)
+		if o == null:
+			break
+		tried[o.get_instance_id()] = true
+		var kind := String(o.get("kind"))
+		var info: Dictionary = o.get("info")
+		var e0 := int(d.energy)
+		_act("wild: tap a %s (%s) at %s" % [kind, info.get("type", ""), o.get("cell")])
+		_allow_energy = true
+		var p: Vector2 = o.hit_rect().get_center()
+		if view.object_at_point(p) == o:
+			w._tap(p)
+		else:  # another object is drawn over it: walk up to it the way a tap on its free part would
+			granny.approach(o.get("cell"), Callable(w, "_use").bind(o))
+		var t_tap := Time.get_ticks_msec()
+		var cond := func() -> bool:
+			return bool(o.get("done")) or (Time.get_ticks_msec() - t_tap > 700 and not granny.is_moving())
+		var ok: bool = await _wait(cond, "Granny to reach a %s" % kind)
+		await _frames(2)
+		_allow_energy = false
+		if not ok:
+			return false
+		if not bool(o.get("done")):
+			_problem("low", "wild", "Granny could not use a %s at %s (map seed %d)" % [kind, o.get("cell"), int(w.get("map").get("seed", 0))])
+			continue
+		uses += 1
+		var rule := String(USE_COST.get(kind, ""))
+		if rule != "":
+			var cost := e0 - int(d.energy)
+			_expect(cost == Economy.energy_cost(rule), "medium", "energy anomaly", "using a %s cost %d energy (rule %d)" % [kind, cost, Economy.energy_cost(rule)])
+	await _frames(4)
+	_shot("wild_foraged")
+	if not day8:
+		var d2: Dictionary = _gs.data
+		_expect(TodoRules.is_done(TodoRules.bits_of(d2), "d2_forest") or _day() != 2, "medium", "tutorial", "To-Do step 'go to the forest' did not tick in the wild")
+	var exit: Node2D = null
+	for o in view.get("objects").get_children():
+		if is_instance_valid(o) and o.get("kind") == "exit":
+			exit = o
+	_act("wild: tap the way home")
+	if exit != null and view.object_at_point(exit.hit_rect().get_center()) == exit:
+		w._tap(exit.hit_rect().get_center())
+	else:
+		granny.walk_to(w.get("map").entrance)
+	return await _arrive("garden")
+
+
+## Nearest usable thing (mushrooms first: To-Do day 2 and the brine jar), not tried yet.
+func _next_object(view: Node, granny: Node, tried: Dictionary) -> Node2D:
+	var from: Vector2i = granny.current_cell()
+	var best: Node2D = null
+	var best_score := INF
+	var ingredients := Data.ingredients()
+	var fruit_first := Economy.unlocked(_gs.data, "press") and _station_uses("press") == 0
+	for o in view.get("objects").get_children():
+		if not is_instance_valid(o) or not o.has_method("usable") or tried.has(o.get_instance_id()):
+			continue
+		var kind := String(o.get("kind"))
+		if not USE_COST.has(kind) or bool(o.get("done")) or not bool(o.usable()):
+			continue
+		var c: Vector2i = o.get("cell")
+		var score := float(absi(c.x - from.x) + absi(c.y - from.y))
+		var type := String((o.get("info") as Dictionary).get("type", ""))
+		if String(ingredients.get(type, {}).get("group", "")) == "mushroom":
+			score -= 25.0
+		if kind == "fruit_tree":
+			score -= 30.0 if fruit_first else 8.0
+		if score < best_score:
+			best_score = score
+			best = o
+	return best
+
+
+# ================================================================ kitchen
+
+func _kitchen_door(target: String) -> bool:
+	var k := current_scene
+	var spots: Dictionary = k.get("_spots")
+	_act("kitchen: click the door to the %s" % target)
+	await _click_ctrl(spots[target])
+	return await _arrive(target)
+
+
+## Cooks once at each station that has a recipe it can make (stove, counter, then press and board once unlocked).
+func _kitchen_round() -> bool:
+	var used := {}
+	for i in STATIONS.size():
+		var plan := _pick_cook(used)
+		if plan.is_empty():
+			break
+		used[plan.station] = true
+		if not await _cook(plan):
+			return false
+	return true
+
+
+func _pick_cook(used: Dictionary, state: Dictionary = {}) -> Dictionary:
+	var d: Dictionary = state if not state.is_empty() else _gs.data
+	var order: Array = STATIONS.keys()
+	order.sort_custom(func(a: String, b: String) -> bool: return _station_uses(a) < _station_uses(b))  # every mini-game gets played
+	for station: String in order:
+		if used.has(station):
+			continue
+		if STATION_UNLOCK.has(station) and not Economy.unlocked(d, String(STATION_UNLOCK[station])):
+			continue
+		for recipe: String in STATIONS[station]:
+			if not Kitchen.available(d, recipe):
+				continue
+			var c := _candidate(d, recipe)
+			if not c.is_empty():
+				c["station"] = station
+				c["recipe"] = recipe
+				return c
+	return {}
+
+
+## The save as it will be indoors: the bag empties into the inbox at the house door.
+func _home_state() -> Dictionary:
+	var sim: Dictionary = _gs.data.duplicate(true)
+	Forage.empty_bag_to_inbox(sim)
+	return sim
+
+
+func _station_uses(station: String) -> int:
+	var n := 0
+	for recipe: String in STATIONS[station]:
+		n += int(_recipe_count.get(recipe, 0))
+	return n
+
+
+func _candidate(d: Dictionary, recipe: String) -> Dictionary:
+	var r: Dictionary = Data.recipes()[recipe]
+	var mains: Array = [""]
+	var seconds: Array = [""]
+	if typeof(r.get("main")) == TYPE_DICTIONARY:
+		mains = _stock_ids(d, r.main)
+	if typeof(r.get("second")) == TYPE_DICTIONARY:
+		seconds = _stock_ids(d, r.second)
+	for m in mains:
+		for s2 in seconds:
+			if m != "" and m == s2:
+				continue
+			if bool(Kitchen.check_n(d, recipe, m, s2, "", 1).ok):
+				return {"main": m, "second": s2}
+	return {}
+
+
+## Variety ids a slot could draw from, biggest stack first.
+func _stock_ids(d: Dictionary, slot: Dictionary) -> Array:
+	var counts := {}
+	if slot.has("recipe"):
+		counts = Kitchen.product_stock(d, String(slot.recipe))
+	else:
+		var items: Array = d.inbox.duplicate()
+		for e in d.pantry.items:
+			items.append(e.item)
+		for it in items:
+			if String(it.kind) == "fresh":
+				counts[String(it.variety)] = int(counts.get(String(it.variety), 0)) + int(it.count)
+	var ids: Array = counts.keys()
+	ids.sort_custom(func(a: String, b: String) -> bool: return int(counts[a]) > int(counts[b]) or (int(counts[a]) == int(counts[b]) and a < b))
+	return ids
+
+
+func _cook(plan: Dictionary) -> bool:
+	var k := current_scene
+	var panel: Control = k.get("_panel")
+	var station := String(plan.station)
+	var recipe := String(plan.recipe)
+	var spots: Dictionary = k.get("_spots")
+	_act("kitchen: click the %s" % station)
+	await _click_ctrl(spots[station])
+	if not await _wait(func() -> bool: return panel.visible, "the cook panel at the %s" % station):
+		return false
+	await _frames(4)
+	if String(panel.get("recipe")) != recipe:
+		var tabs: Dictionary = panel.get("_tabs")
+		if not tabs.has(recipe):
+			_problem("medium", "kitchen", "no %s tab at the %s (tabs %s)" % [recipe, station, tabs.keys()])
+			await _close_panel(k)
+			return true
+		_act("kitchen: click the %s tab" % recipe)
+		await _click_ctrl(tabs[recipe])
+		if not await _wait(func() -> bool: return String(panel.get("recipe")) == recipe, "the %s tab" % recipe):
+			return false
+	for vid: String in [String(plan.main), String(plan.second)]:
+		if vid == "":
+			continue
+		var rows: Dictionary = panel.get("_rows")
+		if not rows.has(vid):
+			_problem("medium", "kitchen", "%s: no row for %s in the %s list" % [recipe, vid, station])
+			await _close_panel(k)
+			return true
+		(panel.get("_scroll") as ScrollContainer).ensure_control_visible(rows[vid])
+		await _frames(2)
+		_act("kitchen: click the %s row" % vid)
+		await _click_ctrl(rows[vid])
+		await _frames(2)
+	var picks: Dictionary = panel.get("picks")
+	if String(picks.main) != String(plan.main) or String(picks.second) != String(plan.second):
+		_problem("medium", "kitchen", "%s: clicking the rows filled main '%s' second '%s' (wanted '%s' / '%s')" % [recipe, picks.main, picks.second, plan.main, plan.second])
+	if not bool(panel.get("_ok")):
+		var fb: Label = panel.get("_feedback")
+		_problem("medium", "kitchen", "Cook stays locked for %s (%s) although Kitchen.check_n allows it: '%s'" % [recipe, plan.main, fb.text if fb != null else ""])
+		await _close_panel(k)
+		return true
+	await _frames(6)
+	_shot("cook_" + recipe)
+	var d: Dictionary = _gs.data
+	var method := String(Data.recipes()[recipe].method)
+	var e0 := int(d.energy)
+	var made0 := int(d.stats.jars_made)
+	var mult := int(panel.get("mult"))
+	k.set("debug_ctx", AUTOPLAY.duplicate())
+	_allow_energy = true
+	_act("kitchen: click Cook (%s, %s)" % [recipe, plan.main])
+	await _click_ctrl(panel.get("_cook"))
+	if not await _wait(func() -> bool: return k.get("_mg") != null, "the %s mini-game" % method):
+		_allow_energy = false
+		return false
+	var mg: Node = k.get("_mg")
+	await _frames(24)
+	_shot("mg_" + method)
+	if method == "pack_jar":
+		await _play_pack(mg)
+	var ok: bool = await _wait(func() -> bool: return k.get("_card") != null, "the result card after %s" % recipe, MG_STALL_MS)
+	await _frames(2)
+	_allow_energy = false
+	if not ok:
+		return false
+	_mg_count[method] = int(_mg_count.get(method, 0)) + 1
+	_recipe_count[recipe] = int(_recipe_count.get(recipe, 0)) + 1
+	var cost := e0 - int(d.energy)
+	_expect(cost == Economy.energy_cost(method), "medium", "energy anomaly", "cooking %s cost %d energy (rule %d)" % [recipe, cost, Economy.energy_cost(method)])
+	_expect(int(d.stats.jars_made) == made0 + mult, "medium", "kitchen", "jars_made went %d -> %d after one %s" % [made0, int(d.stats.jars_made), recipe])
+	_day_row().cooked.append(recipe)
+	await _frames(20)
+	_shot("card_" + recipe)
+	var card: Node = k.get("_card")
+	_act("kitchen: close the result card")
+	await _click_ctrl(card.get("_button"))
+	return await _wait(func() -> bool: return k.get("_card") == null, "the result card to close")
+
+
+func _close_panel(k: Node) -> void:
+	_act("kitchen: Esc closes the panel")
+	_key(KEY_ESCAPE)
+	await _wait(func() -> bool: return not (k.get("_panel") as Control).visible, "the cook panel to close")
+
+
+## Jar packing: the game's own demo packer stacks the pieces; the brine is poured by holding the mouse button down to
+## the fill line; three clicks twist the lid.
+func _play_pack(mg: Node) -> void:
+	var t0 := Time.get_ticks_msec()
+	while is_instance_valid(mg) and int(mg.get("phase")) <= PACK and Time.get_ticks_msec() - t0 < 30000:
+		if int(mg.get("phase")) == PACK:
+			mg.call("_bot", _dt)
+		await process_frame
+	if not is_instance_valid(mg) or int(mg.get("phase")) != BRINE:
+		return
+	await _frames(4)
+	_shot("mg_pack_jar_brine")
+	var line := float(mg.get_script().get_script_constant_map().get("LINE_ROWS", 7))
+	var jar := Vector2(240, 160)
+	_act("pack jar: hold the mouse to pour the brine")
+	_move(jar)
+	_button(jar, MOUSE_BUTTON_LEFT, true)
+	t0 = Time.get_ticks_msec()
+	while is_instance_valid(mg) and float(mg.get("_brine")) < line - 0.15 and Time.get_ticks_msec() - t0 < 8000:
+		await process_frame
+	var poured := float(mg.get("_brine")) if is_instance_valid(mg) else 0.0
+	_button(jar, MOUSE_BUTTON_LEFT, false)
+	await _frames(3)
+	if not is_instance_valid(mg):
+		return
+	if poured <= 0.0:
+		_problem("medium", "mini-game", "pack jar: holding the mouse button poured no brine")
+		while is_instance_valid(mg) and int(mg.get("phase")) == BRINE:
+			mg.call("_bot", _dt)
+			await process_frame
+	await _wait(func() -> bool: return not is_instance_valid(mg) or int(mg.get("phase")) >= LID, "the lid after the brine")
+	_act("pack jar: click the lid three times")
+	for i in 3:
+		if not is_instance_valid(mg) or int(mg.get("phase")) != LID:
+			break
+		await _click(Vector2(240, 98))
+		await _frames(2)
+
+
+func _pantry_round() -> bool:
+	var p := current_scene
+	var d: Dictionary = _gs.data
+	var board: Control = p.get_node("%Board")
+	var inbox: Control = p.get_node("%Inbox")
+	var idx := -1
+	for i in d.inbox.size():
+		if String(d.inbox[i].kind) == "product":
+			idx = i
+			break
+	if idx >= 0:
+		var item: Dictionary = d.inbox[idx]
+		var b := PantryRules.board_of(d.pantry)
+		var spot := PantryRules.first_free(b, d.pantry.items, item, PantryRules.zone_for(item))
+		var n0: int = d.pantry.items.size()
+		if spot.is_empty():
+			_note_day("no free %s shelf" % PantryRules.zone_for(item))
+		else:
+			var c: Vector2i = spot.cell
+			_act("pantry: drag %s onto the %s shelf" % [item.key, PantryRules.zone_for(item)])
+			await _drag(_slot_pos(inbox, idx), board.get_global_rect().position + Vector2(board.cell_rect(c).position) + Vector2(12, 12))
+			await _frames(4)
+			_expect(d.pantry.items.size() > n0, "medium", "pantry", "dragging %s from the inbox onto free cell %s placed nothing" % [item.key, c])
+	if not d.inbox.is_empty():
+		var before: int = d.inbox.size()
+		_act("pantry: click Auto-arrange")
+		await _click_ctrl(p.get_node("%AutoArrange") as Control)
+		await _frames(6)
+		_expect(d.inbox.size() < before, "low", "pantry", "Auto-arrange placed none of %d waiting items" % before)
+	await _frames(10)
+	_shot("pantry_arranged")
+	if _day() == 1:
+		_expect(TodoRules.is_done(TodoRules.bits_of(d), "d1_pantry"), "medium", "tutorial", "To-Do step 'put the jar in the pantry' did not tick")
+	_act("pantry: click Back")
+	await _click_ctrl(p.get_node("%Back") as Control)
+	return await _arrive("kitchen")
+
+
+func _dev_unlock() -> bool:
+	var dev: Node = get_first_node_in_group("dev_panel")
+	if dev == null:
+		_problem("medium", "dev panel", "no dev panel in the tree (F1); P1 stations stay locked")
+		return true
+	_act("F1: open the dev panel")
+	_action("dev_panel")
+	if not await _wait(func() -> bool: return (dev.get("_panel") as Control).visible, "the dev panel"):
+		return false
+	await _frames(6)  # the panel's grid lays its buttons out after it shows
+	var btn: Button = null
+	for b in _buttons(dev):
+		if b.text == "UI_DEV_UNLOCK_P1":
+			btn = b
+	if btn == null:
+		_problem("medium", "dev panel", "no Unlock P1 button")
+		return true
+	var d: Dictionary = _gs.data
+	for attempt in 2:
+		_act("dev panel: click Unlock P1")
+		await _click_ctrl(btn)
+		await _frames(4)
+		if Economy.unlocked(d, "press") and Economy.unlocked(d, "knead"):
+			break
+	await _frames(4)
+	_shot("dev_panel")
+	_act("F1: close the dev panel")
+	_action("dev_panel")
+	await _frames(6)
+	_expect(Economy.unlocked(d, "press") and Economy.unlocked(d, "knead"), "medium", "dev panel", "Unlock P1 did not unlock the press and the dough board")
+	var spots: Dictionary = current_scene.get("_spots")
+	_expect((spots.press as Control).visible and (spots.board as Control).visible, "medium", "kitchen", "press and dough board not shown after Unlock P1")
+	for id in ["press", "knead"]:
+		if not _seen_unlocks.has(id):
+			_seen_unlocks[id] = _day()
+	_notes.append("Day %d: dev panel (F1) > Unlock P1 > the press and the dough board appear in the kitchen." % _day())
+	return true
+
+
+# ================================================================ town
+
+func _town_round(n: int) -> bool:
+	if Market.can_open(_gs.data):
+		if not await _market():
+			return false
+	elif Market.is_market_day(n):
+		_problem("medium", "market", "day %d is a market day but the market cannot open" % n)
+	var t := current_scene
+	if not await _deliver(t):
+		return false
+	if not await _sell(t, n):
+		return false
+	if not await _buy(t):
+		return false
+	_act("town: click Back to the garden")
+	await _click_ctrl(_text_button(t, tr("TOWN_BACK_GARDEN")))
+	return await _arrive("garden")
+
+
+func _deliver(t: Node) -> bool:
+	var tabs: Dictionary = t.get("_tab_buttons")
+	_act("town: click the Orders tab")
+	await _click_ctrl(tabs.orders)
+	await _frames(4)
+	_shot("town_orders")
+	for attempt in 8:
+		var d: Dictionary = _gs.data
+		var btn: Button = null
+		for b in _buttons(t):
+			var args := _bound(b)
+			if b.text == tr("TOWN_DELIVER") and not args.is_empty() and _matchable(int(args[0])):
+				btn = b
+				break
+		if btn == null:
+			var nxt := _text_button(t, ">")
+			if nxt != null and not nxt.disabled and _any_matchable():
+				_act("town: next order page")
+				await _click_ctrl(nxt)
+				await _frames(3)
+				continue
+			break
+		var order := _order(int(_bound(btn)[0]))
+		_act("town: Deliver the %s order" % order.npc)
+		await _click_ctrl(btn)
+		await _frames(3)
+		var give: Button = null
+		for b in _buttons(t):
+			if b.text == tr("TOWN_GIVE") and not _bound(b).is_empty():
+				give = b
+				break
+		if give == null:
+			_problem("medium", "town", "Deliver opened no jar list although a jar matches the %s order" % order.npc)
+			break
+		var item := _item_at(d, _bound(give)[0])
+		var expect := floori(ProductGen.value(String(item.key), d.varieties, int(item.q)) * float(Data.rules().orders.reward_mult))
+		var c0 := int(d.coins)
+		var done0 := int(d.stats.orders_done)
+		_allow_coins = true
+		_act("town: Give %s" % item.key)
+		await _click_ctrl(give)
+		await _frames(4)
+		_allow_coins = false
+		_expect(int(d.coins) - c0 == expect, "high", "coin anomaly", "an order paid %d coins (rule: value x reward_mult = %d)" % [int(d.coins) - c0, expect])
+		_expect(int(d.stats.orders_done) == done0 + 1, "medium", "town", "orders_done did not count the delivery")
+		_day_row().orders += 1
+	if _day() == 1:
+		_expect(TodoRules.is_done(TodoRules.bits_of(_gs.data), "d1_order"), "medium", "tutorial", "To-Do step 'take the baker's order to town' did not tick (orders_done %d)" % int(_gs.data.stats.orders_done))
+	return true
+
+
+func _sell(t: Node, n: int) -> bool:
+	var tabs: Dictionary = t.get("_tab_buttons")
+	_act("town: click the Grocer tab, Sell")
+	await _click_ctrl(tabs.grocer)
+	await _frames(2)
+	await _click_ctrl(_bound_button(t, "sell"))
+	await _frames(4)
+	var sold := 0
+	var force := n == 2  # To-Do day 2: sell the extra
+	for attempt in 14:
+		if sold >= 4:
+			break
+		var d: Dictionary = _gs.data
+		var pick: Button = null
+		for b in _buttons(t):
+			var args := _bound(b)
+			if b.text == tr("TOWN_SELL") and not args.is_empty() and typeof(args[0]) == TYPE_DICTIONARY:
+				var it := _item_at(d, args[0])
+				if _surplus(d, it) or (force and sold == 0 and String(it.get("kind", "")) != "product"):
+					pick = b
+					break
+		if pick == null:
+			var nxt := _text_button(t, ">")
+			if nxt != null and not nxt.disabled:
+				await _click_ctrl(nxt)
+				await _frames(3)
+				continue
+			break
+		var item := _item_at(d, _bound(pick)[0])
+		var price := Economy.sell_price(item, d.varieties)
+		var c0 := int(d.coins)
+		_allow_coins = true
+		_act("town: Sell %s" % _item_label(item))
+		await _click_ctrl(pick)
+		await _frames(4)
+		_allow_coins = false
+		_expect(int(d.coins) - c0 == price, "high", "coin anomaly", "selling %s paid %d (rule %d)" % [_item_label(item), int(d.coins) - c0, price])
+		sold += 1
+		_day_row().sold += 1
+	if sold > 0:
+		_shot("town_sold")
+	if n == 2:
+		_expect(TodoRules.is_done(TodoRules.bits_of(_gs.data), "d2_sell"), "medium", "tutorial", "To-Do step 'sell the extra' did not tick after %d sales" % sold)
+	return true
+
+
+## Fresh stacks too small to cook and nuts beyond a few count as extra; jars are kept (orders, letters, market).
+func _surplus(d: Dictionary, item: Dictionary) -> bool:
+	match String(item.get("kind", "")):
+		"nut":
+			return int(item.count) > 0
+		"fresh":
+			var total := 0
+			for it in _all_items(d):
+				if String(it.kind) == "fresh" and String(it.variety) == String(item.variety):
+					total += int(it.count)
+			return total < 2
+	return false
+
+
+func _buy(t: Node) -> bool:
+	var d: Dictionary = _gs.data
+	_act("town: Buy, Supplies")
+	await _click_ctrl(_bound_button(t, "buy"))
+	await _frames(2)
+	await _click_ctrl(_bound_button(t, "supplies"))
+	await _frames(3)
+	var needs := SUPPLIES.duplicate()
+	if Economy.unlocked(d, "press") or Economy.unlocked(d, "knead"):
+		needs.merge(P1_SUPPLIES)
+	var bought := 0
+	for id: String in needs:
+		var guard := 0
+		while int(d.cupboard.get(id, 0)) < int(needs[id]) and guard < 6:
+			guard += 1
+			var price := Economy.price(d, id)
+			if price < 0:
+				_problem("medium", "town", "%s is needed for a P1 recipe but not on sale" % id)
+				break
+			if int(d.coins) < price + 15:
+				break
+			var b: Button = await _page_to(t, id)
+			if b == null:
+				_problem("low", "town", "no Buy row for %s in Supplies" % id)
+				break
+			var c0 := int(d.coins)
+			var have := int(d.cupboard.get(id, 0))
+			_allow_coins = true
+			_act("town: Buy %s" % id)
+			await _click_ctrl(b)
+			await _frames(3)
+			_allow_coins = false
+			_expect(c0 - int(d.coins) == price and int(d.cupboard.get(id, 0)) == have + 1, "high", "coin anomaly",
+				"buying %s cost %d (price %d), cupboard %d -> %d" % [id, c0 - int(d.coins), price, have, int(d.cupboard.get(id, 0))])
+			bought += 1
+	var empty_beds := 0
+	for bed in d.garden.beds:
+		if String(bed.crop) == "":
+			empty_beds += 1
+	if empty_beds > 0 and int(d.cupboard.get("seed_cucumber", 0)) == 0 and int(d.coins) >= 60:
+		await _click_ctrl(_bound_button(t, "seeds"))
+		await _frames(3)
+		var sb: Button = await _page_to(t, "seed_cucumber")
+		if sb != null:
+			var c1 := int(d.coins)
+			_allow_coins = true
+			_act("town: Buy a cucumber seed")
+			await _click_ctrl(sb)
+			await _frames(3)
+			_allow_coins = false
+			_expect(c1 - int(d.coins) == Economy.price(d, "seed_cucumber"), "high", "coin anomaly", "a cucumber seed cost %d" % (c1 - int(d.coins)))
+			bought += 1
+	if bought > 0:
+		_shot("town_bought")
+	return true
+
+
+## The Buy button of shop id `id`, paging through the list from its first page.
+func _page_to(t: Node, id: String) -> Button:
+	for i in 6:
+		var prev := _text_button(t, "<")
+		if prev == null or prev.disabled:
+			break
+		await _click_ctrl(prev)
+		await _frames(2)
+	for i in 8:
+		for b in _buttons(t):
+			var args := _bound(b)
+			if b.text == tr("TOWN_BUY") and not args.is_empty() and String(args[0]) == id:
+				return b
+		var nxt := _text_button(t, ">")
+		if nxt == null or nxt.disabled:
+			return null
+		await _click_ctrl(nxt)
+		await _frames(2)
+	return null
+
+
+func _market() -> bool:
+	var t := current_scene
+	var banner := t.find_child("MarketToday", true, false) as Control
+	if banner == null or not banner.visible:
+		_problem("medium", "market", "no 'Market today!' banner in town on day %d" % _day())
+		return true
+	_act("town: click Market today!")
+	await _click_ctrl(banner)
+	if not await _arrive("market"):
+		return false
+	var m := current_scene
+	var fill: Button = m.get("_fill_btn")
+	if fill.disabled:
+		_notes.append("Day %d market: no ready jars to put on the stall." % _day())
+		_act("market: click Back")
+		await _click_ctrl(m.get("_back_btn"))
+		return await _arrive("town")
+	_act("market: click Fill stall")
+	await _click_ctrl(fill)
+	await _frames(4)
+	var entries: Array = m.get("_entries")
+	_expect(not entries.is_empty(), "medium", "market", "Fill stall put nothing on the stall")
+	await _frames(8)
+	_shot("market_stall")
+	var d: Dictionary = _gs.data
+	var c0 := int(d.coins)
+	var stall := entries.size()
+	_allow_coins = true
+	_act("market: click Open stall")
+	await _click_ctrl(m.get("_open_btn"))
+	if not await _wait(func() -> bool: return int(m.get("_phase")) >= 1, "the parade"):
+		_allow_coins = false
+		return false
+	await _frames(3)
+	_allow_coins = false
+	var plan: Dictionary = m.get("_plan")
+	var earned := 0
+	for v in plan.get("sales", []):
+		earned += int(v.price)
+	_expect(int(d.coins) == c0 + earned, "high", "coin anomaly", "the market paid %d coins, its sales add up to %d" % [int(d.coins) - c0, earned])
+	await _secs(3.0)
+	_shot("market_parade")
+	_act("market: Esc skips the parade")
+	_key(KEY_ESCAPE)
+	if not await _wait(func() -> bool: return int(m.get("_phase")) == 2, "the market end card"):
+		return false
+	await _frames(12)
+	_shot("market_end")
+	_notes.append("Day %d market: %d jars on the stall, %d sold, +%d coins, reputation %d." % [_day(), stall, plan.get("sales", []).size(), earned, int(Market.info(d).reputation)])
+	_act("market: Enter, back to town")
+	_key(KEY_ENTER)
+	if not await _arrive("town"):
+		return false
+	_expect(current_scene.find_child("MarketToday", true, false) == null, "medium", "market", "the 'Market today!' banner is still up after the market")
+	return true
+
+
+# ================================================================ night and day 8
+
+func _sleep() -> bool:
+	var k := current_scene
+	if _router.current != "kitchen" or k == null or not k.has_method("_on_sleep"):
+		_problem("high", "night", "not in the kitchen at bedtime (%s)" % _router.current)
+		return await _force_night()
+	var d: Dictionary = _gs.data
+	var day0 := int(d.day)
+	var c0 := int(d.coins)
+	var spots: Dictionary = k.get("_spots")
+	_act("kitchen: click the bed")
+	await _click_ctrl(spots.bed)
+	if not await _wait(func() -> bool: return (k.get("_dialog") as Control).visible, "the bed dialog"):
+		return await _force_night()
+	await _frames(6)
+	_shot("bed")
+	_act("kitchen: click Sleep")
+	_allow_energy = true
+	await _click_ctrl(k.get("_sleep_btn"))
+	if not await _wait(func() -> bool: return _night() != null, "the night to start"):
+		_allow_energy = false
+		return await _force_night()
+	var night := _night()
+	var card_up := func() -> bool: return is_instance_valid(night) and (night.get("_card") as Control).visible and bool(night.get("_accepting"))
+	var ok: bool = await _wait(card_up, "the morning card")
+	_allow_energy = false
+	if not ok:
+		return false
+	await _secs(0.3)  # the card pops in with a short scale tween
+	var screen := Rect2(Vector2.ZERO, Vector2(480, 270))
+	var card_rect := (night.get("_card") as Control).get_global_rect()
+	var cont_rect := (night.get("_button") as Control).get_global_rect()
+	_expect(screen.encloses(card_rect) and screen.encloses(cont_rect), "medium", "morning card",
+		"the day-%d morning card (%d lines) is %d px tall and runs off the 270 px screen (card %s, Continue %s): the line cap counts lines, not wrapped height" % [
+			int(_gs.data.day), (night.get("_lines") as Node).get_child_count(), int(card_rect.size.y), card_rect, cont_rect],
+		"game/ui/transition/morning_text.gd:30 / game/ui/transition/night.gd:122")
+	d = _gs.data
+	var stars := int(PantryRules.state_stars(d).get("stars", 0))
+	var e: Dictionary = Data.rules().energy
+	var want_max := int(e.base) + int(e.pantry_bonus_per_star) * stars
+	_expect(int(d.day) == day0 + 1, "high", "night", "the night went from day %d to day %d" % [day0, int(d.day)])
+	_expect(int(d.coins) == c0, "high", "coin anomaly", "coins changed overnight (%d -> %d)" % [c0, int(d.coins)])
+	_expect(int(d.energy_max) == want_max and int(d.energy) == want_max, "medium", "energy anomaly",
+		"morning energy %d / %d, rule base + %d x %d pantry stars = %d" % [int(d.energy), int(d.energy_max), int(e.pantry_bonus_per_star), stars, want_max])
+	_expect(int(_save.load_game().get("day", 0)) == int(d.day), "high", "save", "the night did not autosave day %d" % int(d.day))
+	_morning.clear()
+	for l in (night.get("_lines") as Node).get_children():
+		if l is Label and not l.is_queued_for_deletion():
+			_morning.append((l as Label).text)
+	for l in MorningText.calendar_lines(d):
+		var text := tr(String(l.key))
+		if not (l.args as Array).is_empty():
+			text = text % l.args
+		_expect(_morning.has(text), "medium", "morning card", "day %d card lacks the calendar line '%s' (card: %s)" % [int(d.day), text, _morning])
+	if Market.is_market_day(int(d.day)):
+		_expect(_morning.has(tr("UI_MARKET_TODAY")), "medium", "morning card", "no 'Market today!' line on the day-%d card" % int(d.day))
+	await _frames(6)
+	_shot("morning")
+	if int(d.day) == 2:
+		_expect(TodoRules.is_done(TodoRules.bits_of(d), "d1_bed"), "low", "tutorial",
+			"To-Do step 'go to bed' never ticks (and day 1's list never shows 'all done'): TodoRules.evaluate only checks today's list, and the day is 2 by the time it is true",
+			"game/ui/tutorial/todo_rules.gd:48")
+	_act("night: click Continue")
+	await _click_ctrl(night.get("_button"))
+	ok = await _wait(func() -> bool: return not bool(load(NIGHT_GD).is_running()), "the morning card to close")
+	await _frames(8)
+	_shot("kitchen_morning")
+	return ok
+
+
+func _night() -> Node:
+	var script: Script = load(NIGHT_GD)
+	for c in root.get_children():
+		if c.get_script() == script and not c.is_queued_for_deletion():
+			return c
+	return null
+
+
+## Bedtime failed: the bot ends the day itself so the week can go on (recorded as a problem already).
+func _force_night() -> bool:
+	_act("recover: GameState.end_day()")
+	_allow_energy = true
+	_gs.end_day()
+	_allow_energy = false
+	await _recover()
+	return false
+
+
+func _day_eight() -> void:
+	var d: Dictionary = _gs.data
+	var w := String(d.get("weather", ""))
+	var hud: Node = get_first_node_in_group("hud")
+	_note_day("weather %s" % w)
+	if not ResourceLoader.exists("res://sim/calendar.gd"):
+		_notes.append("Day 8 calendar: not present.")
+	else:
+		var wk := MorningText.week_name(8, false)
+		_expect(Calendar.active(8) and wk != "", "medium", "calendar", "no harvest week on day 8")
+		var week: Label = hud.get("_week_label") if hud != null else null
+		if week == null:
+			_notes.append("Day 8 calendar: the HUD has no week label (not present).")
+		else:
+			_expect(week.visible and week.text == wk, "medium", "calendar", "HUD week label '%s' (visible %s), expected '%s'" % [week.text, week.visible, wk])
+		_notes.append("Day 8 calendar: week '%s' (%s in season); morning card: %s." % [wk, ", ".join(Calendar.wild_types(8)), " / ".join(_morning)])
+	_expect(w in ["sunny", "rainy", "windy", "foggy"], "medium", "weather", "day 8 weather '%s' is not a known weather" % w)
+	_expect(Calendar.weather_table(8) == "p1", "low", "weather", "day 8 still draws from the tutorial weather table")
+	if hud != null:
+		var icon: TextureRect = hud.get("_weather")
+		var icons: Dictionary = hud.get_script().get_script_constant_map().get("WEATHER_ICONS", {})
+		_expect(icon != null and icon.texture != null and icon.texture.resource_path.contains(String(icons.get(w, "?"))), "medium", "weather",
+			"HUD weather icon %s does not match the '%s' weather" % [icon.texture.resource_path if icon != null and icon.texture != null else "none", w])
+		_expect(icon != null and icon.tooltip_text == tr("UI_WEATHER_" + w.to_upper()), "low", "weather", "HUD weather tooltip '%s'" % (icon.tooltip_text if icon != null else ""))
+	var weathers: Array = []
+	for row in _days:
+		weathers.append("%d %s" % [int(row.day), row.weather])
+	_notes.append("Weather by day: %s." % ", ".join(weathers))
+	if _router.current == "kitchen" and await _kitchen_door("garden"):
+		if await _wild_trip(true):
+			_shot("garden_day8")
+
+
+func _check_wild_weather(w: Node) -> void:
+	var d: Dictionary = _gs.data
+	var weather := String(d.weather)
+	var layer: Node = null
+	for c in w.get_children():
+		if c.get_script() != null and String(c.get_script().resource_path) == WEATHER_GD:
+			layer = c
+	if weather in ["windy", "foggy"]:
+		_expect(layer != null, "medium", "weather", "no weather layer in the wild on a %s day" % weather)
+	var map: Dictionary = w.get("map")
+	var falls := 0
+	for p in map.get("pickups", []):
+		if bool(p.get("windfall", false)):
+			falls += 1
+	if weather == "windy":
+		_expect(falls > 0, "medium", "weather", "windy day 8 but no windfall under the %d fruit trees" % map.fruit_trees.size())
+	else:
+		_expect(falls == 0, "medium", "weather", "%d windfall pickups on a %s day" % [falls, weather])
+	_notes.append("Day 8 wild (%s): %d fruit trees, %d windfalls, weather layer %s." % [weather, map.fruit_trees.size(), falls, "on" if layer != null else "none"])
+	_shot("wild_day8_" + weather)
+
+
+## Granny's To-Do of days 1 and 2: every step the bot did must have ticked (the bed is checked the next morning).
+func _check_todo(n: int) -> void:
+	var bits := TodoRules.bits_of(_gs.data)
+	for step: String in TodoRules.steps_for_day(n):
+		if step == "d1_bed":
+			continue
+		if not TodoRules.is_done(bits, step):
+			_problem("medium", "tutorial", "day %d To-Do step '%s' not ticked at bedtime" % [n, tr(TodoRules.key_of(step))])
+
+
+## After a failed step: closes overlays and goes back to the kitchen (the bed is there).
+func _recover() -> void:
+	_act("recover: back to the kitchen")
+	var ui: Node = get_first_node_in_group("letters_ui")
+	if ui != null:
+		ui.close()
+	await _wait(func() -> bool: return not bool(load(NIGHT_GD).is_running()) and not _busy(), "running transitions to end")
+	var path := "res://scenes/kitchen/kitchen.tscn"
+	if current_scene == null or current_scene.scene_file_path != path:
+		_router.goto("kitchen")
+	if not await _arrive("kitchen"):
+		_aborted = "could not get back to the kitchen"
+		return
+	var k := current_scene
+	if k.get("_card") != null:
+		k.get("_card")._on_close()
+	if (k.get("_panel") as Control).visible:
+		k.call("_close_panel")
+	if (k.get("_dialog") as Control).visible:
+		k.call("_close_dialog")
+	await _frames(4)
+
+
+# ================================================================ scenes, waits, checks
+
+func _arrive(id: String) -> bool:
+	var path := "res://scenes/%s/%s.tscn" % [id, id]
+	var cond := func() -> bool: return current_scene != null and current_scene.scene_file_path == path and not _busy()
+	if not await _wait(cond, "the %s scene" % id):
+		_problem("high", "scene load", "'%s' did not open (current scene: %s)" % [id, current_scene.scene_file_path if current_scene != null else "none"])
+		return false
+	_visit_warns = 0
+	_visit_flooded = false
+	await _frames(10)
+	_visits.append("d%d %s" % [_day(), id])
+	_shot(id)
+	_check_hud(id)
+	return true
+
+
+func _busy() -> bool:
+	return bool(load(TRANSITION_GD).is_busy())
+
+
+func _check_hud(id: String) -> void:
+	if not id in ["garden", "wild", "town", "kitchen"]:
+		return
+	var hud: Node = get_first_node_in_group("hud")
+	if hud == null or not (hud as CanvasLayer).visible:
+		_problem("medium", "hud", "no HUD in the %s" % id)
+		return
+	var d: Dictionary = _gs.data
+	var day_l: Label = hud.get("_day_label")
+	var coins_l: Label = hud.get("_coins_label")
+	if day_l != null and not day_l.text.ends_with(" %d" % int(d.day)):
+		_problem("low", "hud", "HUD day '%s' on day %d in the %s" % [day_l.text, int(d.day), id])
+	if coins_l != null and coins_l.text != str(int(d.coins)):
+		_problem("medium", "hud", "HUD shows %s coins, the save has %d (%s)" % [coins_l.text, int(d.coins), id])
+
+
+## Waits for `cond`; a soft-lock when nothing moves (scene, Granny, coins, energy, bag, inbox) for `stall_ms`.
+func _wait(cond: Callable, what: String, stall_ms := STALL_MS) -> bool:
+	var last := _fingerprint()
+	var since := Time.get_ticks_msec()
+	while not bool(cond.call()):
+		await process_frame
+		var fp := _fingerprint()
+		if fp != last:
+			last = fp
+			since = Time.get_ticks_msec()
+		elif Time.get_ticks_msec() - since > stall_ms:
+			_problem("high", "soft-lock", "no progress for %d s waiting for %s" % [stall_ms / 1000, what])
+			return false
+		if Time.get_ticks_msec() - _t0 > BUDGET_MS:
+			if _aborted == "":
+				_aborted = "time budget"
+				_problem("high", "time budget", "the run passed %d s while waiting for %s" % [BUDGET_MS / 1000, what])
+			return false
+	return true
+
+
+func _fingerprint() -> String:
+	var parts: Array = [_router.current, current_scene.get_instance_id() if current_scene != null else 0]
+	var d: Dictionary = _gs.data
+	if d.has("coins"):
+		parts.append_array([d.day, d.coins, d.energy, d.bag.size(), d.inbox.size()])
+	if current_scene != null:
+		var g: Variant = current_scene.get("granny")
+		if is_instance_valid(g) and g is Node2D:
+			parts.append((g as Node2D).position.round())
+	return str(parts)
+
+
+func _drain_log() -> void:
+	for e: Dictionary in _log.take():
+		var t := int(e.type)
+		var where := String(e.where)
+		var text := String(e.text)
+		if t == 1:
+			_visit_warns += 1
+			var k := where + "|" + text
+			_warns[k] = int(_warns.get(k, 0)) + 1
+			_problem("low", "warning", text, where)
+			if int(_warns[k]) == FLOOD_SAME:
+				_problem("medium", "warning flood", "the same warning %d times: %s" % [FLOOD_SAME, text], where)
+			if _visit_warns >= FLOOD_VISIT and not _visit_flooded:
+				_visit_flooded = true
+				_problem("medium", "warning flood", "%d warnings in one visit of the %s" % [_visit_warns, _router.current])
+			continue
+		var kind := "SCRIPT ERROR" if t == 2 else ("shader error" if t == 3 else "error")
+		_problem("high", kind, text, where)
+
+
+## Coins and energy may only move during an action that spends or earns them; never below zero or above the max.
+func _watch() -> void:
+	var d: Dictionary = _gs.data
+	if not d.has("coins") or not d.has("energy"):
+		return
+	var coins := int(d.coins)
+	var energy := int(d.energy)
+	var emax := int(d.get("energy_max", energy))
+	var earned := int(d.get("stats", {}).get("coins_earned", 0))
+	if coins < 0:
+		_problem("high", "coin anomaly", "coins below zero (%d)" % coins, "", "coins<0")
+	if energy < 0:
+		_problem("high", "energy anomaly", "energy below zero (%d)" % energy, "", "energy<0")
+	if energy > emax:
+		_problem("medium", "energy anomaly", "energy %d above energy_max %d" % [energy, emax], "", "energy>max")
+	if _last_coins >= 0 and coins != _last_coins and not _allow_coins:
+		_problem("medium", "coin anomaly", "coins changed by %+d outside a buy, sale, order or market" % (coins - _last_coins), "", "coins-unexplained|" + String(_router.current))
+	if _last_energy >= 0 and energy != _last_energy and not _allow_energy:
+		_problem("medium", "energy anomaly", "energy changed by %+d outside foraging, the garden, cooking or the night" % (energy - _last_energy), "", "energy-unexplained|" + String(_router.current))
+	if earned < _last_earned:
+		_problem("medium", "coin anomaly", "stats.coins_earned went down (%d -> %d)" % [_last_earned, earned], "", "earned-down")
+	_last_coins = coins
+	_last_energy = energy
+	_last_earned = earned
+
+
+func _problem(sev: String, kind: String, what: String, where := "", key := "") -> void:
+	var k := key if key != "" else "%s|%s|%s" % [kind, where, what]
+	if _keys.has(k):
+		_problems[int(_keys[k])].count += 1
+		return
+	_keys[k] = _problems.size()
+	_problems.append({"sev": sev, "kind": kind, "what": what, "where": where, "day": _day(), "scene": String(_router.current),
+		"repro": _repro(), "count": 1})
+	print("PROBLEM [%s] %s: %s %s" % [sev, kind, what, where])
+
+
+func _expect(ok: bool, sev: String, kind: String, what: String, where := "") -> bool:
+	if not ok:
+		_problem(sev, kind, what, where)
+	return ok
+
+
+func _act(s: String) -> void:
+	_trail.append(s)
+	print("[d%d %ds] %s" % [_day(), (Time.get_ticks_msec() - _t0) / 1000, s])
+
+
+func _repro() -> String:
+	var tail := _trail.slice(maxi(0, _trail.size() - 3))
+	return "New Game, seed %d, day %d: %s" % [SEED, _day(), " > ".join(tail)]
+
+
+func _day() -> int:
+	return int(_gs.data.get("day", 0)) if _gs != null else 0
+
+
+func _day_row() -> Dictionary:
+	return _days[_days.size() - 1] if not _days.is_empty() else {"cooked": [], "orders": 0, "sold": 0, "notes": []}
+
+
+func _note_day(s: String) -> void:
+	(_day_row().notes as Array).append(s)
+
+
+# ================================================================ items and buttons
+
+func _all_items(d: Dictionary) -> Array:
+	var items: Array = d.inbox.duplicate()
+	for e in d.pantry.items:
+		items.append(e.item)
+	return items
+
+
+func _item_at(d: Dictionary, ref: Dictionary) -> Dictionary:
+	var i := int(ref.get("index", -1))
+	match String(ref.get("where", "")):
+		"inbox":
+			return d.inbox[i] if i >= 0 and i < d.inbox.size() else {}
+		"pantry":
+			return d.pantry.items[i].item if i >= 0 and i < d.pantry.items.size() else {}
+	return {}
+
+
+func _item_label(item: Dictionary) -> String:
+	match String(item.get("kind", "")):
+		"product":
+			return String(item.key)
+		"fresh":
+			return "%s x%d" % [item.variety, int(item.count)]
+		"nut":
+			return "%s x%d" % [item.type, int(item.count)]
+	return "?"
+
+
+func _order(id: int) -> Dictionary:
+	for o in _gs.data.orders:
+		if int(o.id) == id:
+			return o
+	return {}
+
+
+func _matchable(id: int) -> bool:
+	var o := _order(id)
+	if o.is_empty():
+		return false
+	for it in _all_items(_gs.data):
+		if Orders.matches(o, it, _gs.data.varieties):
+			return true
+	return false
+
+
+func _any_matchable() -> bool:
+	for o in _gs.data.orders:
+		if _matchable(int(o.id)):
+			return true
+	return false
+
+
+func _buttons(node: Node) -> Array[Button]:
+	var out: Array[Button] = []
+	for c in node.find_children("*", "Button", true, false):
+		var b := c as Button
+		if b != null and b.is_visible_in_tree() and not b.is_queued_for_deletion():
+			out.append(b)
+	return out
+
+
+func _text_button(node: Node, text: String) -> Button:
+	for b in _buttons(node):
+		if b.text == text:
+			return b
+	return null
+
+
+## The visible button whose pressed callback is bound to `arg` first (town toggles: "buy", "sell", "supplies"...).
+func _bound_button(node: Node, arg: String) -> Button:
+	for b in _buttons(node):
+		var args := _bound(b)
+		if not args.is_empty() and typeof(args[0]) == TYPE_STRING and String(args[0]) == arg:
+			return b
+	return null
+
+
+func _bound(b: BaseButton) -> Array:
+	for con in b.pressed.get_connections():
+		var cb: Callable = con.callable
+		var args := cb.get_bound_arguments()
+		if not args.is_empty():
+			return args
+	return []
+
+
+func _slot_pos(view: Control, i: int) -> Vector2:
+	var r: Rect2i = view.call("slot_rect", i)
+	return view.get_global_rect().position + Vector2(r.position) + Vector2(12, 12)
+
+
+# ================================================================ input
+
+func _click_ctrl(c: Control) -> bool:
+	if c == null or not c.is_visible_in_tree():
+		_problem("medium", "ui", "a control to click is missing or hidden (%s)" % (c.name if c != null else "null"))
+		return false
+	await process_frame  # containers sort their children at the end of a frame: click where the control is now
+	await _click(c.get_global_rect().get_center().floor())
+	return true
+
+
+func _click(at: Vector2) -> void:
+	_move(at)
+	await process_frame
+	_button(at, MOUSE_BUTTON_LEFT, true)
+	await process_frame
+	_button(at, MOUSE_BUTTON_LEFT, false)
+	await process_frame
+
+
+func _drag(a: Vector2, b: Vector2) -> void:
+	_move(a)
+	await process_frame
+	_button(a, MOUSE_BUTTON_LEFT, true)
+	await process_frame
+	_move(a.lerp(b, 0.5))
+	await process_frame
+	_move(b)
+	await process_frame
+	_button(b, MOUSE_BUTTON_LEFT, false)
+	await process_frame
+
+
+func _button(p: Vector2, button: MouseButton, pressed: bool) -> void:
+	var bit := 1 << (int(button) - 1)
+	_mask = (_mask | bit) if pressed else (_mask & ~bit)
+	var ev := InputEventMouseButton.new()
+	ev.button_index = button
+	ev.pressed = pressed
+	ev.button_mask = _mask
+	ev.position = p
+	ev.global_position = p
+	root.push_input(ev, true)
+
+
+func _move(p: Vector2) -> void:
+	var ev := InputEventMouseMotion.new()
+	ev.position = p
+	ev.global_position = p
+	ev.button_mask = _mask
+	root.push_input(ev, true)
+
+
+func _key(k: Key) -> void:
+	for pressed in [true, false]:
+		var ev := InputEventKey.new()
+		ev.keycode = k
+		ev.physical_keycode = k
+		ev.pressed = pressed
+		root.push_input(ev, true)
+
+
+func _action(name: String) -> void:
+	for pressed in [true, false]:
+		var ev := InputEventAction.new()
+		ev.action = name
+		ev.pressed = pressed
+		Input.parse_input_event(ev)
+
+
+func _type(text: String) -> void:
+	for ch in text:
+		for pressed in [true, false]:
+			var ev := InputEventKey.new()
+			ev.keycode = OS.find_keycode_from_string(ch)
+			ev.physical_keycode = ev.keycode
+			ev.unicode = ch.unicode_at(0)
+			ev.pressed = pressed
+			root.push_input(ev, true)
+		await process_frame
+
+
+func _frames(n: int) -> void:
+	for i in n:
+		await process_frame
+
+
+func _secs(s: float) -> void:
+	await create_timer(s).timeout
+
+
+# ================================================================ output
+
+func _prepare_dir() -> void:
+	DirAccess.make_dir_recursive_absolute(DIR)
+	for f in DirAccess.get_files_at(DIR):
+		if f.ends_with(".png"):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR.path_join(f)))
+
+
+func _shot(label: String) -> void:
+	_shots += 1
+	var path := "%s/d%d_%03d_%s.png" % [DIR, _day(), _shots, label]
+	RenderingServer.force_draw(false)  # macOS skips drawing a covered window; the shot must show this frame
+	var img := root.get_texture().get_image()
+	if img != null:
+		img.save_png(path)
+
+
+func _finish() -> void:
+	_drain_log()
+	Engine.time_scale = 1.0
+	if _had_save:
+		var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+		f.store_string(_backup)
+		f.close()
+	elif FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+	var md := _report()
+	var path := ProjectSettings.globalize_path("res://").path_join(REPORT).simplify_path()
+	var keep := ""
+	if FileAccess.file_exists(path):
+		var old := FileAccess.get_file_as_string(path)
+		var at := old.find(NOTES)
+		if at >= 0:
+			keep = old.substr(at)
+	var f2 := FileAccess.open(path, FileAccess.WRITE)
+	if f2 != null:
+		f2.store_string(md + ("\n" + keep if keep != "" else ""))
+		f2.close()
+	var high := 0
+	for p in _problems:
+		high += 1 if p.sev == "high" else 0
+	print("week_bot: day %d reached in %d s, %d problems (%d high), %d screenshots in %s, report %s" % [
+		_day(), (Time.get_ticks_msec() - _t0) / 1000, _problems.size(), high, _shots, ProjectSettings.globalize_path(DIR), path])
+	quit(1 if high > 0 else 0)
+
+
+func _report() -> String:
+	var secs := (Time.get_ticks_msec() - _t0) / 1000
+	var rows: Array = _problems.duplicate()
+	rows.sort_custom(_by_severity)
+	var lines: Array[String] = []
+	lines.append("# Week bot report (QA-WEEK)")
+	lines.append("")
+	lines.append("Written by `game/tests/smoke/week_bot.gd` on %s. New Game with seed %d, played through the real scenes up to day %d%s in %d:%02d (Engine.time_scale x%s). Screenshots: %d in `user://week_bot/`." % [
+		Time.get_datetime_string_from_system(false, true), SEED, _day(), " (stopped: %s)" % _aborted if _aborted != "" else "", secs / 60, secs % 60, _speed, _shots])
+	lines.append("")
+	lines.append("Run it: `perl -e 'alarm shift; exec @ARGV' 900 godot --path game --audio-driver Dummy -s res://tests/smoke/week_bot.gd` (windowed; exit 1 on a high problem).")
+	lines.append("")
+	lines.append("## Problems")
+	lines.append("")
+	lines.append("| # | Severity | Kind | Where | What | Seen | Day / scene | Repro |")
+	lines.append("|---|---|---|---|---|---|---|---|")
+	if rows.is_empty():
+		lines.append("| - | - | - | - | No problems found | - | - | - |")
+	for i in rows.size():
+		var p: Dictionary = rows[i]
+		lines.append("| %d | %s | %s | %s | %s | %dx | %d / %s | %s |" % [i + 1, p.sev, p.kind, _cell(String(p.where)), _cell(String(p.what)),
+			int(p.count), int(p.day), p.scene, _cell(String(p.repro))])
+	lines.append("")
+	lines.append("## The week")
+	lines.append("")
+	lines.append("| Day | Weather | Coins (morning) | Energy (morning) | Cooked | Orders | Sold | Notes |")
+	lines.append("|---|---|---|---|---|---|---|---|")
+	for r in _days:
+		lines.append("| %d | %s | %d | %d / %d | %s | %d | %d | %s |" % [int(r.day), r.weather, int(r.coins), int(r.energy), int(r.energy_max),
+			_cell(", ".join(r.cooked)), int(r.orders), int(r.sold), _cell("; ".join(r.notes))])
+	var d: Dictionary = _gs.data
+	if not d.is_empty():
+		lines.append("")
+		lines.append("End: day %d, %d coins, %d jars made, %d orders done, %d coins earned, %d book variants." % [int(d.day), int(d.coins),
+			int(d.stats.jars_made), int(d.stats.orders_done), int(d.stats.coins_earned), d.book.variants.size()])
+	lines.append("")
+	lines.append("## Coverage")
+	lines.append("")
+	var mg: Array[String] = []
+	for k in _mg_count:
+		mg.append("%s x%d" % [k, int(_mg_count[k])])
+	lines.append("- Mini-games played: %s." % (", ".join(mg) if not mg.is_empty() else "none"))
+	var per_scene := {}
+	for v in _visits:
+		var id := v.split(" ")[1]
+		per_scene[id] = int(per_scene.get(id, 0)) + 1
+	var sc: Array[String] = []
+	for k in per_scene:
+		sc.append("%s x%d" % [k, int(per_scene[k])])
+	lines.append("- Scene visits: %s." % ", ".join(sc))
+	for n in _notes:
+		lines.append("- " + n)
+	lines.append("")
+	return "\n".join(lines)
+
+
+func _by_severity(a: Dictionary, b: Dictionary) -> bool:
+	var sa := SEVERITY.find(String(a.sev))
+	var sb := SEVERITY.find(String(b.sev))
+	return sa < sb or (sa == sb and int(a.day) < int(b.day))
+
+
+func _cell(s: String) -> String:
+	return s.replace("|", "\\|").replace("\n", " ")
