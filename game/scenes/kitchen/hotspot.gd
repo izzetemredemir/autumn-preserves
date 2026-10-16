@@ -11,6 +11,11 @@ var kind := ""
 ## Live numbers the art shows: {"cupboard": {...}} or {"inbox": int}.
 var info: Dictionary = {}
 var glow := false
+## The kitchen shows every caption for a moment on entry and while Tab is held (touch players cannot hover).
+var reveal := false:
+	set(v):
+		reveal = v
+		_on_state()
 var caption: Label
 var _t := 0.0
 var _frame := -1
@@ -72,7 +77,7 @@ func _process(delta: float) -> void:
 
 
 func _on_state() -> void:
-	var lit := has_focus() or is_hovered() or (glow and int(_t * 3.0) % 2 == 0)
+	var lit := reveal or has_focus() or is_hovered() or (glow and int(_t * 3.0) % 2 == 0)
 	if caption != null:
 		caption.visible = lit
 		caption.add_theme_color_override("font_color", Art.GOLD)

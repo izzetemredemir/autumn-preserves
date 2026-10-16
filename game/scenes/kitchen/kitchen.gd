@@ -27,6 +27,7 @@ const STEP_SPOT := {"d1_jam": "stove", "d1_bed": "bed", "d2_brine": "counter"}
 const NAV := [["move_left", SIDE_LEFT], ["move_right", SIDE_RIGHT], ["move_up", SIDE_TOP], ["move_down", SIDE_BOTTOM]]
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const Hotspot := preload("res://scenes/kitchen/hotspot.gd")
+const REVEAL_SEC := 2.5  ## every caption shows this long when Granny walks in
 const CookPanel := preload("res://scenes/kitchen/cook_panel.gd")
 const Shelf := preload("res://scenes/kitchen/waiting_shelf.gd")
 const Wall := preload("res://scenes/kitchen/wall_drawings.gd")
@@ -91,6 +92,16 @@ func _ready() -> void:
 	_refresh()
 	_connect_todo.call_deferred()
 	_focus_spot()
+	_reveal_captions(true)  # touch players cannot hover: name every object for a moment on entry
+	get_tree().create_timer(REVEAL_SEC).timeout.connect(func() -> void: _reveal_captions(false))
+
+
+## Every hotspot caption on (entry, Tab held) or back to hover/focus/glow only.
+func _reveal_captions(on: bool) -> void:
+	if not is_inside_tree():
+		return
+	for k in _spots:
+		_spots[k].reveal = on
 
 
 # ---------------------------------------------------------------- build
@@ -629,6 +640,8 @@ func _set_dozing(on: bool) -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) < 0.3:
 		return
+	if event is InputEventKey and (event as InputEventKey).physical_keycode == KEY_TAB and not event.is_echo():
+		_reveal_captions(event.is_pressed())
 	_idle = 0.0
 	if _doze != null and _doze.visible:
 		_set_dozing(false)
