@@ -105,7 +105,8 @@ pointing/emulate_touch_from_mouse=true
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://i18n/strings.en.translation")
+locale/translations=PackedStringArray("res://i18n/strings.en.translation", "res://i18n/strings_tr.tr.translation")
+locale/fallback="en"
 
 [rendering]
 
