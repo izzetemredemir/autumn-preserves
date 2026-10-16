@@ -163,3 +163,19 @@ NPC_POSTMAN_2,"Your garden gate is my favourite stop."
 MG_PRESS_TITLE,Fruit press
 MG_PRESS_HINT,Press the lever on the beat: click, tap or press Space.
 MG_PRESS_RESULT,"Pressed! %d / 3 stars (%d perfect, %d good, %d missed)"
+PANTRY_TITLE,Pantry
+PANTRY_INBOX,Inbox
+PANTRY_INBOX_EMPTY,All put away
+PANTRY_AUTO,Auto-arrange
+PANTRY_LOVELY,"Ohh, lovely"
+PANTRY_ZONE_DRY,Dry
+PANTRY_ZONE_ROOM,Room
+PANTRY_ZONE_COOL,Cool
+PANTRY_ZONE_FLOOR,Floor
+PANTRY_RULE_ZONE,Right shelves
+PANTRY_RULE_GROUP,Kinds together
+PANTRY_RULE_PRETTY,A pretty shelf
+PANTRY_BONUS,+%d energy tomorrow
+PANTRY_BONUS_NONE,Tidy shelves give energy
+PANTRY_LIKES,Likes: %s
+PANTRY_HINT,Drag things onto the shelves. R turns pies.
