@@ -48,6 +48,8 @@ static func current_step() -> String:
 
 
 func _ready() -> void:
+	# Indoors the note starts folded so it doesn't cover the scene; a click unfolds it.
+	_collapsed = Router.current in ["kitchen", "pantry", "town"]
 	layer = 11
 	add_to_group("granny_todo")
 	_build()

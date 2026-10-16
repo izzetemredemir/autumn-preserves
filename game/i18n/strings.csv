@@ -171,7 +171,7 @@ NPC_POSTMAN_0,"Letters, parcels, and the odd acorn."
 NPC_POSTMAN_1,"I do love a tangy pickle on my rounds."
 NPC_POSTMAN_2,"Your garden gate is my favourite stop."
 MG_PRESS_TITLE,Fruit press
-MG_PRESS_HINT,Press the lever on the beat: click, tap or press Space.
+MG_PRESS_HINT,"Press the lever on the beat: click, tap or press Space."
 MG_PRESS_RESULT,"Pressed! %d / 3 stars (%d perfect, %d good, %d missed)"
 PANTRY_TITLE,Pantry
 PANTRY_INBOX,Inbox
