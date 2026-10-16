@@ -21,7 +21,7 @@
   "orders": {"slots": 3, "expire_days": 5, "reward_mult": 1.5, "friendship": 2, "axes_count": [1, 2], "axis_threshold": 3, "min_stars": [1, 3], "recipe_chance": 0.5},
   "friendship": {"points_per_heart": 3, "max_hearts": 5, "gift_points": 1, "gift_like_min": 4},
   "weather": {"p0": {"sunny": 75, "rainy": 25}, "p1": {"sunny": 50, "rainy": 20, "windy": 20, "foggy": 10}, "rain_mushroom_mult": 2, "fog_rare_mult": 1.5},
-  "wild": {"w": 48, "h": 30, "stream_chance": 0.4, "poisson_r": 3, "fruit_trees": [4, 6], "bushes": [6, 8], "ground": [8, 12], "clearings": [2, 3], "special_chance": 0.35,
+  "wild": {"w": 48, "h": 30, "stream_chance": 0.4, "poisson_r": 4, "fruit_trees": [4, 6], "bushes": [6, 8], "ground": [8, 12], "clearings": [2, 3], "special_chance": 0.35,
            "special_kinds_p0": ["mushroom_ring", "abandoned_orchard"], "ring_mushrooms": [6, 8], "orchard_quince_trees": 2},
   "garden": {"trees": [{"type": "apple"}, {"type": "quince"}, {"type": "walnut"}], "tree_refill_days": 3, "beds": 4, "compost_per_fertilizer": 5, "fertilizer_days_saved": 1},
   "start": {"coins": 100, "cupboard": {"jar": 5, "sugar": 3, "salt": 2, "vinegar": 2}, "beds": [{"crop": "cucumber", "days_left": 1}, {"crop": "cucumber", "days_left": 1}],

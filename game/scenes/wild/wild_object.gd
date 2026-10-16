@@ -6,6 +6,9 @@ extends Node2D
 ## falls back to a palette-coloured placeholder shape.
 ## kind: "decor" | "fruit_tree" | "bush" | "ground" | "exit". Position is the feet (bottom-centre of `cell`);
 ## sprites hang bottom-centred from it, so the y-sorted object layer puts Granny behind trees she stands above.
+## Readability (INT-WILD): a fruit tree that still has fruit carries a bobbing paper tag with its fruit's icon
+## above the canopy (always, so it never reads as a maple); trees, bushes and ground pickups with something to take
+## get a 1 px cream outline while Granny is `near`, and the one she faces a gold outline. Taken things lose both.
 
 const C_INK := Color("111010")
 const C_BARK := Color("50361e")
@@ -17,6 +20,7 @@ const C_OLIVE_DARK := Color("314524")
 const C_OLIVE := Color("53612e")
 const C_OLIVE_MID := Color("747c37")
 const C_SHADOW := Color("3d1f29")  ## plum_900: hard ground shadow to the lower right (art-bible §2.5)
+const C_TAG_EDGE := Color("3d1f29")  ## fruit tag border (plum_900)
 ## Ground-shadow half widths under sprites, by kind
 const SHADOW_HALF := {"decor": 9, "fruit_tree": 11, "bush": 8}
 ## Decor canopies by kind: [shade, base, light]
@@ -28,9 +32,15 @@ const CANOPY := {
 const CANOPY_KINDS := ["maple", "birch", "oak"]
 const ICON := "res://assets/sprites/icons/%s.png"
 const SPRITE := "res://assets/sprites/forest/%s.png"
+## Fruit tag: its tail tip overlaps the canopy top by TAG_OVERLAP px; it bobs 1 px every BOB_MS.
+const TAG_OVERLAP := 3
+const TAG_HEIGHT := 23
+const BOB_MS := 450.0
 
 static var _icons := {}
 static var _sprites := {}
+static var _outlines := {}  ## "<texture key>|<colour>" -> ImageTexture (null when the image can't be read)
+static var _tops := {}  ## texture key -> first opaque row
 
 var kind := ""
 var id := -1
@@ -39,11 +49,17 @@ var info: Dictionary = {}
 var color := Color("c94d2e")  ## fruit, berry or pickup colour
 var done := false  ## shaken tree, picked bush
 var _icon: Texture2D
-var highlighted := false:
+var highlighted := false:  ## Granny faces it: gold outline
 	set(v):
 		if v != highlighted:
 			highlighted = v
 			queue_redraw()
+var near := false:  ## Granny is a few tiles away: cream outline while there is something to take
+	set(v):
+		if v != near:
+			near = v
+			queue_redraw()
+var _tag: Node2D  ## fruit trees: the paper tag with the fruit icon, drawn above every canopy (z_index)
 
 
 func setup(p_kind: String, p_info: Dictionary, p_color: Color) -> void:
@@ -53,9 +69,23 @@ func setup(p_kind: String, p_info: Dictionary, p_color: Color) -> void:
 	cell = Vector2i(int(p_info.get("x", 0)), int(p_info.get("y", 0)))
 	color = p_color
 	position = Vector2(cell.x * 16 + 8, cell.y * 16 + 16)
-	if kind == "ground":
+	if kind == "ground" or kind == "fruit_tree":
 		_icon = icon_for(String(p_info.get("type", "")))
+	if kind == "fruit_tree" and _tag == null:
+		_tag = Node2D.new()
+		_tag.z_index = 20  # over the canopies in front, under Fx (leaves 40, bubbles 50)
+		_tag.draw.connect(_draw_tag)
+		add_child(_tag)
+	_update_tag()
 	queue_redraw()
+
+
+func _process(_delta: float) -> void:
+	if _tag == null or not _tag.visible:
+		set_process(false)
+		return
+	var bob := (floori(Time.get_ticks_msec() / BOB_MS) + cell.x) % 2
+	_tag.position = Vector2(0, _tag_tip_y() - bob)
 
 
 ## The type's 16x16 icon, or null while it doesn't exist.
@@ -83,6 +113,29 @@ func usable() -> bool:
 	return kind != "decor" and not (done and kind != "fruit_tree")
 
 
+## Something left to take: an unshaken fruit tree, a bush with berries, a ground pickup still lying there.
+func has_take() -> bool:
+	return (kind == "fruit_tree" or kind == "bush" or kind == "ground") and not done
+
+
+## World point just above what is drawn (the fruit tag included), for bubbles.
+func top() -> Vector2:
+	var y := _local_rect().position.y
+	var tex := _texture()
+	if tex != null:
+		y = _sprite_pos(tex).y + opaque_top(tex)
+	if _tag != null and _tag.visible:
+		y = _tag_tip_y() - TAG_HEIGHT
+	return position + Vector2(0, y)
+
+
+## World point in the middle of a tree's canopy or a bush's leaves, for leaf bursts and falling fruit.
+func canopy() -> Vector2:
+	var tex := _texture()
+	var h := float(tex.get_height()) if tex != null and kind != "ground" else -_local_rect().position.y
+	return position + Vector2(0, -roundi(h * 0.58))
+
+
 ## Click/tap area in world px (at least 16x16, tech-spec §7).
 func hit_rect() -> Rect2:
 	return Rect2(position + _local_rect().position, _local_rect().size)
@@ -92,6 +145,7 @@ func set_done(v: bool) -> void:
 	if v == done:
 		return
 	done = v
+	_update_tag()
 	queue_redraw()
 	if done and kind == "ground":
 		vanish()
@@ -118,44 +172,169 @@ func vanish() -> void:
 	t.tween_callback(queue_free)
 
 
+## Tap area and placeholder frame: the painted canopy for trees (as the garden's trees), the leaves for bushes.
 func _local_rect() -> Rect2:
 	match kind:
 		"decor":
-			return Rect2(-12, -34, 24, 34)
+			return Rect2(-8, -16, 16, 16) if _cut() else Rect2(-16, -56, 32, 56)
 		"fruit_tree":
-			return Rect2(-16, -42, 32, 42)
+			return Rect2(-24, -72, 48, 72)
+		"bush":
+			return Rect2(-14, -30, 28, 30)
 	return Rect2(-8, -16, 16, 16)
 
 
 func _draw() -> void:
 	var tex := _texture()
-	if tex != null:
-		var hw := int(SHADOW_HALF.get(kind, 0))
-		if hw > 0:
-			draw_rect(Rect2(4 - hw, -4, hw * 2 - 4, 4), C_SHADOW)
-			draw_rect(Rect2(2 - hw, -3, hw * 2, 2), C_SHADOW)
-		draw_texture(tex, Vector2(-floorf(tex.get_width() * 0.5), -tex.get_height()))
-	else:
+	var lit := _outline_color()
+	if tex == null:
 		_draw_placeholder()
+		if lit.a > 0.0:
+			_frame(_local_rect(), lit)
+		return
+	var hw := 0 if _cut() else int(SHADOW_HALF.get(kind, 0))
+	if hw > 0:
+		draw_rect(Rect2(4 - hw, -4, hw * 2 - 4, 4), C_SHADOW)
+		draw_rect(Rect2(2 - hw, -3, hw * 2, 2), C_SHADOW)
+	var at := _sprite_pos(tex)
+	if lit.a > 0.0:
+		var ring := outline_for(tex, lit)
+		if ring != null:
+			draw_texture(ring, at - Vector2.ONE)
+		else:
+			_frame(_local_rect(), lit)
+	draw_texture(tex, at)
+
+
+## Gold while faced, cream while near with something to take, else none (alpha 0).
+func _outline_color() -> Color:
 	if highlighted:
-		var r := _local_rect()
-		draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), C_GOLD)
-		draw_rect(Rect2(r.position + Vector2(0, r.size.y - 1), Vector2(r.size.x, 1)), C_GOLD)
-		draw_rect(Rect2(r.position, Vector2(1, r.size.y)), C_GOLD)
-		draw_rect(Rect2(r.position + Vector2(r.size.x - 1, 0), Vector2(1, r.size.y)), C_GOLD)
+		return C_GOLD
+	if near and has_take():
+		return C_CREAM
+	return Color(0, 0, 0, 0)
 
 
-## This object's sprite in its current state, or null (ground icons and the exit draw themselves).
+func _frame(r: Rect2, c: Color) -> void:
+	draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), c)
+	draw_rect(Rect2(r.position + Vector2(0, r.size.y - 1), Vector2(r.size.x, 1)), c)
+	draw_rect(Rect2(r.position, Vector2(1, r.size.y)), c)
+	draw_rect(Rect2(r.position + Vector2(r.size.x - 1, 0), Vector2(1, r.size.y)), c)
+
+
+## Sprites hang bottom-centred from the feet.
+static func _sprite_pos(tex: Texture2D) -> Vector2:
+	return Vector2(-floorf(tex.get_width() * 0.5), -tex.get_height())
+
+
+## A (w+2)x(h+2) texture holding a 1 px outline (4-neighbour, solid colour `c`) around `tex`'s opaque pixels,
+## drawn one pixel up-left of the sprite. Built once per texture and colour; null when the image can't be read.
+## (Not the outline shader: the painted trees touch their texture edges, where a shader outline gets clipped.)
+static func outline_for(tex: Texture2D, c: Color) -> Texture2D:
+	var key := "%s|%s" % [_tex_key(tex), c.to_html()]
+	if _outlines.has(key):
+		return _outlines[key]
+	var out: Texture2D = null
+	var img := _image(tex)
+	if img != null:
+		var w := img.get_width()
+		var h := img.get_height()
+		var o := Image.create_empty(w + 2, h + 2, false, Image.FORMAT_RGBA8)
+		for y in h + 2:
+			for x in w + 2:
+				if _solid(img, x - 1, y - 1):
+					continue
+				if _solid(img, x, y - 1) or _solid(img, x - 2, y - 1) or _solid(img, x - 1, y) or _solid(img, x - 1, y - 2):
+					o.set_pixel(x, y, c)
+		out = ImageTexture.create_from_image(o)
+	_outlines[key] = out
+	return out
+
+
+## First opaque row of `tex` (0 when the image can't be read).
+static func opaque_top(tex: Texture2D) -> int:
+	var key := _tex_key(tex)
+	if not _tops.has(key):
+		var img := _image(tex)
+		_tops[key] = img.get_used_rect().position.y if img != null else 0
+	return _tops[key]
+
+
+static func _tex_key(tex: Texture2D) -> String:
+	return tex.resource_path if tex.resource_path != "" else str(tex.get_instance_id())
+
+
+static func _image(tex: Texture2D) -> Image:
+	var img := tex.get_image()
+	if img == null or img.is_empty():
+		return null
+	img = img.duplicate()
+	if img.is_compressed():
+		img.decompress()
+	img.convert(Image.FORMAT_RGBA8)
+	return img
+
+
+static func _solid(img: Image, x: int, y: int) -> bool:
+	return x >= 0 and y >= 0 and x < img.get_width() and y < img.get_height() and img.get_pixel(x, y).a > 0.5
+
+
+## This object's sprite in its current state, or null (the exit draws itself; so does ground without an icon).
 func _texture() -> Texture2D:
 	var state := "bare" if done else "ripe"
 	match kind:
 		"decor":
+			if _cut():
+				return sprite("prop_stump")
 			return sprite("decor_tree_" + _decor_kind())
 		"fruit_tree":
 			return sprite("tree_%s_%s" % [String(info.get("type", "")), state])
 		"bush":
 			return sprite("bush_%s_%s" % [String(info.get("type", "")), state])
+		"ground":
+			return _icon
 	return null
+
+
+## A decor tree the map view drew as a stump (its canopy would hide a path or clearing).
+func _cut() -> bool:
+	return kind == "decor" and bool(info.get("cut", false)) and sprite("prop_stump") != null
+
+
+func _update_tag() -> void:
+	if _tag == null:
+		return
+	_tag.visible = has_take()
+	_tag.position = Vector2(0, _tag_tip_y())
+	_tag.queue_redraw()
+	set_process(_tag.visible)
+
+
+## Local y of the tag's tail tip: a few px into the top of the canopy.
+func _tag_tip_y() -> int:
+	var tex := _texture()
+	if tex == null:
+		return int(_local_rect().position.y) + TAG_OVERLAP
+	return int(_sprite_pos(tex).y) + opaque_top(tex) + TAG_OVERLAP
+
+
+## Paper tag (20x20, cut corners) with the fruit icon and a 3 px tail; (0, 0) is the row under the tail tip.
+func _draw_tag() -> void:
+	var t := _tag
+	t.draw_rect(Rect2(-9, -23, 18, 20), C_TAG_EDGE)
+	t.draw_rect(Rect2(-10, -22, 20, 18), C_TAG_EDGE)
+	t.draw_rect(Rect2(-9, -22, 18, 18), C_CREAM)
+	t.draw_rect(Rect2(-2, -4, 5, 1), C_CREAM)
+	t.draw_rect(Rect2(-2, -3, 5, 1), C_TAG_EDGE)
+	t.draw_rect(Rect2(-1, -3, 3, 1), C_CREAM)
+	t.draw_rect(Rect2(-1, -2, 3, 1), C_TAG_EDGE)
+	t.draw_rect(Rect2(0, -2, 1, 1), C_CREAM)
+	t.draw_rect(Rect2(0, -1, 1, 1), C_TAG_EDGE)
+	if _icon != null:
+		t.draw_texture(_icon, Vector2(-8, -21))
+	else:
+		t.draw_rect(Rect2(-4, -17, 8, 8), C_INK)
+		t.draw_rect(Rect2(-4, -17, 7, 7), color)
 
 
 ## WildGen's decor kind ("maple" | "birch" | "oak"); anything else maps onto one of them.
@@ -210,9 +389,6 @@ func _draw_bush() -> void:
 
 
 func _draw_ground() -> void:
-	if _icon != null:
-		draw_texture(_icon, Vector2(-8, -16))
-		return
 	var t := String(info.get("type", ""))
 	var group := String(Data.ingredients().get(t, {}).get("group", ""))
 	if group == "mushroom":

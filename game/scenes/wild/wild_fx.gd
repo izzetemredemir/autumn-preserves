@@ -28,8 +28,8 @@ static func bubble(parent: Node, at: Vector2, text: String, seconds := 1.4) -> v
 	t.tween_callback(panel.queue_free)
 
 
-## Leaves bursting out of a canopy centred at `at`.
-static func leaf_burst(parent: Node, at: Vector2, count := 10) -> void:
+## Leaves bursting out of a canopy centred at `at`; they start within `spread` px of it (half width, half height).
+static func leaf_burst(parent: Node, at: Vector2, count := 10, spread := Vector2i(8, 6)) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	for i in count:
@@ -38,9 +38,9 @@ static func leaf_burst(parent: Node, at: Vector2, count := 10) -> void:
 		leaf.size = Vector2(2, 2)
 		leaf.color = Color(LEAF_COLORS[rng.randi_range(0, LEAF_COLORS.size() - 1)])
 		leaf.z_index = 40
-		leaf.position = at + Vector2(rng.randi_range(-8, 8), rng.randi_range(-6, 6))
+		leaf.position = at + Vector2(rng.randi_range(-spread.x, spread.x), rng.randi_range(-spread.y, spread.y))
 		parent.add_child(leaf)
-		var out := leaf.position + Vector2(rng.randi_range(-22, 22), rng.randi_range(-14, 4))
+		var out := leaf.position + Vector2(rng.randi_range(-spread.x - 14, spread.x + 14), rng.randi_range(-spread.y - 8, 4))
 		var down := out + Vector2(rng.randi_range(-4, 4), rng.randi_range(14, 26))
 		var t := leaf.create_tween()
 		t.tween_property(leaf, "position", out.round(), 0.18).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)

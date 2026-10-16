@@ -47,6 +47,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if granny != null:
 		view.set_highlight(view.object_at_cell(granny.facing_cell()) if not granny.is_moving() else null)
+		view.set_near(granny.current_cell())
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -62,7 +63,7 @@ func _tap(p: Vector2) -> void:
 		if o.kind == "exit":
 			granny.walk_to(o.cell)
 		elif not granny.approach(o.cell, _use.bind(o)):
-			Fx.bubble(view.fx, _top(o), tr("WILD_CANT_REACH"))
+			Fx.bubble(view.fx, o.top(), tr("WILD_CANT_REACH"))
 		return
 	granny.walk_to(Granny.point_to_cell(p))
 
@@ -102,29 +103,29 @@ func _use(o: WildObject) -> void:
 		var reason := String(r.get("reason", ""))
 		Audio.play_sfx("sfx_bag_full" if reason == "UI_BAG_FULL" else "ui_error")
 		if reason != "":
-			Fx.bubble(view.fx, _top(o), tr(reason))
+			Fx.bubble(view.fx, o.top(), tr(reason))
 		return
 	o.pop()
+	_refresh()  # the tree turns bare and drops its tag before the bubble is placed over it
 	var n := _count(r.get("items", []))
 	if o.kind == "fruit_tree":
 		granny.act("shake")
 		camera.shake(2, 0.25)
-		Fx.leaf_burst(view.fx, o.position + Vector2(0, -28))
-		Fx.fruit_to_bag(view.fx, o.position + Vector2(0, -28), o.position.y, granny, o.color, n)
+		Fx.leaf_burst(view.fx, o.canopy(), 16, Vector2i(16, 10))
+		Fx.fruit_to_bag(view.fx, o.canopy(), o.position.y, granny, o.color, n)
 		Audio.play_sfx("sfx_tree_shake")
 	else:
 		granny.act("pick")
 		Audio.play_sfx("sfx_bush_rustle" if o.kind == "bush" else "sfx_pick")
 	Audio.play_sfx("sfx_bag_add")
 	if n > 0:
-		Fx.bubble(view.fx, _top(o), "+%d" % n, 0.6)
+		Fx.bubble(view.fx, o.top(), "+%d" % n, 0.6)
 	var found: Array = r.get("new", [])
 	if not found.is_empty():
 		var v: Dictionary = GameState.data.varieties.get(String(found[0]), {})
 		Hud.toast("WILD_NEW_VARIETY", [String(v.get("name", found[0]))])
 		Audio.play_sfx("sfx_sparkle")
 	GameState.notify(PackedStringArray(["energy", "bag", "wild_today", "found_varieties", "stats"]))
-	_refresh()
 
 
 ## Pulls today's progress (shaken trees, collected pickups) from Forage into the view.
@@ -164,11 +165,6 @@ func _exit() -> void:
 		granny.stop()
 	Audio.stop_ambient("amb_forest")
 	Router.goto("garden" if Router.exists("garden") else "title")
-
-
-static func _top(o: WildObject) -> Vector2:
-	var r := o.hit_rect()
-	return r.position + Vector2(r.size.x * 0.5, 0)
 
 
 static func _count(items: Variant) -> int:

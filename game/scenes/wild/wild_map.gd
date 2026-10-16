@@ -5,11 +5,28 @@ extends Node2D
 ## behind canopies; `fx` sits above for bubbles and particles. Ground tiles come from ART-01's
 ## forest_tiles.png when it exists, else from flat palette placeholders (one per WildGen.T_*). Stepping stones
 ## (T_STONE) are water tiles with ART-FOREST's prop_stepping_stone sprite drawn on the Marks layer, under objects.
+## Readability (INT-WILD): a decor tree whose canopy would hide a path, clearing or special-place tile is drawn as
+## a stump (prop_stump; its tile stays solid, as in the map). Also on the Marks layer: the mushroom_ring sprite in
+## the middle of a mushroom-ring special place, and a few mossy rocks on free grass from the map seed
+## (scatter_rocks). Those two are ground decoration only and never block, like the stepping stones; wood (trees,
+## stumps) always blocks.
 
 const TILE := 16
 const FOREST_TILES := "res://assets/sprites/tiles/forest_tiles.png"
 const FOREST_TILES_JSON := "res://assets/sprites/tiles/forest_tiles.json"
 const STEPPING_STONE := "res://assets/sprites/forest/prop_stepping_stone.png"
+const MUSHROOM_RING := "res://assets/sprites/forest/mushroom_ring.png"
+const MOSSY_ROCK := "res://assets/sprites/forest/prop_mossy_rock.png"
+const ROCK_COUNT := [5, 8]  ## mossy rocks per map, inclusive (fewer when there is no room)
+const ROCK_MIN_D2 := 16  ## squared tile distance between two rocks
+## Granny within this many tiles (straight line): things with something to take show their outline.
+const NEAR_TILES := 5
+## Tiles a 48x64 decor canopy mostly covers, relative to its trunk tile (measured on the ART-FOREST sprites).
+const DECOR_CANOPY := [Vector2i(-1, -2), Vector2i(0, -2), Vector2i(1, -2), Vector2i(-1, -1), Vector2i(0, -1),
+	Vector2i(1, -1), Vector2i(0, -3)]
+## WildGen clears dx²+dy² <= 6 around a clearing centre (Builder.CLEARING_R2).
+const CLEARING_R := 2
+const CLEARING_R2 := 6
 ## Placeholder colours per T_* id (GRASS, LEAVES, DIRT, WATER, PATH, STONE): [base, speckle], art-bible §1.
 const FLAT_COLORS := [["747c37", "b1a13d"], ["b66813", "c94d2e"], ["83571e", "50361e"], ["415c5d", "567c7d"],
 	["c58845", "9b8039"], ["b4b3a0", "81746a"]]
@@ -30,6 +47,10 @@ var _objects: Array[WildObject] = []
 var _blocked := {}
 var _steps: Array[Vector2i] = []  ## T_STONE cells that get the stepping-stone sprite
 var _step_tex: Texture2D
+var _ring_tex: Texture2D
+var _rock_tex: Texture2D
+var _rocks: Array[Vector2i] = []  ## scatter_rocks(map)
+var _near_cell := Vector2i(-1000, -1000)
 
 @onready var ground: TileMapLayer = $Ground
 @onready var objects: Node2D = $Objects
@@ -38,10 +59,17 @@ var _step_tex: Texture2D
 
 func _ready() -> void:
 	ground.tile_set = tileset()
-	if ResourceLoader.exists(STEPPING_STONE):
-		_step_tex = load(STEPPING_STONE)
+	_step_tex = _load_tex(STEPPING_STONE)
+	_ring_tex = _load_tex(MUSHROOM_RING)
+	_rock_tex = _load_tex(MOSSY_ROCK)
 	$Marks.draw.connect(_draw_steps)
+	$Marks.draw.connect(_draw_ring)
+	$Marks.draw.connect(_draw_rocks)
 	$Marks.draw.connect(_draw_marks)
+
+
+static func _load_tex(path: String) -> Texture2D:
+	return load(path) as Texture2D if ResourceLoader.exists(path) else null
 
 
 func size_px() -> Vector2i:
@@ -57,10 +85,13 @@ func show_map(m: Dictionary, varieties: Dictionary = {}) -> void:
 	_objects.clear()
 	_blocked.clear()
 	_steps.clear()
+	_rocks.clear()
+	_near_cell = Vector2i(-1000, -1000)
 	ground.clear()
 	if m.is_empty():
 		$Marks.queue_redraw()
 		return
+	_rocks = scatter_rocks(m)
 	var w := int(m.w)
 	var h := int(m.h)
 	for y in h:
@@ -70,8 +101,13 @@ func show_map(m: Dictionary, varieties: Dictionary = {}) -> void:
 				_steps.append(Vector2i(x, y))
 				t = WildGen.T_WATER
 			ground.set_cell(Vector2i(x, y), 0, _atlas_for(t, x, y))
+	var open := open_cells(m)
 	for d in m.get("decor_trees", []):
-		_add("decor", d, Color.WHITE)
+		var info: Dictionary = d
+		if canopy_covers(Vector2i(int(d.x), int(d.y)), open):
+			info = d.duplicate()
+			info["cut"] = true  # drawn as a stump: same solid cell, but the path or clearing stays in view
+		_add("decor", info, Color.WHITE)
 	for t in m.get("fruit_trees", []):
 		_add("fruit_tree", t, fruit_color(String(t.get("type", "")), String(t.get("variety", "")), varieties))
 	for p in m.get("pickups", []):
@@ -135,6 +171,108 @@ func set_highlight(target: WildObject) -> void:
 	for o in _objects:
 		if is_instance_valid(o):
 			o.highlighted = o == target
+
+
+## Granny's cell: everything within NEAR_TILES gets `near` (outlined while it has something to take).
+func set_near(cell: Vector2i) -> void:
+	if cell == _near_cell:
+		return
+	_near_cell = cell
+	for o in _objects:
+		if is_instance_valid(o):
+			var d := o.cell - cell
+			o.near = d.x * d.x + d.y * d.y <= NEAR_TILES * NEAR_TILES
+
+
+## Cells a decor canopy must not hide: path and stepping stones, clearings (WildGen's cleared radius) and the
+## special place. Set of Vector2i.
+static func open_cells(m: Dictionary) -> Dictionary:
+	var open := {}
+	if m.is_empty():
+		return open
+	var w := int(m.w)
+	for i in (m.ground as PackedByteArray).size():
+		var g := int(m.ground[i])
+		if g == WildGen.T_PATH or g == WildGen.T_STONE:
+			open[Vector2i(i % w, floori(float(i) / w))] = true
+	for c in m.get("clearings", []):
+		for dy in range(-CLEARING_R, CLEARING_R + 1):
+			for dx in range(-CLEARING_R, CLEARING_R + 1):
+				if dx * dx + dy * dy <= CLEARING_R2:
+					open[(c as Vector2i) + Vector2i(dx, dy)] = true
+	var sp: Dictionary = m.get("special", {})
+	if not sp.is_empty():
+		_reserve(open, Vector2i(int(sp.x), int(sp.y)), Rect2i(0, 0, int(sp.get("w", 1)), int(sp.get("h", 1))))
+	return open
+
+
+## A decor tree standing on `at` would hide one of the `open` cells under its canopy (DECOR_CANOPY).
+static func canopy_covers(at: Vector2i, open: Dictionary) -> bool:
+	for off in DECOR_CANOPY:
+		if open.has(at + (off as Vector2i)):
+			return true
+	return false
+
+
+## Mossy-rock tiles for a map, ROCK_COUNT of them when there is room. Same map -> same rocks (stream "wild:props"
+## of the map seed); visual randomness only. They go on grass that nothing uses: off and away from the path,
+## clearings, the special place and the entrance, not under a canopy, not next to a bush or a pickup.
+static func scatter_rocks(m: Dictionary) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if m.is_empty():
+		return out
+	var w := int(m.w)
+	var h := int(m.h)
+	var keep := {}
+	for d in m.get("decor_trees", []):
+		_reserve(keep, Vector2i(int(d.x), int(d.y)), Rect2i(-1, -3, 3, 4))
+	for t in m.get("fruit_trees", []):
+		_reserve(keep, Vector2i(int(t.x), int(t.y)), Rect2i(-2, -4, 5, 5))
+	for p in m.get("pickups", []):
+		_reserve(keep, Vector2i(int(p.x), int(p.y)), Rect2i(-1, -1, 3, 3))
+	for c in m.get("clearings", []):
+		_reserve(keep, c, Rect2i(-3, -3, 7, 7))
+	var sp: Dictionary = m.get("special", {})
+	if not sp.is_empty():
+		_reserve(keep, Vector2i(int(sp.x), int(sp.y)), Rect2i(-1, -1, int(sp.get("w", 1)) + 2, int(sp.get("h", 1)) + 2))
+	var e: Vector2i = m.get("entrance", Vector2i(floori(w * 0.5), h - 1))
+	_reserve(keep, e, Rect2i(-4, -4, 9, 5))
+	for y in h:
+		for x in w:
+			var g := int(m.ground[y * w + x])
+			if g == WildGen.T_PATH or g == WildGen.T_STONE:
+				_reserve(keep, Vector2i(x, y), Rect2i(-1, -1, 3, 3))
+	var cands: Array[Vector2i] = []
+	for y in range(1, h - 1):
+		for x in range(1, w - 1):
+			var c := Vector2i(x, y)
+			if not keep.has(c) and int(m.ground[y * w + x]) == WildGen.T_GRASS and WildGen.is_walkable(m, c):
+				cands.append(c)
+	var r := Seeds.rng(int(m.get("seed", 0)), "wild:props", 0)
+	var want := r.randi_range(int(ROCK_COUNT[0]), int(ROCK_COUNT[1]))
+	for i in range(cands.size() - 1, 0, -1):
+		var j := r.randi_range(0, i)
+		var tmp := cands[i]
+		cands[i] = cands[j]
+		cands[j] = tmp
+	for c in cands:
+		if out.size() >= want:
+			break
+		var far := true
+		for o in out:
+			var d := c - o
+			if d.x * d.x + d.y * d.y < ROCK_MIN_D2:
+				far = false
+				break
+		if far:
+			out.append(c)
+	return out
+
+
+static func _reserve(keep: Dictionary, at: Vector2i, r: Rect2i) -> void:
+	for dy in range(r.position.y, r.end.y):
+		for dx in range(r.position.x, r.end.x):
+			keep[at + Vector2i(dx, dy)] = true
 
 
 ## Colour for a fruit/pickup: the type's ramp middle tone, moved by the variety's colour shift (§6.2).
@@ -225,6 +363,25 @@ func _add(kind: String, info: Dictionary, color: Color) -> void:
 func _draw_steps() -> void:
 	for c in _steps:
 		$Marks.draw_texture(_step_tex, Vector2(c * TILE))
+
+
+## The ring sprite centred on the middle tile of a mushroom-ring special place, inside the ring of mushrooms.
+func _draw_ring() -> void:
+	var sp: Dictionary = map.get("special", {})
+	if _ring_tex == null or String(sp.get("kind", "")) != "mushroom_ring":
+		return
+	var mid := Vector2i(int(sp.x) + floori(int(sp.get("w", 1)) * 0.5), int(sp.y) + floori(int(sp.get("h", 1)) * 0.5))
+	var at := Vector2(mid * TILE) + Vector2(TILE * 0.5, TILE * 0.5) - (_ring_tex.get_size() * 0.5).floor()
+	$Marks.draw_texture(_ring_tex, at)
+
+
+## Each rock sits bottom-centred on its tile.
+func _draw_rocks() -> void:
+	if _rock_tex == null:
+		return
+	var off := Vector2(TILE * 0.5 - floorf(_rock_tex.get_width() * 0.5), TILE - _rock_tex.get_height())
+	for c in _rocks:
+		$Marks.draw_texture(_rock_tex, Vector2(c * TILE) + off)
 
 
 func _draw_marks() -> void:

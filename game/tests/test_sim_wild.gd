@@ -122,6 +122,8 @@ func test_wild_counts_in_rules_ranges() -> void:
 			assert_eq(int(m.pickups[k].id), k, tag + " pickup ids are indices")
 
 
+## Path-side decor trees first, then the "near" fallback (a 4-neighbour within 3 steps of the path), so a fruit
+## tree stands at most 4 tiles from a path tile. With poisson_r 4 (INT-WILD) the fallback is used more often.
 func test_wild_fruit_trees_stand_beside_the_path() -> void:
 	for i in SEEDS:
 		var m := _map(i)
@@ -130,8 +132,8 @@ func test_wild_fruit_trees_stand_beside_the_path() -> void:
 			if t.get("special", false):
 				continue
 			var beside := false
-			for dy in range(-3, 4):
-				for dx in range(-3, 4):
+			for dy in range(-4, 5):
+				for dx in range(-4, 5):
 					var x: int = int(t.x) + dx
 					var y: int = int(t.y) + dy
 					if x >= 0 and y >= 0 and x < w and y < int(m.h):
