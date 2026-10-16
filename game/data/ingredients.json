@@ -17,5 +17,5 @@
   "chestnut":        {"group": "nut",       "sources": ["forest_ground"], "shelf_days": null, "taste": null, "ramp": ["3d1f29","62272c","83571e","c58845","e5bd7f"], "texture": "none", "addin": "chestnut", "priority": 1},
   "oyster_mushroom": {"group": "mushroom",  "sources": ["creek"], "shelf_days": 2, "taste": [0,0,0,1,3], "ramp": ["49423d","81746a","b9a697","b4b3a0","f2d9c5"], "texture": "caps", "display_name": "Oyster Cap", "priority": 1},
   "cabbage":         {"group": "vegetable", "sources": ["bed"], "shelf_days": 8, "taste": [0,1,0,0,2], "ramp": ["314524","53612e","747c37","b7b768","dbcc83"], "texture": "shreds", "priority": 1},
-  "pumpkin":         {"group": "vegetable", "sources": ["bed"], "shelf_days": 12, "taste": [3,0,0,0,2], "ramp": ["50361e","83571e","b66813","c58845","e5bd7f"], "texture": "chunks", "size": [2,2], "priority": 1}
+  "pumpkin":         {"group": "vegetable", "sources": ["bed"], "shelf_days": 12, "taste": [3,0,0,0,2], "ramp": ["50361e","83571e","b66813","c58845","e5bd7f"], "texture": "chunks", "size": [2,2], "zone": "floor", "priority": 1}
 }
