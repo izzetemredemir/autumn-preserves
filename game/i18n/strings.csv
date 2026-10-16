@@ -32,3 +32,13 @@ MG_STIR_HINT,Circle the pot or tap Space to stir. Click foam or press E to skim.
 MG_STIR_TIME,Time: %d
 MG_STIR_GO,Stir!
 MG_STIR_RESULT,Done! %d / 3 stars (%d%%)
+UI_TASTE_SWEET,Sweet
+UI_TASTE_SOUR,Sour
+UI_TASTE_SPICY,Spicy
+UI_TASTE_SALTY,Salty
+UI_TASTE_EARTHY,Earthy
+UI_NEW_RECIPE,New recipe!
+UI_VALUE,Value
+UI_CONTINUE,Continue
+UI_STARS_QUALITY,Quality
+UI_STARS_HARMONY,Harmony
