@@ -262,3 +262,75 @@ UI_DEV_GAVE,Added %d stacks.
 UI_DEV_DAY,Day %d
 UI_DEV_SEED_COPIED,Seed %d copied.
 UI_DEV_DEMO_BAD,No demo save at res://dev/demo_save.json
+LET_POST_OFFICE,Post office
+LET_TITLE,Letters
+LET_EMPTY,No letters yet. Mia and Leo write every few days.
+LET_LIST_ITEM,"%s, day %d"
+LET_DEAR,"Dear Granny,"
+LET_ASK,Could you send me a parcel with:
+LET_REQ_TASTE,something %s
+LET_REQ_RECIPE,some %s
+LET_REQ_BOTH,some %s %s
+LET_REQ_ANY,anything you made
+LET_PS_DISLIKE,"P.S. No %s, please!"
+LET_PS_RECIPE,P.S. Mum found the family recipe for %s. It is yours again!
+LET_SIGN,"Love, %s"
+LET_GROUP_FRUIT,fruit
+LET_GROUP_VEGETABLE,vegetables
+LET_GROUP_MUSHROOM,mushrooms
+LET_GROUP_NUT,nuts
+LET_OR,%s or %s
+LET_PACK,Pack a parcel
+LET_CLOSE,Close
+LET_BACK,Back
+LET_SEND,Send
+LET_STRAW,Add straw
+LET_STRAW_OFF,Take straw out
+LET_YOUR_JARS,Your jars
+LET_NO_JARS,No ready jars. Make some preserves first!
+LET_PARCEL_FOR,Parcel for %s
+LET_ASKED,%s asked for:
+LET_CARE_HEAD,Packed with care:
+LET_CARE_REQUEST,the whole request
+LET_CARE_STRAW,straw in the gaps
+LET_CARE_SURPRISE,a surprise: %s
+LET_LOVE_PREVIEW,+%d love
+LET_PACK_HINT,Drag jars into the box.
+LET_STATUS_SENT,Parcel sent on day %d.
+LET_STATUS_WAIT,%s will write back soon.
+LET_STATUS_THANKS,A thank-you note.
+LET_SENT,Parcel sent to %s!
+LET_SENT_CARE,Packed with care! %s will love it.
+LET_UNLOCKED,New recipe: %s!
+LET_LOVE_HEAD,Love
+LET_NO_LETTER,That letter is already answered.
+LET_BOX_EMPTY,Put at least one jar in the box.
+LET_BOX_BAD,That does not fit in the box.
+LET_NOT_READY,That jar is still waiting.
+LET_ONLY_JARS,Only jars go in a parcel.
+LET_NOTE_MIA_1,School started again. I sit next to a girl who has a pet snail!
+LET_NOTE_MIA_2,I lost my first tooth! Mum says the tooth fairy is very busy this autumn.
+LET_NOTE_MIA_3,We made leaf crowns in class. Mine was the reddest one.
+LET_NOTE_MIA_4,"It rained all week, so I read three whole books."
+LET_NOTE_MIA_5,I am learning the recorder. Leo says it sounds like a sad goose.
+LET_NOTE_MIA_6,I drew your garden from memory. The apple tree is as tall as a house.
+LET_NOTE_LEO_1,Our football team won on Saturday. I nearly scored a goal!
+LET_NOTE_LEO_2,I found a beetle as big as my thumb. Mia screamed.
+LET_NOTE_LEO_3,Dad let me stir the soup. I added extra pepper and nobody noticed.
+LET_NOTE_LEO_4,The city is so loud. I miss your quiet garden and the crunchy leaves.
+LET_NOTE_LEO_5,I am building a castle from cardboard boxes. Big boxes are best!
+LET_NOTE_LEO_6,We had a spelling test. I spelled 'chutney' right!
+LET_REPLY_MIA_1,Thank you for the parcel! I shared a spoonful with my whole class.
+LET_REPLY_MIA_2,Your parcel smelled just like your kitchen. I opened it very slowly.
+LET_REPLY_MIA_3,"Mum put your jars on the top shelf, so I can see them every day."
+LET_REPLY_LEO_1,The parcel came! I carried it home all by myself.
+LET_REPLY_LEO_2,"Thank you, Granny! Dad and I ate half a jar before supper."
+LET_REPLY_LEO_3,Best parcel ever. I am keeping the straw for my beetle.
+LET_REPLY_CARE_MIA,And there was a surprise! You always know just what I love.
+LET_REPLY_CARE_LEO,"Nothing rattled, and there was a surprise inside. You are the best!"
+LET_RECIPE_GRANNYS_QUINCE_BUTTER,Granny's Quince Butter
+LET_RECIPE_BLACKBERRY_HONEY_JAM,Blackberry Honey Jam
+LET_RECIPE_CRABAPPLE_JELLY,Crabapple Jelly
+LET_RECIPE_PEPPER_RELISH,Pepper Relish
+LET_RECIPE_CHILI_PICKLES,Chili Pickles
+LET_RECIPE_SALTED_PORCINI,Salted Porcini

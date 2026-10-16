@@ -123,10 +123,16 @@ func _build() -> void:
 		add_child(b)
 		_tab_buttons[t[0]] = b
 		x += 100
+	var post := Button.new()
+	post.text = tr("LET_POST_OFFICE")
+	post.position = Vector2(306, 52)
+	post.size = Vector2(68, 20)
+	post.pressed.connect(_on_post_office)
+	add_child(post)
 	var back := Button.new()
 	back.text = tr("TOWN_BACK_GARDEN")
-	back.position = Vector2(372, 52)
-	back.size = Vector2(100, 20)
+	back.position = Vector2(378, 52)
+	back.size = Vector2(94, 20)
 	back.pressed.connect(_on_back)
 	add_child(back)
 	var panel := PanelContainer.new()
@@ -150,6 +156,11 @@ func _on_tab(id: String) -> void:
 
 func _on_back() -> void:
 	Router.goto("garden" if Router.exists("garden") else "kitchen")
+
+
+## Post office (P1-LETTERS): grandchild letters and the parcel screen, as an overlay.
+func _on_post_office() -> void:
+	LettersUI.open()
 
 
 func _unhandled_input(event: InputEvent) -> void:

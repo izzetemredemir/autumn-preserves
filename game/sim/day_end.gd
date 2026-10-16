@@ -46,7 +46,9 @@ static func run_with(state: Dictionary, seams: Dictionary) -> Array:
 	# 7. Orders: expired ones are replaced silently, empty slots fill, one stays satisfiable.
 	for o in Orders.refill_with(state, seams.get("taste", Orders.product_taste())):
 		events.append({"type": "order_new", "order": o})
-	# 8. Letters and parcels (P1, stream "letters"). 9. Market on every 7th day (P1, stream "market").
+	# 8. Letters and parcels (P1, stream "letters"): replies two days after a parcel, a new letter every 3-4 days.
+	events.append_array(Letters.night(state))
+	# 9. Market on every 7th day (P1, stream "market").
 	# 10. Today's wild progress resets.
 	state.wild_today = {}
 	# 11. Autosave: the caller (GameState.end_day) saves; sim code never touches the disk.
