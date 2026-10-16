@@ -2,7 +2,7 @@
   "_doc": "Every tuning number from the design spec lives here. Code reads these, never hard-codes them. Section refs are to the design spec.",
   "energy": {"base": 80, "pantry_bonus_per_star": 5, "costs": {"walk": 0, "pick_ground": 1, "pick_bush": 2, "shake_tree": 3, "bed_plant": 1, "bed_harvest": 1, "stir_pot": 7, "pack_jar": 6, "press": 6, "knead": 7}},
   "bag": {"capacity": 30, "shake_needs_free": 3},
-  "forage": {"tree_yield": [2, 3], "bush_yield": 2, "ground_yield": 1, "ring_rare_weight_mult": 3},
+  "forage": {"tree_yield": [2, 3], "bush_yield": 2, "ground_yield": 1, "ring_rare_weight_mult": 3, "uncommon_spawn_weight": 0.5},
   "varieties": {
     "count_p0": 4, "count_p1": 6,
     "tiers_p0": ["common", "common", "uncommon", "rare"],

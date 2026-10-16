@@ -53,3 +53,13 @@ UI_BAG,Bag
 UI_KITCHEN_WRONG,That doesn't go in this recipe
 UI_KITCHEN_MISSING,Something is missing
 UI_KITCHEN_SAME_VARIETY,Needs all of the same variety
+UI_NOTHING_LEFT,Nothing left here
+UI_NO_COINS,Not enough coins
+UI_NOT_AVAILABLE,Not available yet
+UI_TREE_EMPTY,No fruit left on this tree
+UI_BED_BUSY,Something is already growing here
+UI_NO_SEED,No seeds for that
+UI_NO_FERTILIZER,No fertilizer
+UI_NOT_READY,Not ready yet
+UI_ORDER_NO_MATCH,That's not quite what they asked for
+UI_GIFTED_TODAY,You already gave them something today

@@ -22,7 +22,6 @@ const T_STONE := 5
 const DECOR_KINDS := ["maple", "birch", "oak"]
 ## Type weight of an ingredient flagged "uncommon_spawn" (porcini is sparse in the forest, spec §6.1).
 ## TODO(rules.json): move to rules.forage.uncommon_spawn_weight.
-const UNCOMMON_SPAWN_WEIGHT := 0.5
 const MAX_PRIORITY := 0  # P0 content only
 
 
@@ -77,7 +76,7 @@ static func biome_types(biome: String, slot: String) -> Array:
 	return out
 
 
-## Ground-point type weights: 1 per type, UNCOMMON_SPAWN_WEIGHT for "uncommon_spawn" types,
+## Ground-point type weights: 1 per type, float(Data.rules().forage.get("uncommon_spawn_weight", 0.5)) for "uncommon_spawn" types,
 ## mushrooms × rules.weather.rain_mushroom_mult when it rains (spec §7.10). {"types": [..], "weights": [..]}
 static func ground_type_weights(biome: String, weather: String) -> Dictionary:
 	var ing := Data.ingredients()
@@ -86,7 +85,7 @@ static func ground_type_weights(biome: String, weather: String) -> Dictionary:
 	var weights: Array = []
 	for t in types:
 		var row: Dictionary = ing[t]
-		var wgt := UNCOMMON_SPAWN_WEIGHT if bool(row.get("uncommon_spawn", false)) else 1.0
+		var wgt := float(Data.rules().forage.get("uncommon_spawn_weight", 0.5)) if bool(row.get("uncommon_spawn", false)) else 1.0
 		if row.group == "mushroom":
 			wgt *= rain_mult
 		weights.append(wgt)
