@@ -6,6 +6,13 @@ A cozy pixel-art game about **Granny Tonty**, who lives in **Everfall**, a small
 
 Made for the **KODTÜ 7** game jam (16–18 October 2026).
 
+| | |
+|---|---|
+| ![Title](shots/title.png) | ![Garden](shots/garden.png) |
+| ![Vineyard](shots/wild.png) | ![Stove](shots/kitchen.png) |
+| ![Pantry](shots/pantry.png) | ![Weekly market](shots/market.png) |
+| ![A letter from Mia](shots/letters.png) | ![Seed Lab](shots/seedlab.png) |
+
 ## How it plays
 
 - **Explore and forage.** Every morning the wild is generated anew from a seed. Shake fruit trees, pick blackberries, find mushroom rings and rare varieties. Besides the forest there is a **vineyard** (open it by befriending the vintner) and a **creek** (buy the boots at the grocer). The garden gate asks where to go once a second wild is open.
