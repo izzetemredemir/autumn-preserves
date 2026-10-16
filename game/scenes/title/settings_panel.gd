@@ -1,9 +1,11 @@
 class_name SettingsPanel
 extends PanelContainer
-## Settings (spec §10): music / effects / ambience sliders, fullscreen, show seed, Granny's To-Do.
-## Every change is applied at once and written to user://settings.cfg (GameSettings). Emits `closed`.
+## Settings (spec §10): music / effects / ambience sliders, fullscreen, show seed, Granny's To-Do, language.
+## Every change is applied at once and written to user://settings.cfg (GameSettings). Emits `closed`, and
+## `language_changed` after the locale switched (the title rebuilds itself in the new language).
 
 signal closed
+signal language_changed
 
 const SLIDERS := [["TITLE_SET_MUSIC", "music"], ["TITLE_SET_SFX", "sfx"], ["TITLE_SET_AMBIENT", "ambient"]]
 const TOGGLES := [
@@ -17,7 +19,7 @@ var _first: Control
 
 func _ready() -> void:
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 4)
+	box.add_theme_constant_override("separation", 2)
 	add_child(box)
 	var head := Label.new()
 	head.text = tr("TITLE_SETTINGS")
@@ -27,7 +29,7 @@ func _ready() -> void:
 	var grid := GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 3)
+	grid.add_theme_constant_override("v_separation", 1)  # seven rows since the language picker (L10N-TR)
 	box.add_child(grid)
 	for s in SLIDERS:
 		grid.add_child(_label(tr(s[0])))
@@ -38,6 +40,8 @@ func _ready() -> void:
 	for t in TOGGLES:
 		grid.add_child(_label(tr(t[0])))
 		grid.add_child(_toggle(String(t[1]), String(t[2])))
+	grid.add_child(_label(tr("TITLE_SET_LANGUAGE")))
+	grid.add_child(_language_button())
 	var back := Button.new()
 	back.text = tr("UI_BACK")
 	back.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -96,6 +100,25 @@ func _toggle(section: String, key: String) -> Button:
 		GameSettings.set_value(section, key, on)
 		GameSettings.apply()
 		Audio.play_ui("ui_click"))
+	return b
+
+
+## L10N-TR · Language: English / Türkçe, each name in its own language. A press moves to the next one, stores it
+## and applies the locale.
+func _language_button() -> Button:
+	var b := Button.new()
+	b.name = "Language"
+	b.custom_minimum_size = Vector2(48, 0)
+	b.text = String(GameSettings.LANGUAGES[GameSettings.language()])
+	b.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	b.pressed.connect(func() -> void:
+		var codes: Array = GameSettings.LANGUAGES.keys()
+		var next := String(codes[(codes.find(GameSettings.language()) + 1) % codes.size()])
+		GameSettings.set_value("game", "language", next)
+		GameSettings.apply_language(next)
+		b.text = String(GameSettings.LANGUAGES[next])
+		Audio.play_ui("ui_click")
+		language_changed.emit())
 	return b
 
 

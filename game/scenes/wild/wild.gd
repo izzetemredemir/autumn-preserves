@@ -140,7 +140,7 @@ func _use(o: WildObject) -> void:
 	var found: Array = r.get("new", [])
 	if not found.is_empty():
 		var v: Dictionary = GameState.data.varieties.get(String(found[0]), {})
-		Hud.toast("WILD_NEW_VARIETY", [String(v.get("name", found[0]))])
+		Hud.toast("WILD_NEW_VARIETY", [VarietyGen.display_name(v) if not v.is_empty() else String(found[0])])
 		Audio.play_sfx("sfx_sparkle")
 	GameState.notify(PackedStringArray(["energy", "bag", "wild_today", "found_varieties", "stats"]))
 

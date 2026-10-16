@@ -157,7 +157,7 @@ static func letter(state: Dictionary) -> Array:
 	if rare.is_empty():
 		out.append(_l("FAREWELL_LETTER_RARE_NONE", []))
 	else:
-		out.append(_l("FAREWELL_LETTER_RARE", [String(rare.get("name", "?"))]))
+		out.append(_l("FAREWELL_LETTER_RARE", [VarietyGen.display_name(rare)]))
 	var friend := best_neighbour(state)
 	if friend == "":
 		out.append(_l("FAREWELL_LETTER_FRIEND_NONE", []))

@@ -667,7 +667,7 @@ func _type_block(type: String) -> Control:
 	v.add_child(head)
 	_icon(head, type)
 	var tl := _label(FONT_TITLE, 18, GOLD_DK)
-	tl.text = tr("BOOK_TYPE_" + type.to_upper())
+	tl.text = VarietyGen.type_name(type)  # every type, P1 too, in the current language
 	tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(tl)
 	var found: Array = _data().get("found_varieties", [])
@@ -698,7 +698,7 @@ func _variety_row(variety: Dictionary, found: bool) -> Control:
 		sp.custom_minimum_size = Vector2(4, 0)
 		h.add_child(sp)
 	var nm := _label(FONT_BODY, 18, col if found else PAPER_DK)
-	nm.text = String(variety.get("name", "?")) if found else tr("BOOK_UNKNOWN")
+	nm.text = VarietyGen.display_name(variety) if found else tr("BOOK_UNKNOWN")
 	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	nm.clip_text = true
 	h.add_child(nm)

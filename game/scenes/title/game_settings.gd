@@ -1,14 +1,19 @@
 class_name GameSettings
 extends RefCounted
-## Player settings in user://settings.cfg (spec §10): volumes, fullscreen, show seed, Granny's To-Do.
-## Read anywhere with GameSettings.get_value("game", "show_seed"); `apply()` pushes volumes and window mode.
+## Player settings in user://settings.cfg (spec §10): volumes, fullscreen, show seed, Granny's To-Do, language.
+## Read anywhere with GameSettings.get_value("game", "show_seed"); `apply()` pushes volumes, window mode and language.
 
 const PATH := "user://settings.cfg"
 const DEFAULTS := {
 	"audio": {"music": 0.8, "sfx": 0.8, "ambient": 0.8},
 	"display": {"fullscreen": false},
-	"game": {"show_seed": true, "tutorial": true},
+	"game": {"show_seed": true, "tutorial": true, "language": "en"},
 }
+## L10N-TR · Languages of the settings picker: locale -> its own name (shown untranslated). English stays the default,
+## whatever the OS locale is.
+const LANGUAGES := {"en": "English", "tr": "Türkçe"}
+## Loaded by hand when project.godot does not list it yet (and in tests): locale -> translation file.
+const TRANSLATIONS := {"tr": "res://i18n/strings_tr.tr.translation"}
 ## settings.cfg audio key -> buses it drives (UI clicks follow the effects slider).
 const BUSES := {"music": ["Music"], "sfx": ["SFX", "UI"], "ambient": ["Ambient"]}
 
@@ -43,8 +48,39 @@ static func tutorial_enabled() -> bool:
 	return bool(get_value("game", "tutorial"))
 
 
-## Volumes through the Audio autoload, plus the window mode. Safe to call before Audio exists.
+static func language() -> String:
+	var l := String(get_value("game", "language"))
+	return l if LANGUAGES.has(l) else "en"
+
+
+## Sets the locale (TranslationServer) to `lang` ("" = the saved setting). A `--locale=xx` user argument wins, so
+## smoke runs can shoot one language without touching the player's settings.
+static func apply_language(lang: String = "") -> void:
+	if lang == "":
+		lang = language()
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--locale="):
+				lang = a.substr(9)
+	if not LANGUAGES.has(lang):
+		lang = "en"
+	ensure_translation(lang)
+	if TranslationServer.get_locale().left(2) != lang:  # unchanged: no retranslation pass over the tree
+		TranslationServer.set_locale(lang)
+
+
+## Adds the language's translation when the project list does not have it.
+static func ensure_translation(lang: String) -> void:
+	if not TRANSLATIONS.has(lang) or TranslationServer.get_loaded_locales().has(lang):
+		return
+	if ResourceLoader.exists(TRANSLATIONS[lang]):
+		var t: Translation = load(TRANSLATIONS[lang])
+		if t != null:
+			TranslationServer.add_translation(t)
+
+
+## Volumes through the Audio autoload, plus the window mode and the language. Safe to call before Audio exists.
 static func apply() -> void:
+	apply_language()
 	var tree := Engine.get_main_loop() as SceneTree
 	var audio: Node = tree.root.get_node_or_null("Audio") if tree != null else null
 	if audio != null:

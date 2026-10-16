@@ -264,7 +264,7 @@ func _paper(text: String, wide := true) -> void:
 func _req_text(req: Dictionary) -> String:
 	var recipe := String(req.get("recipe", ""))
 	var taste := String(req.get("taste", ""))
-	var rname := String(Data.recipes().get(recipe, {}).get("name", recipe)).to_lower()
+	var rname := ProductGen.recipe_name(recipe).to_lower()
 	var tname := tr("UI_TASTE_" + taste.to_upper()).to_lower()
 	if recipe != "" and taste != "":
 		return tr("LET_REQ_BOTH") % [tname, rname]

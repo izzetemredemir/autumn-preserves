@@ -26,10 +26,17 @@ func _board(entries: Array) -> ArrangeBoard:
 	return b
 
 
+## A real item shape (the board's item view reads kind/key), with the test's own size.
+func _item(key: String, size: Vector2i) -> Dictionary:
+	var it := State.product(key, 2, 0, 3)
+	it["size"] = size
+	return it
+
+
 func test_inbox_two_by_one_lands_under_cursor() -> void:
 	var entries := []
 	var b := _board(entries)
-	var item := {"id": "bread", "size": Vector2i(2, 1)}
+	var item := _item("bread|-", Vector2i(2, 1))
 	# pointer in the middle of cell (1,1); the right neighbour (2,1) is free
 	var pointer := Vector2(24 * 1 + 12, 24 * 1 + 12)
 	# the old inbox passed the offset inside its 24 px slot: a far corner here, which used to shift the anchor
@@ -43,9 +50,9 @@ func test_inbox_two_by_one_lands_under_cursor() -> void:
 
 
 func test_inbox_two_by_one_blocked_right_neighbour_refused() -> void:
-	var entries := [{"item": {"id": "jar", "size": Vector2i(1, 1)}, "x": 2, "y": 1, "rot": 0}]
+	var entries := [{"item": _item("jam|apple_1|", Vector2i(1, 1)), "x": 2, "y": 1, "rot": 0}]
 	var b := _board(entries)
-	var item := {"id": "bread", "size": Vector2i(2, 1)}
+	var item := _item("bread|-", Vector2i(2, 1))
 	assert_true(b.begin_hold(item, {"where": "inbox", "index": 0}, Vector2(36, 36), Vector2(20, 4)))
 	assert_false(bool(b._preview.get("fits")), "right neighbour taken")
 	b.cancel_hold()

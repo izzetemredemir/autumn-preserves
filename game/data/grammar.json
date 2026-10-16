@@ -15,5 +15,49 @@
   },
   "profile_adjectives": {"sweet": "Golden", "sour": "Tart", "spicy": "Warm", "salty": "Briny", "earthy": "Smoky", "mild": "Mellow"},
   "axis_names": ["Sweet", "Sour", "Spicy", "Salty", "Earthy"],
-  "axis_order": ["sweet", "sour", "spicy", "salty", "earthy"]
+  "axis_order": ["sweet", "sour", "spicy", "salty", "earthy"],
+  "tr": {
+    "_doc": "L10N-TR display names, never stored (saves keep the English variety names). Product name = '<adjective> <feature> <type> <recipe>': add-in adjectives take -li by vowel harmony unless given, the recipe takes the compound suffix after a type ('Elma Reçeli'), a noun feature puts the type in the compound form too ('Köy Armudu'), compound_types already have it. Repeat rule on the English words and on the Turkish stems, then the same 28-letter fallbacks. Family recipes: '<family_adjective> <feature> <short>', noun features left out.",
+    "types": {
+      "apple": "Elma", "quince": "Ayva", "crabapple": "Yaban Elması", "pear": "Armut", "blackberry": "Böğürtlen",
+      "cucumber": "Salatalık", "pepper": "Biber", "chanterelle": "Horoz Mantarı", "porcini": "Çörek Mantarı",
+      "walnut": "Ceviz", "grape": "Üzüm", "rosehip": "Kuşburnu", "elderberry": "Mürver", "hazelnut": "Fındık",
+      "chestnut": "Kestane", "oyster_mushroom": "Kayın Mantarı", "cabbage": "Lahana", "pumpkin": "Balkabağı"
+    },
+    "compound_types": ["crabapple", "chanterelle", "porcini", "rosehip", "oyster_mushroom", "pumpkin"],
+    "features": {
+      "Honey": "Bal", "Sweet": "Tatlı", "Tart": "Mayhoş", "Sharp": "Ekşi", "Ember": "Kızıl", "Mill": "Köy",
+      "Hollow": "Dere", "Ridge": "Yamaç", "Little": "Minik", "Big": "İri", "Dusk": "Kara", "Golden": "Altın"
+    },
+    "noun_features": ["Bal", "Köy", "Dere", "Yamaç"],
+    "profile_adjectives": {"sweet": "Altın", "sour": "Mayhoş", "spicy": "Sıcacık", "salty": "Tuzlu", "earthy": "Füme", "mild": "Hafif"},
+    "axis_names": ["Tatlı", "Ekşi", "Baharatlı", "Tuzlu", "Topraksı"],
+    "mild": "Hafif",
+    "addins": {
+      "honey": {"name": "Bal"}, "cinnamon": {"name": "Tarçın"}, "clove": {"name": "Karanfil"},
+      "ginger": {"name": "Zencefil"}, "chili": {"name": "Acı Biber", "adjective": "Acılı"}, "walnut": {"name": "Ceviz"},
+      "hazelnut": {"name": "Fındık"}, "chestnut": {"name": "Kestane"}, "thyme": {"name": "Kekik"}, "mint": {"name": "Nane"}
+    },
+    "recipes": {
+      "jam": {"name": "Reçel", "short": "Reçel"},
+      "fruit_butter": {"name": "Meyve Ezmesi", "short": "Ezme"},
+      "chutney": {"name": "Çatni", "short": "Çatni"},
+      "pickle": {"name": "Turşu", "short": "Turşu"},
+      "brined_mushroom": {"name": "Mantar Turşusu", "short": "Turşu"},
+      "juice": {"name": "Meyve Suyu", "short": "Su"},
+      "fruit_vinegar": {"name": "Meyve Sirkesi", "short": "Sirke"},
+      "syrup": {"name": "Şurup", "short": "Şurup"},
+      "kraut": {"name": "Lahana Turşusu", "short": "Turşu"},
+      "pie": {"name": "Turta", "short": "Turta"},
+      "bread": {"name": "Ekmek", "short": "Ekmek"},
+      "grannys_quince_butter": {"name": "Nine'nin Ayva Ezmesi", "short": "Ayva Ezmesi"},
+      "blackberry_honey_jam": {"name": "Ballı Böğürtlen Reçeli", "short": "Ballı Böğürtlen Reçeli"},
+      "crabapple_jelly": {"name": "Yaban Elması Jölesi", "short": "Yaban Elması Jölesi"},
+      "pepper_relish": {"name": "Biber Ezmesi", "short": "Biber Ezmesi"},
+      "chili_pickles": {"name": "Acılı Turşu", "short": "Acılı Turşu"},
+      "salted_porcini": {"name": "Tuzlu Çörek Mantarı", "short": "Tuzlu Çörek Mantarı"}
+    },
+    "family_adjective": "Nine'nin",
+    "compound_exceptions": {"Su": "Suyu"}
+  }
 }

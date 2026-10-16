@@ -300,9 +300,10 @@ func _item_name(item: Dictionary) -> String:
 		"product":
 			return ProductGen.product_name(item.key, d.varieties)
 		"fresh":
-			return "%s x%d" % [d.varieties.get(item.variety, {}).get("name", item.variety), int(item.count)]
+			var v: Dictionary = d.varieties.get(item.variety, {})
+			return "%s x%d" % [VarietyGen.display_name(v) if not v.is_empty() else String(item.variety), int(item.count)]
 		"nut":
-			return "%s x%d" % [String(item.type).capitalize(), int(item.count)]
+			return "%s x%d" % [VarietyGen.type_name(String(item.type)), int(item.count)]
 	return "?"
 
 
@@ -453,7 +454,7 @@ func _order_text(o: Dictionary) -> String:
 	var who: String = Data.npcs().get(o.npc, {}).get("name", o.npc)
 	var axes := _axis_text(o.axes)
 	if String(o.recipe) != "":
-		var recipe: String = Data.recipes().get(o.recipe, {}).get("name", o.recipe)
+		var recipe := ProductGen.recipe_name(String(o.recipe))
 		if axes == "":
 			return tr("TOWN_ORDER_RECIPE_PLAIN") % [who, recipe, int(o.min_stars)]
 		return tr("TOWN_ORDER_RECIPE") % [who, recipe, axes, int(o.min_stars)]

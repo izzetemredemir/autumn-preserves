@@ -1,0 +1,653 @@
+keys,tr
+TITLE_GAME,Autumn Preserves
+TITLE_NEW_GAME,Yeni Oyun
+TITLE_CONTINUE,Devam Et
+TITLE_SEED_LAB,Tohum Atölyesi
+UI_BACK,Geri
+UI_OK,Tamam
+UI_CANCEL,Vazgeç
+UI_BAG_FULL,Çanta dolu
+UI_TIRED,Yoruldum
+UI_ENERGY,Enerji
+UI_COINS,Akçe
+UI_SEED,Tohum
+KITCHEN_RECIPES,Tarifler
+KITCHEN_MAIN,Ana malzeme
+KITCHEN_SECOND,İkinci malzeme
+KITCHEN_ADDIN,Katkı
+KITCHEN_NO_ADDIN,Katkısız
+KITCHEN_COOK,Pişir
+KITCHEN_TO_PANTRY,Kiler
+KITCHEN_TO_GARDEN,Bahçe
+KITCHEN_BED,Yatmaya git
+KITCHEN_INBOX,Yeni gelenler
+KITCHEN_STATUS,%d. gün  Enerji %d  %d akçe
+KITCHEN_PICK_RECIPE,Bir tarif seç.
+KITCHEN_NEW_VARIANT,Yeni bir şey...
+KITCHEN_COOK_FAILED,Bunu pişiremedim.
+KITCHEN_MORNING,Günaydın! %d. gün (gece %d şey oldu)
+MG_STIR_TITLE,Tencereyi karıştır
+MG_STIR_CONSISTENCY,Kıvam
+MG_STIR_HINT,Karıştır: daire çiz ya da Space. Köpük: tıkla ya da E.
+MG_STIR_TIME,Süre: %d
+MG_STIR_GO,Karıştır!
+MG_STIR_RESULT,Bitti! %d / 3 yıldız (%%%d)
+UI_TASTE_SWEET,Tatlı
+UI_TASTE_SOUR,Ekşi
+UI_TASTE_SPICY,Baharatlı
+UI_TASTE_SALTY,Tuzlu
+UI_TASTE_EARTHY,Topraksı
+UI_NEW_RECIPE,Yeni tarif!
+UI_VALUE,Değer
+UI_CONTINUE,Devam
+UI_STARS_QUALITY,Kalite
+UI_STARS_HARMONY,Uyum
+MG_PACK_DONE,Paketleme bitti
+MG_PACK_FILL,Dolu: %%%d
+MG_PACK_HINT_PACK,"Kaydır: A/D, fare. Döndür: R, sağ tık. Bırak: S, tık."
+MG_PACK_HINT_BRINE,"Space ya da fareye bas, salamurayı çizgiye kadar dök."
+MG_PACK_HINT_LID,3 kez tıkla ya da kapağı çevir.
+MG_PACK_HINT_DONE,Kapandı!
+UI_DAY,Gün
+UI_BAG,Çanta
+WILD_CANT_REACH,Oraya uzanamıyorum
+WILD_BIOME_FOREST,Orman
+WILD_SPECIAL_MUSHROOM_RING,Mantar halkası
+WILD_SPECIAL_ABANDONED_ORCHARD,Unutulmuş bahçe
+WILD_LAB_SEED_HINT,rastgele
+WILD_LAB_GENERATE,Üret
+WILD_LAB_RANDOM,Rastgele
+WILD_LAB_WALK,Yürü
+WILD_LAB_PAN,Sürükle ya da WASD
+WILD_LAB_INFO,Harita %d  ağaç %d  çalı %d  yer %d
+UI_KITCHEN_WRONG,Bu tarife o girmez
+UI_KITCHEN_MISSING,Bir şey eksik
+UI_KITCHEN_SAME_VARIETY,Hepsi aynı çeşit olmalı
+UI_NOTHING_LEFT,Burada bir şey kalmadı
+UI_NO_COINS,Akçen yetmiyor
+UI_NOT_AVAILABLE,Henüz yok
+UI_TREE_EMPTY,Bu ağaçta meyve kalmadı
+UI_BED_BUSY,Burada zaten bir şey büyüyor
+UI_NO_SEED,Bunun tohumu yok
+UI_NO_FERTILIZER,Gübre yok
+UI_NOT_READY,Henüz hazır değil
+UI_ORDER_NO_MATCH,İstedikleri tam olarak bu değil
+UI_GIFTED_TODAY,Bugün ona zaten bir şey verdin
+BOOK_TITLE,Tarif Defteri
+BOOK_TAB_RECIPES,Tarifler
+BOOK_TAB_VARIETIES,Çeşitler
+BOOK_CLOSE,X
+BOOK_BASE_RECIPES,Temel tarifler
+BOOK_VARIANTS,Keşfedilen tatlar
+BOOK_EMPTY,Defterin boş. Bir şeyler pişir!
+BOOK_UNKNOWN,???
+BOOK_DISCOVERED,%d tat keşfedildi
+BOOK_NEXT_MILESTONE,sonraki ödül: %d
+BOOK_ALL_MILESTONES,bütün ödüller alındı
+BOOK_RARITY_COMMON,Yaygın
+BOOK_RARITY_UNCOMMON,Seyrek
+BOOK_RARITY_RARE,Nadir
+BOOK_METHOD_STIR_POT,tencereyi karıştır
+BOOK_METHOD_PACK_JAR,kavanozu doldur
+BOOK_METHOD_PRESS,sık
+BOOK_METHOD_KNEAD,yoğur
+BOOK_RECIPE_JAM,Reçel
+BOOK_RECIPE_FRUIT_BUTTER,Meyve Ezmesi
+BOOK_RECIPE_CHUTNEY,Çatni
+BOOK_RECIPE_PICKLE,Turşu
+BOOK_RECIPE_BRINED_MUSHROOM,Mantar Turşusu
+BOOK_RECIPE_JUICE,Meyve Suyu
+BOOK_RECIPE_FRUIT_VINEGAR,Meyve Sirkesi
+BOOK_RECIPE_SYRUP,Şurup
+BOOK_RECIPE_KRAUT,Lahana Turşusu
+BOOK_RECIPE_PIE,Turta
+BOOK_RECIPE_BREAD,Ekmek
+BOOK_TYPE_APPLE,Elma
+BOOK_TYPE_QUINCE,Ayva
+BOOK_TYPE_CRABAPPLE,Yaban Elması
+BOOK_TYPE_PEAR,Armut
+BOOK_TYPE_BLACKBERRY,Böğürtlen
+BOOK_TYPE_CUCUMBER,Salatalık
+BOOK_TYPE_PEPPER,Biber
+BOOK_TYPE_CHANTERELLE,Horoz Mantarı
+BOOK_TYPE_PORCINI,Çörek Mantarı
+TOWN_TAB_GROCER,Bakkal
+TOWN_TAB_ORDERS,Siparişler
+TOWN_TAB_NEIGHBOURS,Komşular
+TOWN_BACK_GARDEN,Geri
+TOWN_BUY,Al
+TOWN_SELL,Sat
+TOWN_GIVE,Ver
+TOWN_GIFT,Hediye
+TOWN_DELIVER,Teslim et
+TOWN_GROCER_HELLO,Barnaby: Ne alırdın?
+TOWN_HAVE,%d var
+TOWN_PRICE,%d akçe
+TOWN_REWARD,%d akçe
+TOWN_BOUGHT,%s alındı: %d akçe
+TOWN_SOLD,%d akçeye satıldı
+TOWN_NOTHING_TO_SELL,Satacak bir şeyin yok.
+TOWN_NO_ORDERS,Bugün panoda sipariş yok.
+TOWN_ORDER_ANY,%s: %s bir şey (%d+ yıldız)
+TOWN_ORDER_PLAIN,%s: lezzetli bir şey (%d+ yıldız)
+TOWN_ORDER_RECIPE,"%s: %s, %s (%d+ yıldız)"
+TOWN_ORDER_RECIPE_PLAIN,%s: %s (%d+ yıldız)
+TOWN_DAYS_LEFT,%d gün kaldı
+TOWN_LAST_DAY,Son gün
+TOWN_DELIVERED,Teslim edildi! +%d akçe
+TOWN_DELIVERED_HEART,Teslim edildi! +%d akçe ve bir kalp
+TOWN_PICK_FOR_ORDER,Bir kavanoz seç
+TOWN_PICK_FOR_GIFT,%s için hediye seç
+TOWN_NO_JARS,Verecek kavanozun yok
+TOWN_GIFT_LOVED,Bayıldı!
+TOWN_GIFT_OK,Nazikçe kabul etti.
+TOWN_LIKES,Sever: %s
+TOWN_ROLE_GROCER,Bakkal
+TOWN_ROLE_BAKER,Fırıncı
+TOWN_ROLE_POSTMAN,Postacı
+TOWN_ITEM_JAR,Kavanoz
+TOWN_ITEM_SUGAR,Şeker
+TOWN_ITEM_SALT,Tuz
+TOWN_ITEM_VINEGAR,Sirke
+TOWN_ITEM_HONEY,Bal
+TOWN_ITEM_CINNAMON,Tarçın
+TOWN_ITEM_CLOVE,Karanfil
+TOWN_ITEM_GINGER,Zencefil
+TOWN_ITEM_CHILI,Acı biber
+TOWN_ITEM_BOTTLE,Şişe
+TOWN_ITEM_FLOUR,Un
+TOWN_ITEM_SEED_CUCUMBER,Salatalık tohumu
+TOWN_ITEM_SEED_PEPPER,Biber tohumu
+TOWN_ITEM_SEED_CABBAGE,Lahana tohumu
+TOWN_ITEM_SEED_PUMPKIN,Balkabağı tohumu
+TOWN_ITEM_PANTRY_ROW,Kiler rafı
+NPC_GROCER_0,"Hoş geldin, canım. Kasalara dikkat."
+NPC_GROCER_1,Reçellerin meydanda dillere destan.
+NPC_GROCER_2,Sana mı? Kasabanın en iyi fiyatı.
+NPC_BAKER_0,"Aa, merhaba! Şafakta taze ekmek."
+NPC_BAKER_1,Bana tatlı ve baharatlı bir şey getirir misin?
+NPC_BAKER_2,Seninle bütün sonbaharı fırında geçirirdik.
+NPC_POSTMAN_0,"Mektup, paket, bir de ara sıra palamut."
+NPC_POSTMAN_1,Dağıtımda ekşi bir turşuya bayılırım.
+NPC_POSTMAN_2,En sevdiğim durak senin bahçe kapın.
+MG_PRESS_TITLE,Meyve presi
+MG_PRESS_HINT,"Kolu ritimle indir: tıkla, dokun ya da Space'e bas."
+MG_PRESS_RESULT,"Sıkıldı! %d / 3 yıldız (%d harika, %d iyi, %d kaçtı)"
+PANTRY_TITLE,Kiler
+PANTRY_INBOX,Sepet
+PANTRY_INBOX_EMPTY,Hepsi yerinde
+PANTRY_AUTO,Otomatik diz
+PANTRY_LOVELY,"Ooh, ne güzel"
+PANTRY_ZONE_DRY,Kuru
+PANTRY_ZONE_ROOM,Oda
+PANTRY_ZONE_COOL,Serin
+PANTRY_ZONE_FLOOR,Yer
+PANTRY_RULE_ZONE,Doğru raflar
+PANTRY_RULE_GROUP,Türler bir arada
+PANTRY_RULE_PRETTY,Güzel bir raf
+PANTRY_BONUS,yarın +%d enerji
+PANTRY_BONUS_NONE,Düzenli raf enerji verir
+PANTRY_LIKES,Sever: %s
+PANTRY_HINT,Eşyaları raflara sürükle. R turtaları döndürür.
+WILD_NEW_VARIETY,Yeni keşif: %s
+MG_KNEAD_TITLE,Hamur ve Kenar
+MG_KNEAD_PART1,Hamuru yoğur
+MG_KNEAD_PART2,Kenarı kıvır
+MG_KNEAD_HINT1,Ritimde A / D ya da sola ve sağa dokun
+MG_KNEAD_HINT2,Noktaların üstünden sürükle (ya da her birinde Space)
+MG_KNEAD_READY,Hazır ol
+MG_KNEAD_GO,Kıvır!
+MG_KNEAD_TIME,Süre %d
+MG_KNEAD_PERFECT,Harika!
+MG_KNEAD_GOOD,İyi
+MG_KNEAD_MISS,Kaçtı
+MG_KNEAD_DONE,%d yıldız
+TITLE_SLOGAN,Sonbaharı kavanoza koy.
+TITLE_SETTINGS,Ayarlar
+TITLE_SEED,Tohum
+TITLE_SEED_RANDOM,Rastgele
+TITLE_OVERWRITE,"Bu, kayıtlı oyununun yerini alır."
+TITLE_START,Başla
+TITLE_SET_MUSIC,Müzik
+TITLE_SET_SFX,Efektler
+TITLE_SET_AMBIENT,Ortam sesi
+TITLE_SET_FULLSCREEN,Tam ekran
+TITLE_SET_SHOW_SEED,Tohumu göster
+TITLE_SET_TUTORIAL,Nine'nin İşleri
+TITLE_ON,Açık
+TITLE_OFF,Kapalı
+TITLE_PREMISE_1,"Everfall vadisinde sonbahar hiç bitmez, orman her sabah yeniden büyür."
+TITLE_PREMISE_2,"Tonty Nine, kışı çıkaracak herkes için o sonbaharı kavanozlara doldurur."
+TITLE_PREMISE_HINT,Devam etmek için tıkla ya da dokun
+TUT_TITLE,Nine'nin İşleri
+TUT_D1_SHAKE,Elma ağacını silkele
+TUT_D1_JAM,Ocakta reçel yap
+TUT_D1_PANTRY,Kavanozu kilere koy
+TUT_D1_ORDER,Fırıncının siparişini kasabaya götür
+TUT_D1_BED,Yatmaya git
+TUT_D2_FOREST,Kapıdan çıkıp ormana git
+TUT_D2_MUSHROOM,Bir mantar topla
+TUT_D2_BRINE,Turşusunu kur
+TUT_D2_SELL,Fazlasını bakkala sat
+TUT_ALL_DONE,"Hepsi tamam, canım!"
+UI_NIGHT_MORNING,Günaydın! %d. gün
+UI_NIGHT_QUIET,Sakin bir gece.
+UI_NIGHT_MORE,...ve %d tane daha.
+UI_NIGHT_MATURED,%s hazır.
+UI_NIGHT_SPOILED,%s komposta gitti.
+UI_NIGHT_GROWN,Toplama vakti: %s tarhı hazır.
+UI_NIGHT_GROWN_MANY,%d %s tarhı toplanmaya hazır.
+UI_NIGHT_MATURED_MANY,%d kavanoz %s hazır.
+UI_NIGHT_TREE,Meyve vakti: %s ağacı yine dolu.
+UI_NIGHT_ORDER,%s yeni bir sipariş verdi.
+UI_NIGHT_FERTILIZER,Kompost %d gübre yaptı.
+UI_NIGHT_ENERGY,Bugün %d enerjiyle uyandın.
+UI_NIGHT_ENERGY_STARS,Düzenli kiler (%d yıldız): bugün %d enerji.
+UI_NIGHT_WEATHER_SUNNY,Bugün hava güneşli.
+UI_NIGHT_WEATHER_RAINY,Bugün yağmur var. Mantarlar bayılır.
+UI_NIGHT_WEATHER_WINDY,Rüzgârlı! Ağaçların altına meyve düştü.
+UI_NIGHT_WEATHER_FOGGY,Sisli bir gün. Nadir şeyler sisin ardında saklı.
+UI_DEV_TITLE,Geliştirici paneli
+UI_DEV_COINS,+100 akçe
+UI_DEV_ENERGY,+20 enerji
+UI_DEV_ITEMS,Eşya ver
+UI_DEV_SKIP_DAY,Bir gün atla
+UI_DEV_NIGHT,Yatmaya git
+UI_DEV_SEED,Tohumu kopyala
+UI_DEV_DEMO,Demo kaydı
+UI_DEV_CLOSE,Kapat
+UI_DEV_STATUS,"%d. gün, tohum %d"
+UI_DEV_NO_GAME,Yüklü oyun yok.
+UI_DEV_GAVE,%d yığın eklendi.
+UI_DEV_DAY,%d. gün
+UI_DEV_SEED_COPIED,Tohum %d kopyalandı.
+UI_DEV_DEMO_BAD,res://dev/demo_save.json yolunda demo kaydı yok
+GARDEN_PLANT_TITLE,Ne ekelim?
+GARDEN_FERT_ON,[x] Gübre (%d kaldı)
+GARDEN_FERT_OFF,[ ] Gübre (%d kaldı)
+GARDEN_NO_SEEDS,Tohum yok. Bakkalda satılıyor.
+GARDEN_PLANTED,%d günde hazır
+GARDEN_BED_DAYS,%d günde hazır
+GARDEN_BED_TOMORROW,Yarın hazır
+GARDEN_TREE_REFILL,%d gün sonra yine meyve
+GARDEN_TREE_TOMORROW,Yarın yine meyve
+GARDEN_COMPOST,Kompost %d/%d\nGübre %d
+GARDEN_NO_MAIL,Henüz mektup yok
+GARDEN_GATE_SIGN,%s\nTohum %d
+GARDEN_TO_TOWN,Kasaba
+KITCHEN_STOVE,Ocak
+KITCHEN_COUNTER,Kavanoz tezgâhı
+KITCHEN_CUPBOARD,Dolap
+KITCHEN_BED_CAPTION,Yatak
+KITCHEN_HINT,Pişirmek için ocağa ya da tezgâha tıkla.
+KITCHEN_STOVE_HINT,"Ocak: reçel, meyve ezmesi ve çatni."
+KITCHEN_COUNTER_HINT,Kavanoz tezgâhı: turşu ve mantar turşusu.
+KITCHEN_BOOK_HINT,Tarif defteri (B)
+KITCHEN_CUPBOARD_HINT,"Kavanoz, şeker, tuz, sirke, baharat. Fazlası kasabadaki bakkalda."
+KITCHEN_PANTRY_HINT,Kiler: raflar ve yeni gelenler sepeti (%d).
+KITCHEN_GARDEN_HINT,Bahçeye çık.
+KITCHEN_BED_HINT,Yatak: uyu ve yeni bir güne başla.
+KITCHEN_DOOR_LATER,Bu kapı şimdilik sıkışık.
+KITCHEN_BOOK_LATER,Tarif defteri henüz burada değil.
+KITCHEN_JAR_INBOX,Kavanoz kilerdeki sepete gitti.
+KITCHEN_BED_ASK,Yatalım mı? Gün bitecek.
+KITCHEN_SLEEP,Uyu
+KITCHEN_NOT_YET,Daha değil
+KITCHEN_DAYS_LEFT,%dg
+KITCHEN_WAITING_TIP,%s: %d gün kaldı
+KITCHEN_MORE,+%d
+KITCHEN_STOCK,Sepet ve kiler
+KITCHEN_NONE,Yok
+KITCHEN_LIST_EMPTY,Burada taze bir şey yok. Ormanda ya da bahçede topla.
+KITCHEN_EMPTY_SLOT,Listeden seç
+KITCHEN_FILL_SLOTS,Yuvaları doldur: listeden tıkla ya da sürükle.
+KITCHEN_NOTHING_FITS,Burada bu tarife uyan bir şey yok.
+KITCHEN_READY,Pişirmeye hazır!
+KITCHEN_COOK_COST,Pişir (%d enerji)
+KITCHEN_SLEEP_HINT,Enerjini geri almak için uyu.
+KITCHEN_GROCER_HINT,Fazlası kasabadaki bakkalda.
+KITCHEN_FORAGE_HINT,Ormanda ya da bahçede daha fazlasını bul.
+KITCHEN_SLOT_MAIN,Ana
+KITCHEN_SLOT_SECOND,İkinci
+WILD_LAB_GROW,Büyüyüşünü izle
+WILD_LAB_GROW_TIP,Üretimi adım adım yeniden oynat (G)
+WILD_LAB_SKIP,Atla
+WILD_LAB_COMPARE,A | B
+WILD_LAB_COMPARE_TIP,Bu tohum bir öncekinin yanında (C)
+WILD_LAB_GROW_HINT,Dokun ya da E: ileri  Esc: atla
+WILD_LAB_COMPARE_HINT,"Yeniden üret: A, B'ye geçer"
+WILD_LAB_CAPTION,Tohum %d
+WILD_LAB_CAPTION_A,A  %d
+WILD_LAB_CAPTION_B,B  %d
+WILD_LAB_SAME_RULES,"Aynı kurallar, başka tohum"
+WILD_STEP_NOISE,Değer gürültüsü
+WILD_STEP_STREAM,Rastgele yürüyüşle dere
+WILD_STEP_TREES,Poisson-disk ağaçlar
+WILD_STEP_PATHS,A* yollar
+WILD_STEP_PICKUPS,Ağırlıklı toplanacaklar
+WILD_STEP_FLOOD,Flood-fill denetimi
+WILD_STEP_COUNT,%d/%d
+WILD_STEP_DONE,Bitti
+WILD_STEP_NOTE_NOISE,iki oktav
+WILD_STEP_NOTE_STREAM,%d kare
+WILD_STEP_NOTE_NO_STREAM,bugün yok (%%%d ihtimal)
+WILD_STEP_NOTE_TREES,"%d ağaç, r = %d"
+WILD_STEP_NOTE_PATHS,%d açıklık
+WILD_STEP_NOTE_PICKUPS,%d eşya
+WILD_STEP_NOTE_MOVED,%d taşındı
+WILD_STEP_NOTE_REACHED,hepsine ulaşılıyor
+BOOK_HOW_TITLE,Nasıl yapıldı
+BOOK_HOW_VARIETY,Çeşit
+BOOK_HOW_TRAITS,"%s boy, %s"
+BOOK_HOW_SIZE_SMALL,küçük
+BOOK_HOW_SIZE_MEDIUM,orta
+BOOK_HOW_SIZE_LARGE,iri
+BOOK_HOW_SHIFT_DOWN,daha koyu renk
+BOOK_HOW_SHIFT_NONE,olağan renk
+BOOK_HOW_SHIFT_UP,daha açık renk
+BOOK_HOW_DELTA,Tat farkı: %s
+BOOK_HOW_NONE,yok
+BOOK_HOW_AVERAGE,Ortalama
+BOOK_HOW_TASTE,Tat
+BOOK_HOW_BASE,Taban
+BOOK_HOW_NO_ADDIN,yok
+BOOK_HOW_FINAL,Sonuç
+BOOK_HOW_CLAMPED,Her eksen %d-%d arasında
+BOOK_HOW_PROFILE,Profil: %s
+BOOK_HOW_HARMONY,Uyum +%d
+BOOK_HOW_PAIR_YES,+1 sevilen ikili: %s %d & %s %d
+BOOK_HOW_PAIR_NO,+0 baştaki ikili: %s %d & %s %d
+BOOK_HOW_BALANCE_YES,"+1 denge: %d eksen %d+, hiçbiri %d+ değil"
+BOOK_HOW_BALANCE_HIGH,"+0 denge: %s %d, %d ya da üstü"
+BOOK_HOW_BALANCE_FEW,+0 denge: yalnız %d eksen %d+
+BOOK_HOW_STARS,Yıldız: kalite %d + uyum %d = %d
+BOOK_HOW_NAME,Ad grameri
+BOOK_HOW_ADJ_ADDIN,Sıfat: %s (katkı)
+BOOK_HOW_ADJ_PROFILE,Sıfat: %s (baskın tat)
+BOOK_HOW_ADJ_MILD,Sıfat: %s (hafif)
+BOOK_HOW_ADJ_DROPPED,%s sıfatı düştü: %d üstü
+BOOK_HOW_FEATURE,Özellik: %s (çeşit)
+BOOK_HOW_FEATURE_NONE,Özellik: yok
+BOOK_HOW_FEATURE_REPEAT,%s düştü: aynı kök
+BOOK_HOW_FEATURE_LONG,%s düştü: %d üstü
+BOOK_HOW_LENGTH,%d / %d harf
+BOOK_HOW_LOOK,Görünüş
+BOOK_HOW_SEED,Tohum fnv1a31(key) = %d
+BOOK_HOW_PARTS,"Etiket %d, %s, %s kapak"
+BOOK_HOW_MOTIF_LEAF,yaprak
+BOOK_HOW_MOTIF_STAR,yıldız
+BOOK_HOW_MOTIF_STRIPE,çizgi
+BOOK_HOW_LID_METAL,metal
+BOOK_HOW_LID_CLOTH,bez
+LET_POST_OFFICE,Postane
+LET_TITLE,Mektuplar
+LET_EMPTY,Henüz mektup yok. Mia ile Leo birkaç günde bir yazar.
+LET_LIST_ITEM,"%s, %d. gün"
+LET_DEAR,"Sevgili Nineciğim,"
+LET_ASK,Bana bir paket yollar mısın? İçinde:
+LET_REQ_TASTE,%s bir şey
+LET_REQ_RECIPE,biraz %s
+LET_REQ_BOTH,biraz %s %s
+LET_REQ_ANY,senin yaptığın ne olursa
+LET_PS_DISLIKE,Not: Lütfen %s olmasın!
+LET_PS_RECIPE,Not: Annem %s tarifini buldu. Artık yine senin!
+LET_SIGN,"Sevgiler, %s"
+LET_GROUP_FRUIT,meyve
+LET_GROUP_VEGETABLE,sebze
+LET_GROUP_MUSHROOM,mantar
+LET_GROUP_NUT,kuruyemiş
+LET_OR,%s ya da %s
+LET_PACK,Paket hazırla
+LET_CLOSE,Kapat
+LET_BACK,Geri
+LET_SEND,Gönder
+LET_STRAW,Saman koy
+LET_STRAW_OFF,Samanı çıkar
+LET_YOUR_JARS,Kavanozların
+LET_NO_JARS,Hazır kavanoz yok. Önce biraz kışlık yap!
+LET_PARCEL_FOR,%s için paket
+LET_ASKED,%s şunu istedi:
+LET_CARE_HEAD,Özenle hazırlandı:
+LET_CARE_REQUEST,istenenlerin hepsi
+LET_CARE_STRAW,aralarda saman
+LET_CARE_SURPRISE,bir sürpriz: %s
+LET_LOVE_PREVIEW,+%d sevgi
+LET_PACK_HINT,Kavanozları kutuya sürükle.
+LET_STATUS_SENT,Paket %d. gün yola çıktı.
+LET_STATUS_WAIT,%s yakında cevap yazar.
+LET_STATUS_THANKS,Bir teşekkür notu.
+LET_SENT,Paket yola çıktı: %s!
+LET_SENT_CARE,Özenle paketlendi! %s bayılacak.
+LET_UNLOCKED,Yeni tarif: %s!
+LET_LOVE_HEAD,Sevgi
+LET_NO_LETTER,O mektup zaten cevaplandı.
+LET_BOX_EMPTY,Kutuya en az bir kavanoz koy.
+LET_BOX_BAD,Bu kutuya sığmıyor.
+LET_NOT_READY,O kavanoz daha bekliyor.
+LET_ONLY_JARS,Pakete yalnız kavanoz girer.
+LET_NOTE_MIA_1,Okul yeniden başladı. Yanımda oturan kızın evcil bir salyangozu var!
+LET_NOTE_MIA_2,İlk dişim düştü! Annem bu sonbahar diş perisinin çok meşgul olduğunu söylüyor.
+LET_NOTE_MIA_3,Sınıfta yapraktan taç yaptık. En kırmızısı benimkiydi.
+LET_NOTE_MIA_4,"Bütün hafta yağmur yağdı, ben de koca üç kitap okudum."
+LET_NOTE_MIA_5,Blok flüt öğreniyorum. Leo sesinin üzgün bir kaz gibi çıktığını söylüyor.
+LET_NOTE_MIA_6,Bahçeni aklımdan çizdim. Elma ağacı ev kadar uzun.
+LET_NOTE_LEO_1,Futbol takımımız cumartesi kazandı. Az kalsın gol atıyordum!
+LET_NOTE_LEO_2,Başparmağım kadar bir böcek buldum. Mia çığlık attı.
+LET_NOTE_LEO_3,"Babam çorbayı karıştırmama izin verdi. Fazladan biber kattım, kimse fark etmedi."
+LET_NOTE_LEO_4,Şehir çok gürültülü. Sessiz bahçeni ve çıtır çıtır yaprakları özledim.
+LET_NOTE_LEO_5,Karton kutulardan şato yapıyorum. En iyisi büyük kutular!
+LET_NOTE_LEO_6,Yazım sınavı oldu. 'Çatni'yi doğru yazdım!
+LET_REPLY_MIA_1,Paket için teşekkürler! Bütün sınıfa birer kaşık ikram ettim.
+LET_REPLY_MIA_2,Paketin tıpkı mutfağın gibi kokuyordu. Çok yavaşça açtım.
+LET_REPLY_MIA_3,"Annem kavanozlarını en üst rafa koydu, her gün onları görüyorum."
+LET_REPLY_LEO_1,Paket geldi! Eve kadar tek başıma taşıdım.
+LET_REPLY_LEO_2,Teşekkürler Nine! Babamla akşam yemeğinden önce yarım kavanoz yedik.
+LET_REPLY_LEO_3,Gelmiş geçmiş en iyi paket. Samanı böceğim için saklıyorum.
+LET_REPLY_CARE_MIA,Bir de sürpriz vardı! Neyi sevdiğimi hep biliyorsun.
+LET_REPLY_CARE_LEO,"Hiçbir şey tıngırdamadı, içinde de sürpriz vardı. Sen bir tanesin!"
+LET_RECIPE_GRANNYS_QUINCE_BUTTER,Nine'nin Ayva Ezmesi
+LET_RECIPE_BLACKBERRY_HONEY_JAM,Ballı Böğürtlen Reçeli
+LET_RECIPE_CRABAPPLE_JELLY,Yaban Elması Jölesi
+LET_RECIPE_PEPPER_RELISH,Biber Ezmesi
+LET_RECIPE_CHILI_PICKLES,Acılı Turşu
+LET_RECIPE_SALTED_PORCINI,Tuzlu Çörek Mantarı
+UI_NIGHT_LETTER,%s mektup yolladı!
+BOOK_FOUND,%d/%d çeşit bulundu
+BOOK_HOW_KEY,tohum anahtarı
+KITCHEN_DAYS_TIP,%d gün
+KITCHEN_PRESS,Meyve presi
+KITCHEN_BOARD,Hamur tahtası
+KITCHEN_PRESS_HINT,Meyve presi: meyve suyu ve sirke.
+KITCHEN_BOARD_HINT,Hamur tahtası: turta ve ekmek.
+KITCHEN_NO_JUICE,Henüz meyve suyu yok. Önce preste biraz sık.
+KITCHEN_PRESS_FIRST,Önce bu meyveden biraz daha su sık.
+KITCHEN_NO_SLOTS,"Taze bir şey gerekmez, dolaptan un yeter."
+TOWN_ITEM_PRESS,Meyve presi
+UI_DEV_UNLOCK_P1,P1'i aç
+UI_DEV_P1_DONE,P1 açıldı (%d şey eklendi).
+TOWN_ROLE_VINTNER,Bağcı
+TOWN_ROLE_LIBRARIAN,Kütüphaneci
+NPC_VINTNER_0,Yeni bir yüz! Üzüm alır mısın?
+NPC_VINTNER_1,"Tatlı ve topraksı, tam benim zevkim."
+NPC_VINTNER_2,"Bağlarım senin, dilediğince gez dostum."
+NPC_LIBRARIAN_0,"Şşş. Aa, merhaba."
+NPC_LIBRARIAN_1,"Topraksı ve baharatlı, tam benim rafım."
+NPC_LIBRARIAN_2,En güzel sayfaları sana sakladım.
+NPC_LIBRARIAN_HINT,İpucu: kuruyemiş mantarı çok sever.
+UI_REWARD_SHOP_DISCOUNT,Barnaby dükkânda sana %10 indirim yapıyor!
+UI_REWARD_KNEAD,Rosie sana hamur tahtasını verdi!
+UI_REWARD_LETTERS_MORE_OFTEN,Pip torunların mektuplarını daha sık getirecek!
+UI_REWARD_VINEYARD,Vito sana bağın anahtarını verdi!
+UI_REWARD_HINTS,Edith seninle tarif ipuçları paylaşacak!
+UI_REWARD_ADDIN,Edith sana üç dal nane verdi!
+CAT_PET_1,Mırrrr...
+CAT_PET_2,Mırrp. Tam da orası.
+CAT_PET_3,Kedi eline sokuluyor.
+CAT_PET_4,"Pek sıcak, pek turuncu bir kedi."
+UI_MARKET_TITLE,Pazar Günü
+UI_MARKET_TODAY,Bugün pazar var!
+UI_MARKET_YOUR_JARS,Kavanozların
+UI_MARKET_NO_JARS,Bugün hazır kavanoz yok. Mutfakta biraz doldur!
+UI_MARKET_HINT,Kavanozları tezgâha sürükle.
+UI_MARKET_FILL,Doldur
+UI_MARKET_CLEAR,Boşalt
+UI_MARKET_OPEN,Tezgâhı aç
+UI_MARKET_SIGN,Ev Yapımı
+UI_MARKET_APPEAL,Çekicilik
+UI_MARKET_MULT,x%s
+UI_MARKET_VARIETY,Çeşit
+UI_MARKET_COLOURS,Renkler
+UI_MARKET_FULL,Dolu tezgâh
+UI_MARKET_VISITORS,Yaklaşık %d ziyaretçi
+UI_MARKET_SOLD,%d satıldı
+UI_MARKET_SPEED,Hızlı
+UI_MARKET_SPEED_ON,Yavaş
+UI_MARKET_DONE,Pazar bitti!
+UI_MARKET_DONE_SOLD,%d / %d kavanoz satıldı
+UI_MARKET_DONE_COINS,%d akçe kazandın
+UI_MARKET_DONE_REP,Ün %d
+UI_MARKET_DONE_NEXT,Haftaya daha kalabalık!
+UI_MARKET_TO_TOWN,Kasabaya dön
+MARKET_OOH_HONEY,"Ooh, ballı!"
+MARKET_OOH_CINNAMON,"Ooh, tarçınlı!"
+MARKET_OOH_CLOVE,"Mmm, karanfil!"
+MARKET_OOH_GINGER,"Ooh, zencefil!"
+MARKET_OOH_CHILI,"Ooh, acılı!"
+MARKET_OOH_WALNUT,"Cevizli, ne güzel!"
+MARKET_OOH_HAZELNUT,"Ooh, fındıklı!"
+MARKET_OOH_CHESTNUT,Kestane mi? Evet!
+MARKET_OOH_THYME,Bir tutam kekik!
+MARKET_OOH_MINT,"Ooh, naneli!"
+MARKET_LIKE_SWEET_1,"Tatlı, tam kıvamında!"
+MARKET_LIKE_SWEET_2,Kahvaltıma!
+MARKET_LIKE_SOUR_1,"Ekşimsi, ne güzel!"
+MARKET_LIKE_SOUR_2,"Ekşi, en sevdiğim!"
+MARKET_LIKE_SPICY_1,Azıcık ateş!
+MARKET_LIKE_SPICY_2,"Baharatlı, nefis!"
+MARKET_LIKE_SALTY_1,Öğle yemeğime!
+MARKET_LIKE_SALTY_2,"Tuzlu, harika!"
+MARKET_LIKE_EARTHY_1,Orman gibi kokuyor!
+MARKET_LIKE_EARTHY_2,"Topraksı, ne hoş!"
+MARKET_RARE,Ne nadir bir şey!
+MARKET_PRICEY,Bana biraz pahalı.
+MARKET_WISH_SWEET,Tatlı yok mu?
+MARKET_WISH_SOUR,Ekşi yok mu?
+MARKET_WISH_SPICY,Baharatlı yok mu?
+MARKET_WISH_SALTY,Tuzlu yok mu?
+MARKET_WISH_EARTHY,Topraksı yok mu?
+UI_MARKET_CLOSED,Pazar her 7 günde bir kurulur.
+UI_MARKET_COINS,+%d
+WILD_LAB_STATS,%d ağaç  %d çalı  %d yer
+WILD_LAB_STATS_SPECIAL,%d ağaç  %d çalı  + %s
+WILD_BIOME_VINEYARD,Bağ
+WILD_BIOME_CREEK,Dere
+WILD_PICK_TITLE,Bugün nereye?
+WILD_LOCKED_VINEYARD,Anahtar Vito'da
+WILD_LOCKED_CREEK,Lastik çizme gerek
+WILD_SPECIAL_BEE_HIVE,Arı kovanı
+WILD_SPECIAL_ROSEHIP_THICKET,Kuşburnu çalısı
+WILD_HONEY,dolaba +%d bal
+TOWN_ITEM_BOOTS,Lastik çizme
+UI_UPGRADE_GROUP_SUPPLIES,Malzeme
+UI_UPGRADE_GROUP_SEEDS,Tohumlar
+UI_UPGRADE_GROUP_UPGRADES,Geliştirmeler
+UI_UPGRADE_LEVEL,Sv %d/%d
+UI_UPGRADE_NAME_PANTRY_ROW,Kiler rafı
+UI_UPGRADE_NAME_BAG,Büyük çanta
+UI_UPGRADE_NAME_BEDS,Daha çok tarh
+UI_UPGRADE_NAME_BOOTS,Lastik çizme
+UI_UPGRADE_NAME_PRESS,Meyve presi
+UI_UPGRADE_NAME_BIG_POT,Büyük tencere
+UI_UPGRADE_NAME_CELLAR,Mahzen
+UI_UPGRADE_FX_PANTRY_ROW,Kilere 12 göz daha
+UI_UPGRADE_FX_BAG,%d eşya taşır
+UI_UPGRADE_FX_BEDS,Bahçeye 2 tarh daha
+UI_UPGRADE_FX_BOOTS,Dere kıyısını açar
+UI_UPGRADE_FX_PRESS,Pres tariflerini açar
+UI_UPGRADE_FX_BIG_POT,Tencere tarifleri 2 kavanoz
+UI_UPGRADE_FX_CELLAR,Kilere 12 serin göz
+FAREWELL_LETTER_DEAR_TWO,"Canım %s ve %s,"
+FAREWELL_LETTER_DEAR,"Canım torunlarım,"
+FAREWELL_LETTER_DAYS,"Everfall'da %d gün geçti, hiçbiri sıkıcı değildi."
+FAREWELL_LETTER_JARS,Bu iki yaşlı elle %d kavanoz doldurdum.
+FAREWELL_LETTER_JARS_ONE,"Yalnız bir kavanoz doldurdum, ama çok güzeldi."
+FAREWELL_LETTER_JARS_NONE,İstediğim kadar kavanoz dolduramadım. Benim için bir tane doldurun.
+FAREWELL_LETTER_TOP_3,"Önce şunları açın: %s, %s ve %s. En güzelleri onlar."
+FAREWELL_LETTER_TOP_2,Önce şunları açın: %s ve %s. En güzelleri onlar.
+FAREWELL_LETTER_TOP_1,Önce şunu açın: %s. En güzeli o.
+FAREWELL_LETTER_TOP_NONE,"Kiler boş, ama bütün tarifler defterimde."
+FAREWELL_LETTER_RARE,Bir keresinde ormanda bir %s buldum. Düşünebiliyor musunuz?
+FAREWELL_LETTER_RARE_NONE,"Orman en nadir sırlarını benden sakladı, olsun."
+FAREWELL_LETTER_FRIEND,Arada bir %s için bir kavanoz götürün. Bana çok iyi davrandı.
+FAREWELL_LETTER_FRIEND_NONE,Komşulara benden selam söyleyin.
+FAREWELL_LETTER_LOVE,"Çaydanlığı benim için sıcak tutun. Bütün sevgimle, her zaman."
+FAREWELL_LETTER_SIGN,Tonty Nine
+FAREWELL_PAN_EMPTY,"Raflar boş, başka bir sonbaharı bekliyor."
+FAREWELL_SNOW_LINE,"Everfall'da sonbahar, o yaşadıkça sürdü."
+FAREWELL_BOOK_HEAD,Tarif defteri
+FAREWELL_BOOK_EMPTY,"Hiç tarif yazılmadı, ama gelecek sonbahar hep var."
+FAREWELL_CREDIT_JAM,"KODTÜ 7 için yapıldı, Ekim 2026"
+FAREWELL_CREDIT_CAST,Başrolde
+FAREWELL_CREDIT_TONTY,Tonty Nine
+FAREWELL_CREDIT_KIDS,%s ve %s
+FAREWELL_CREDIT_NEIGHBOURS,Komşular
+FAREWELL_CREDIT_NAME,%s
+FAREWELL_CREDIT_FONTS,m5x7 ve m6x11 yazı tipleri: Daniel Linssen
+FAREWELL_CREDIT_PALETTE,Vintage Autumn paleti: Goopy25
+FAREWELL_CREDIT_YOU,Ve sen
+FAREWELL_CREDIT_JARS,%d kavanoz yapıldı
+FAREWELL_CREDIT_RECIPES,%d tarif bulundu
+FAREWELL_THANKS,Oynadığın için teşekkürler.
+FAREWELL_FOR_TONTY,Tonty için.
+FAREWELL_HOLD_SKIP,Atlamak için basılı tut
+FAREWELL_WORRY_MIA_1,"Nineciğim, yeterince dinleniyor musun? Annem sesinin yorgun geldiğini söyledi."
+FAREWELL_WORRY_MIA_2,Akşam yemeğinden sonra ayaklarını uzat lütfen. Söz ver!
+FAREWELL_WORRY_MIA_3,"Dün gece mutfağını gördüm rüyamda. Sıcak tutuyor musun kendini, Nineciğim?"
+FAREWELL_WORRY_LEO_1,"Nineciğim, yeterince dinleniyor musun? Ağır sepetleri taşıma!"
+FAREWELL_WORRY_LEO_2,"Babam yakında geleceğimizi söylüyor. Bizi bekle, tamam mı?"
+FAREWELL_WORRY_LEO_3,Son mektubun çok kısaydı. İyi uyuyor musun?
+UI_MEMORY_OPEN,Anı
+UI_MEMORY_TITLE,Anı
+UI_MEMORY_COMPLETED,Tamamlandı - %d gün
+UI_MEMORY_PANTRY,Kiler
+UI_MEMORY_BOOK,Tarif defteri
+UI_MEMORY_REPLAY,Vedayı izle
+UI_MEMORY_LEAVE,Ana menüye dön
+UI_MEMORY_PREV,Önceki
+UI_MEMORY_NEXT,Sonraki
+UI_MEMORY_COUNT,%d / %d
+UI_DEV_DAY99,99. gün
+UI_DEV_DAY99_DONE,Bu kayıt zaten tamamlandı.
+UI_BATCH_COOK,Toplu pişir
+UI_BATCH_COOK_TWO,2 kavanoz pişir (%d enerji)
+UI_BATCH_TIMES,x%d
+UI_BATCH_POT_TIP,"Büyük tencere: iki kat malzeme, iki kavanoz, aynı enerji."
+UI_BATCH_NOT_MASTERED,Daha ustalaşmadın: 2 ya da daha çok yıldızla 3 kez pişir.
+UI_BATCH_TWO_JARS,İki kavanoz da kilerdeki sepete gitti.
+UI_MASTERY_BADGE,Usta
+UI_MASTERY_BANNER,Ustalaştın!
+UI_MASTERY_TIP,"Usta: mini oyunsuz toplu pişir, en iyi yıldız, aynı enerji."
+UI_MASTERY_READY,Ustalaştın! Toplu pişirme mini oyunu atlar.
+UI_MASTERY_NEW,Ustalaştın! Gelecek sefer toplu pişirebilirsin.
+MG_KNEAD_PART2_BREAD,Somunu şekillendir
+MG_KNEAD_GO_BREAD,Şekil ver!
+UI_WEEK_GRAPE_HARVEST,Bağ Bozumu
+UI_WEEK_APPLE_MOON,Elma Ayı
+UI_WEEK_FIRST_FROST,İlk Ayaz
+UI_WEEK_CYCLE,"%s, %d. Sonbahar"
+UI_WEEK_BEGINS,%s başladı! Mevsiminde: %s.
+UI_WEEK_NOW,Bu hafta: %s. Mevsiminde: %s.
+UI_WEATHER_SUNNY,Güneşli
+UI_WEATHER_RAINY,Yağmurlu
+UI_WEATHER_WINDY,Rüzgârlı
+UI_WEATHER_FOGGY,Sisli
+UI_FAMILY_TAB,Aile tarifleri
+UI_FAMILY_BASE,Temel tarifler
+UI_FAMILY_TIP,Nine'nin kendi tarifleri. Torunlar onları sevgiyle geri yolladı.
+UI_FAMILY_HEADING,Aile tarifleri %d/%d
+UI_FAMILY_FROM,"Gönderen %s, %d kalp"
+UI_FAMILY_HOW_ADJ,Aile tarifi: hep %s
+UI_FAMILY_DRAWING_HINT,%s bir resim çizmiş. Yakından bakmak için tıkla.
+UI_FAMILY_DRAWING_FROM,Nine için çizen: %s
+UI_FAMILY_DRAWING_CLOSE,Yerine asmak için tıkla.
+TITLE_SET_LANGUAGE,Dil

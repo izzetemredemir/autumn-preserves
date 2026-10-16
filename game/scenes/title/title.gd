@@ -2,7 +2,8 @@ extends Control
 ## Title (GD-META): name, slogan, New Game (with a seed field), Continue, Seed Lab, Settings.
 ## New Game -> premise (ui/premise) -> garden (kitchen until the garden exists). Continue loads the save; a save the
 ## farewell closed (spec §7.12) shows a "Completed" card and Continue becomes Memory (scenes/farewell, Memory mode).
-## Also applies saved settings and adds the debug panel (F1) in debug builds.
+## Also applies saved settings and adds the debug panel (F1) in debug builds. A language change in Settings reloads
+## the title so every text is built again in the new language, with Settings open again (L10N-TR).
 
 const MUSIC_DIR := "res://assets/audio/music/"
 const MUSIC_FALLBACK := "res://assets/audio/music/candidates/mus_title_a.ogg"
@@ -15,6 +16,8 @@ var _settings: SettingsPanel
 var _fallback_music: AudioStreamPlayer
 var _starting := false
 var _completed_card: Control
+## Set before the language reload: the rebuilt title opens Settings again.
+static var _reopen_settings := false
 
 
 func _ready() -> void:
@@ -25,6 +28,7 @@ func _ready() -> void:
 	_settings = SettingsPanel.new()
 	_settings.visible = false
 	_settings.closed.connect(_show_menu)
+	_settings.language_changed.connect(_on_language_changed)
 	_center(_settings)
 	%NewGame.pressed.connect(_on_new_game)
 	%Continue.pressed.connect(_on_continue)
@@ -39,6 +43,9 @@ func _ready() -> void:
 		%NewGame.grab_focus()
 	else:
 		%Continue.grab_focus()
+	if _reopen_settings:
+		_reopen_settings = false
+		_on_settings()
 
 
 func _play_music() -> void:
@@ -141,6 +148,13 @@ func _on_settings() -> void:
 	_open(_settings)
 	%Slogan.visible = false
 	_settings.open()
+
+
+func _on_language_changed() -> void:
+	if get_tree().current_scene != self:
+		return  # instanced by a test or tool: nothing to reload
+	_reopen_settings = true
+	get_tree().reload_current_scene.call_deferred()
 
 
 func _on_seed_lab() -> void:

@@ -85,28 +85,77 @@ static func spawn_weights(varieties: Dictionary, type: String, rare_mult: float 
 	return {"ids": ids, "weights": weights}
 
 
-## In-game name of an ingredient type ("Crabapple", "Oyster Cap").
-static func type_name(type: String) -> String:
+## In-game name of an ingredient type in the current language ("Crabapple", "Oyster Cap"; Turkish "Yaban Elması").
+## `lang` "" = the current locale (ProductGen.lang()). Generation and name parsing use the English name only.
+static func type_name(type: String, lang: String = "") -> String:
+	if ProductGen.lang(lang) == "tr":
+		var tn: Variant = _tr().get("types", {}).get(type)
+		if tn != null:
+			return String(tn)
+	return en_type_name(type)
+
+
+## The English type name: the one stored variety names are built from.
+static func en_type_name(type: String) -> String:
 	var ing: Dictionary = Data.ingredients().get(type, {})
 	return String(ing.get("display_name", type.capitalize()))
 
 
-## The feature word of a variety name ("Ember" in "Ember Crabapple"), "" when the name has none.
+## The feature word of a variety name ("Ember" in "Ember Crabapple"), "" when the name has none. English: it is
+## parsed from the stored name.
 static func feature_of(variety: Dictionary) -> String:
 	var n := String(variety.get("name", ""))
-	var tn := type_name(String(variety.get("type", "")))
+	var tn := en_type_name(String(variety.get("type", "")))
 	if n.ends_with(" " + tn):
 		return n.substr(0, n.length() - tn.length() - 1)
 	return ""
 
 
-## The name without its feature ("Crabapple"); the whole name when it does not follow the grammar.
+## The name without its feature ("Crabapple"); the whole name when it does not follow the grammar. English.
 static func base_name(variety: Dictionary) -> String:
-	var tn := type_name(String(variety.get("type", "")))
+	var tn := en_type_name(String(variety.get("type", "")))
 	var n := String(variety.get("name", ""))
 	if n == "" or n == tn or n.ends_with(" " + tn):
 		return tn
 	return n
+
+
+## L10N-TR · The variety name to show: the stored (English) name, or in Turkish "<feature> <type>" with the type in
+## its compound form after a noun feature ("Köy Armudu", "Kızıl Yaban Elması"). A name off the grammar shows as is.
+static func display_name(variety: Dictionary, lang: String = "") -> String:
+	var n := String(variety.get("name", ""))
+	var type := String(variety.get("type", ""))
+	if ProductGen.lang(lang) != "tr":
+		return n if n != "" else en_type_name(type)
+	if n != "" and n != en_type_name(type) and feature_of(variety) == "":
+		return n
+	return tr_phrase(feature_word(feature_of(variety), "tr"), type)
+
+
+## The feature word in a language ("Ember" -> "Kızıl"); English words pass through.
+static func feature_word(feature: String, lang: String = "") -> String:
+	if feature == "" or ProductGen.lang(lang) != "tr":
+		return feature
+	return String(_tr().get("features", {}).get(feature, feature))
+
+
+## Turkish "<feature> <type>" ("" feature: the type alone). A noun feature ("Bal", "Köy") puts the type in the
+## compound form unless it already is one; a feature the type starts with is left out ("Bal Balkabağı").
+static func tr_phrase(feature_tr: String, type: String) -> String:
+	var tn := type_name(type, "tr")
+	if feature_tr == "" or Turkish.lower_word(tn).begins_with(Turkish.lower_word(feature_tr)):
+		return tn
+	if is_noun_feature(feature_tr) and not _tr().get("compound_types", []).has(type):
+		tn = Turkish.compound(tn, _tr().get("compound_exceptions", {}))
+	return feature_tr + " " + tn
+
+
+static func is_noun_feature(feature_tr: String) -> bool:
+	return _tr().get("noun_features", []).has(feature_tr)
+
+
+static func _tr() -> Dictionary:
+	return Data.grammar().get("tr", {})
 
 
 static func _roll(r: RandomNumberGenerator, type: String, tier: int, rarity: String, cfg: Dictionary, used: Array) -> Dictionary:
@@ -132,7 +181,7 @@ static func _roll(r: RandomNumberGenerator, type: String, tier: int, rarity: Str
 		delta[a] = s
 	var feature := _pick_feature(r, type, delta, size, shift, used)
 	used.append(feature)
-	var tn := type_name(type)
+	var tn := en_type_name(type)
 	return {
 		"id": "%s_%d" % [type, tier + 1], "type": type, "name": tn if feature == "" else feature + " " + tn,
 		"rarity": rarity, "tier": tier, "color_shift": shift, "taste_delta": delta, "size": size,
@@ -162,7 +211,7 @@ static func _pick_feature(r: RandomNumberGenerator, type: String, delta: Array, 
 		_add_words(every, feats[k])
 	every.sort()
 	var max_len := int(Data.grammar().variety_name_max)
-	var tn := type_name(type)
+	var tn := en_type_name(type)
 	for candidates: Array in [pool, generic, every]:
 		var ok: Array = []
 		for w: String in candidates:

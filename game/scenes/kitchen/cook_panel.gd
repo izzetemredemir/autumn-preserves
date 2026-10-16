@@ -345,7 +345,7 @@ func _build_tabs() -> void:
 			_tabs[id] = b
 			continue
 		var nm := _label(b, Vector2(6, 1), tab_w - 12)
-		nm.text = String(r.name)
+		nm.text = ProductGen.recipe_name(id)
 		nm.clip_text = true
 		var row := HBoxContainer.new()
 		row.position = Vector2(6, 19)
@@ -705,7 +705,8 @@ func _second() -> String:
 
 
 func _variety_name(vid: String) -> String:
-	return String(GameState.data.varieties.get(vid, {}).get("name", vid))
+	var v: Dictionary = GameState.data.varieties.get(vid, {})
+	return VarietyGen.display_name(v) if not v.is_empty() else vid
 
 
 func _select_recipe(id: String) -> void:

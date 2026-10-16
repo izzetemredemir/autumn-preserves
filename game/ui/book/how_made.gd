@@ -62,7 +62,7 @@ func build(book: Book, p_key: String, varieties: Dictionary, rec: Dictionary) ->
 	cols.add_child(right)
 
 	_variety_lines(left, mains)
-	_name_lines(left, p, desc, mains)
+	_name_lines(left, ProductGen.name_parts(key, varieties), desc)
 	_taste_lines(right, p, desc, mains)
 	_harmony_lines(right, desc, rec)
 	_look_lines(right, desc)
@@ -120,7 +120,7 @@ func _variety_lines(box: VBoxContainer, mains: Array) -> void:
 	_head(box, tr("BOOK_HOW_VARIETY"))
 	for v: Dictionary in mains:
 		var rar := String(v.get("rarity", "common"))
-		_line(box, "%s, %s" % [String(v.get("name", VarietyGen.type_name(String(v.get("type", ""))))),
+		_line(box, "%s, %s" % [VarietyGen.display_name(v),
 			tr("BOOK_RARITY_" + rar.to_upper())])
 		var shift := int(v.get("color_shift", 0))
 		var shift_key := "BOOK_HOW_SHIFT_UP" if shift > 0 else ("BOOK_HOW_SHIFT_DOWN" if shift < 0 else "BOOK_HOW_SHIFT_NONE")
@@ -128,45 +128,34 @@ func _variety_lines(box: VBoxContainer, mains: Array) -> void:
 		_line(box, tr("BOOK_HOW_DELTA") % _delta_text(v.get("taste_delta", [0, 0, 0, 0, 0])))
 
 
-## The grammar "[Adjective] [Feature] [Type] [Recipe]" and which rule shaped this name (spec §7.3).
-func _name_lines(box: VBoxContainer, p: Dictionary, desc: Dictionary, mains: Array) -> void:
+## The grammar "[Adjective] [Feature] [Type] [Recipe]" and which rule shaped this name (spec §7.3), from
+## ProductGen.name_parts in the shown language (L10N-TR: Turkish names have their own parts and fallbacks).
+func _name_lines(box: VBoxContainer, np: Dictionary, desc: Dictionary) -> void:
 	_head(box, tr("BOOK_HOW_NAME"))
-	var recipe: Dictionary = Data.recipes().get(p.recipe, {})
-	var short := String(recipe.get("short", String(p.recipe).capitalize()))
 	var max_len := int(Data.grammar().product_name_max)
-	var adjective := ""
+	var adjective := String(np.adjective)
 	var adj_line := ""
-	var family := recipe.has("family_of")
-	if family:  # KITCHEN-P1C: a family recipe always says "Granny's"; its short already names the dish
-		adjective = String(recipe.get("adjective", ""))
-		adj_line = tr("UI_FAMILY_HOW_ADJ") % adjective
-	elif p.addin != "":
-		adjective = String(Data.addins().get(p.addin, {}).get("adjective", String(p.addin).capitalize()))
-		adj_line = tr("BOOK_HOW_ADJ_ADDIN") % adjective
-	else:
-		var adjs: Dictionary = Data.grammar().profile_adjectives
-		var prof: Array = desc.profile
-		adjective = String(adjs.mild if prof.is_empty() else adjs[prof[0]])
-		adj_line = (tr("BOOK_HOW_ADJ_MILD") if prof.is_empty() else tr("BOOK_HOW_ADJ_PROFILE")) % adjective
-	var feature := ""
-	var type_part := ""
-	if not mains.is_empty():
-		feature = VarietyGen.feature_of(mains[0])
-		type_part = "" if family else VarietyGen.base_name(mains[0])
-	var repeat := adjective != "" and feature != "" and adjective.left(4).to_lower() == feature.left(4).to_lower()
-	var with_feature := _join([adjective, "" if repeat else feature, type_part, short])
-	var no_feature := _join([adjective, type_part, short])
+	match String(np.adjective_kind):
+		"family":  # KITCHEN-P1C: a family recipe always says "Granny's"; its short already names the dish
+			adj_line = tr("UI_FAMILY_HOW_ADJ") % adjective
+		"addin":
+			adj_line = tr("BOOK_HOW_ADJ_ADDIN") % adjective
+		"mild":
+			adj_line = tr("BOOK_HOW_ADJ_MILD") % adjective
+		_:
+			adj_line = tr("BOOK_HOW_ADJ_PROFILE") % adjective
+	if bool(np.adjective_long):
+		adj_line = tr("BOOK_HOW_ADJ_DROPPED") % [adjective, max_len]
+	var feature := String(np.feature)
 	var feature_line := tr("BOOK_HOW_FEATURE_NONE")
-	if repeat:
+	if feature != "" and bool(np.repeat):
 		feature_line = tr("BOOK_HOW_FEATURE_REPEAT") % feature
-	elif feature != "" and with_feature.length() > max_len:
+	elif feature != "" and bool(np.feature_long):
 		feature_line = tr("BOOK_HOW_FEATURE_LONG") % [feature, max_len]
 	elif feature != "":
 		feature_line = tr("BOOK_HOW_FEATURE") % feature
-	if not repeat and feature != "" and with_feature.length() > max_len and no_feature.length() > max_len:
-		adj_line = tr("BOOK_HOW_ADJ_DROPPED") % [adjective, max_len]
 	var final_name := String(desc.name)
-	if ProductGen.compose_name(adjective, feature, type_part, short) == final_name:
+	if String(np.name) == final_name:
 		_line(box, adj_line)
 		_line(box, feature_line)
 	_line(box, tr("BOOK_HOW_LENGTH") % [final_name.length(), max_len])
@@ -198,15 +187,15 @@ func _taste_lines(box: VBoxContainer, p: Dictionary, desc: Dictionary, mains: Ar
 	if p.addin != "":
 		var ad: Dictionary = Data.addins().get(p.addin, {})
 		addin = _effect(ad.get("effect"))
-		addin_name = String(ad.get("adjective", String(p.addin).capitalize()))
+		addin_name = ProductGen.addin_adjective(String(p.addin))
 	var final: Array = desc.taste
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 1)
 	box.add_child(row)
 	_chart(row, base, tr("BOOK_HOW_AVERAGE") if mains.size() >= 2 else tr("BOOK_HOW_BASE"))
 	_op(row, "+")
-	var method_row: Dictionary = Data.recipes().get(String(recipe.get("family_of", "")), recipe)  # family: its base
-	_chart(row, method, String(method_row.get("short", p.recipe)))
+	var method_id := String(recipe.get("family_of", p.recipe))  # family: its base
+	_chart(row, method, ProductGen.recipe_short(method_id))
 	_op(row, "+")
 	_chart(row, addin, addin_name)
 	_op(row, "=")
@@ -332,15 +321,7 @@ static func _variety(id: String, varieties: Dictionary) -> Dictionary:
 	if varieties.has(id):
 		return varieties[id]
 	var type := State.type_of_variety(id)
-	return {"id": id, "type": type, "name": VarietyGen.type_name(type)}
-
-
-static func _join(words: Array) -> String:
-	var kept: Array = []
-	for w in words:
-		if String(w) != "":
-			kept.append(w)
-	return " ".join(kept)
+	return {"id": id, "type": type, "name": VarietyGen.en_type_name(type)}
 
 
 ## Section heading: gold text and a thin rule running to the column edge.

@@ -150,7 +150,7 @@ static func _product_name(key: String, varieties: Dictionary) -> String:
 	var n := ProductGen.product_name(key, varieties)
 	if n == "" or n == "?":
 		var recipe := key.split("|")[0]
-		return String(Data.recipes().get(recipe, {}).get("name", recipe.capitalize()))
+		return ProductGen.recipe_name(recipe)
 	return n
 
 
@@ -159,7 +159,7 @@ static func item_name(item: Dictionary, varieties: Dictionary) -> String:
 		"fresh":
 			var id := String(item.get("variety", ""))
 			var v: Dictionary = varieties.get(id, {})
-			return String(v.get("name", type_name(State.type_of_variety(id))))
+			return VarietyGen.display_name(v) if not v.is_empty() else type_name(State.type_of_variety(id))
 		"nut":
 			return type_name(String(item.get("type", "")))
 		"product":
@@ -167,9 +167,9 @@ static func item_name(item: Dictionary, varieties: Dictionary) -> String:
 	return "?"
 
 
+## In the current language (L10N-TR).
 static func type_name(type: String) -> String:
-	var ing: Dictionary = Data.ingredients().get(type, {})
-	return String(ing.get("display_name", type.capitalize()))
+	return VarietyGen.type_name(type)
 
 
 static func npc_name(npc_id: String) -> String:

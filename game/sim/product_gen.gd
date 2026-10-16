@@ -67,11 +67,14 @@ static func profile(t: Array) -> Array:
 	return out
 
 
-static func profile_label(t: Array) -> String:
+## "Sweet & Sour", "Mild" (Turkish "Tatlı & Ekşi", "Hafif"). `lang_code` "" = the current locale.
+static func profile_label(t: Array, lang_code: String = "") -> String:
 	var ids := profile(t)
+	var g: Dictionary = Data.grammar()
+	var turkish := lang(lang_code) == "tr"
 	if ids.is_empty():
-		return "Mild"
-	var names: Array = Data.grammar().axis_names
+		return String(g.get("tr", {}).get("mild", "Mild")) if turkish else "Mild"
+	var names: Array = g.get("tr", {}).get("axis_names", g.axis_names) if turkish else g.axis_names
 	var parts: Array = []
 	for id in ids:
 		parts.append(names[AXES.find(id)])
@@ -111,31 +114,145 @@ static func total_stars(quality: int, harmony_stars: int) -> int:
 ## "[Adjective] [Feature] [Type] [Short]": add-in adjective or profile adjective; repeat rule; 28-char fallbacks.
 ## Family recipes (row "family_of"): "[Granny's] [Feature] [Short]", the short already naming the dish ("Quince
 ## Butter"), with the same repeat rule and fallbacks ("Granny's Blackberry Honey Jam" is 29 -> "Blackberry Honey Jam").
-static func product_name(key: String, varieties: Dictionary) -> String:
+## L10N-TR: `lang_code` "" = the current locale; Turkish names come from the same parts (name_parts), never stored.
+static func product_name(key: String, varieties: Dictionary, lang_code: String = "") -> String:
+	return String(name_parts(key, varieties, lang_code).name)
+
+
+## The parts of a product name and the rules that shaped it, in one language (the book's "How it was made" card):
+## {"name", "adjective", "adjective_kind": "family"|"addin"|"profile"|"mild", "feature", "type", "short",
+##  "repeat": feature dropped for the same root, "feature_long": dropped for length, "adjective_long": dropped too}.
+static func name_parts(key: String, varieties: Dictionary, lang_code: String = "") -> Dictionary:
 	var p := parse_key(key)
 	var recipe: Dictionary = Data.recipes().get(p.recipe, {})
 	var short := String(recipe.get("short", String(p.recipe).capitalize()))
-	if recipe.has("family_of"):
-		var feat := ""
-		if not p.varieties.is_empty():
-			feat = VarietyGen.feature_of(_variety_or_type(String(p.varieties[0]), varieties))
-		return compose_name(String(recipe.get("adjective", "")), feat, "", short)
+	var family := recipe.has("family_of")
 	var adjective := ""
-	if p.addin != "":
+	var kind := "family"
+	var prof: Array = []
+	if family:
+		adjective = String(recipe.get("adjective", ""))
+	elif p.addin != "":
+		kind = "addin"
 		var addin: Dictionary = Data.addins().get(p.addin, {})
 		adjective = String(addin.get("adjective", String(p.addin).capitalize()))
 	else:
 		var adjs: Dictionary = Data.grammar().profile_adjectives
-		var prof := profile(taste(key, varieties))
+		prof = profile(taste(key, varieties))
+		kind = "mild" if prof.is_empty() else "profile"
 		adjective = String(adjs.mild if prof.is_empty() else adjs[prof[0]])
 	var feature := ""
 	var type_part := ""
-	var vs: Array = p.varieties
-	if not vs.is_empty():
-		var v := _variety_or_type(String(vs[0]), varieties)
-		feature = VarietyGen.feature_of(v)
-		type_part = VarietyGen.base_name(v)
-	return compose_name(adjective, feature, type_part, short)
+	var main := {}
+	if not p.varieties.is_empty():
+		main = _variety_or_type(String(p.varieties[0]), varieties)
+		feature = VarietyGen.feature_of(main)
+		type_part = "" if family else VarietyGen.base_name(main)
+	var repeat := adjective != "" and feature != "" and adjective.left(4).to_lower() == feature.left(4).to_lower()
+	if lang(lang_code) == "tr":
+		return _name_parts_tr(p, recipe, kind, prof, feature, main, repeat)
+	var full := _join([adjective, feature, type_part, short]) if feature != "" and not repeat else ""
+	var out := _shorten(full, _join([adjective, type_part, short]), _join([type_part, short]))
+	out.merge({"adjective": adjective, "adjective_kind": kind, "feature": feature, "type": type_part, "short": short,
+		"repeat": repeat})
+	return out
+
+
+## Turkish: add-in adjective with -li ("Tarçınlı"), the type phrase ("Köy Armudu"), the recipe in its compound form
+## after a type ("Reçeli"); repeat rule on the English words or the Turkish stems; the same two fallbacks.
+static func _name_parts_tr(p: Dictionary, recipe: Dictionary, kind: String, prof: Array, feature_en: String,
+		main: Dictionary, repeat: bool) -> Dictionary:
+	var g: Dictionary = Data.grammar().get("tr", {})
+	var short := recipe_short(String(p.recipe), "tr")
+	var adjective := ""
+	match kind:
+		"family":
+			adjective = String(g.get("family_adjective", recipe.get("adjective", "")))
+		"addin":
+			adjective = addin_adjective(String(p.addin), "tr")
+		_:
+			var adjs: Dictionary = g.get("profile_adjectives", {})
+			adjective = String(adjs.get("mild" if prof.is_empty() else String(prof[0]), ""))
+	var feature := VarietyGen.feature_word(feature_en, "tr")
+	if kind == "family" and VarietyGen.is_noun_feature(feature):
+		feature = ""  # "Nine'nin Kızıl Ayva Ezmesi" works; a noun would need the compound inside the fixed dish name
+	var type := String(main.get("type", ""))
+	var type_part := "" if kind == "family" or main.is_empty() else VarietyGen.type_name(type, "tr")
+	if feature != "" and Turkish.same(Turkish.stem(adjective), Turkish.stem(feature)):
+		repeat = true
+	if feature != "" and type_part != "" and Turkish.lower_word(type_part).begins_with(Turkish.lower_word(feature)):
+		repeat = true  # "Bal Balkabağı"
+	var head := Turkish.compound(short, g.get("compound_exceptions", {})) if type_part != "" else short
+	var full := ""
+	if feature != "" and not repeat:
+		if kind == "family":
+			full = _join([adjective, feature, head])
+		else:
+			full = _join([adjective, VarietyGen.tr_phrase(feature, type), head])
+	var out := _shorten(full, _join([adjective, type_part, head]), _join([type_part, head]))
+	out.merge({"adjective": adjective, "adjective_kind": kind, "feature": feature, "type": type_part, "short": head,
+		"repeat": repeat and feature != ""})
+	return out
+
+
+## {"name", "feature_long", "adjective_long"}: the full name, else without the feature, else without the adjective
+## too (compose_name's order). `full` "" = there is no feature to drop.
+static func _shorten(full: String, no_feature: String, bare: String) -> Dictionary:
+	var max_len := int(Data.grammar().product_name_max)
+	if full != "" and full.length() <= max_len:
+		return {"name": full, "feature_long": false, "adjective_long": false}
+	if no_feature.length() <= max_len:
+		return {"name": no_feature, "feature_long": full != "", "adjective_long": false}
+	return {"name": bare, "feature_long": full != "", "adjective_long": true}
+
+
+## L10N-TR · The language of display names: "tr" when `lang_code` (or, when "", the current locale) is Turkish.
+static func lang(lang_code: String = "") -> String:
+	if lang_code == "":
+		lang_code = TranslationServer.get_locale()
+	return "tr" if lang_code.begins_with("tr") else "en"
+
+
+## Recipe name to show ("Fruit Butter"; Turkish "Meyve Ezmesi").
+static func recipe_name(recipe_id: String, lang_code: String = "") -> String:
+	var row := _tr_row("recipes", recipe_id, lang_code)
+	if row.has("name"):
+		return String(row.name)
+	return String(Data.recipes().get(recipe_id, {}).get("name", recipe_id.capitalize()))
+
+
+## The recipe word of the name grammar ("Butter"; Turkish "Ezme").
+static func recipe_short(recipe_id: String, lang_code: String = "") -> String:
+	var row := _tr_row("recipes", recipe_id, lang_code)
+	if row.has("short"):
+		return String(row.short)
+	return String(Data.recipes().get(recipe_id, {}).get("short", recipe_id.capitalize()))
+
+
+## Add-in noun to show ("Cinnamon"; Turkish "Tarçın").
+static func addin_name(addin_id: String, lang_code: String = "") -> String:
+	var row := _tr_row("addins", addin_id, lang_code)
+	if row.has("name"):
+		return String(row.name)
+	return addin_id.capitalize()
+
+
+## Add-in adjective of the name grammar ("Honeyed"; Turkish "Ballı": -li by vowel harmony unless the row gives one).
+static func addin_adjective(addin_id: String, lang_code: String = "") -> String:
+	var row := _tr_row("addins", addin_id, lang_code)
+	if row.has("adjective"):
+		return String(row.adjective)
+	if row.has("name"):
+		return Turkish.with_li(String(row.name))
+	return String(Data.addins().get(addin_id, {}).get("adjective", addin_id.capitalize()))
+
+
+## The grammar.json tr row of a recipe or add-in; {} in English or when it has none.
+static func _tr_row(table: String, id: String, lang_code: String) -> Dictionary:
+	if lang(lang_code) != "tr":
+		return {}
+	var row: Variant = Data.grammar().get("tr", {}).get(table, {}).get(id)
+	return row if typeof(row) == TYPE_DICTIONARY else {}
 
 
 ## Applies the repeat rule (adjective and feature share their first 4 letters -> drop the feature), then the length
