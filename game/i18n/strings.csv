@@ -641,3 +641,12 @@ UI_WEATHER_SUNNY,Sunny
 UI_WEATHER_RAINY,Rainy
 UI_WEATHER_WINDY,Windy
 UI_WEATHER_FOGGY,Foggy
+UI_FAMILY_TAB,Family recipes
+UI_FAMILY_BASE,Base recipes
+UI_FAMILY_TIP,Granny's own recipes. The grandkids sent them back with their love.
+UI_FAMILY_HEADING,Family recipes %d/%d
+UI_FAMILY_FROM,"From %s, %d hearts"
+UI_FAMILY_HOW_ADJ,Family recipe: always %s
+UI_FAMILY_DRAWING_HINT,A drawing from %s. Click to look closer.
+UI_FAMILY_DRAWING_FROM,Drawn by %s for Granny
+UI_FAMILY_DRAWING_CLOSE,Click to hang it back up.

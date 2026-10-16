@@ -6,6 +6,9 @@ extends Control
 ## recipe's mini-game -> Kitchen.cook_n (x2 with the big pot) -> result card; a Mastered variant may skip the
 ## mini-game (Batch cook -> Kitchen.batch_cook). Mastering plays jgl_level. Rules stay in res://sim; this scene
 ## shows and routes.
+## KITCHEN-P1C: the grandkids' reply drawings hang on the wall left of the window (WallDrawings, click to see one
+## big); on days 90-99 (Farewell hint days) Granny nods off in a rocking chair after DOZE_AFTER idle seconds and any
+## input wakes her (Doze; looks only, nothing in the save changes).
 ## Run alone it starts a throwaway game (GameState.start_temp, never saved) with a debug inventory.
 
 const HUD := "res://ui/hud/hud.tscn"
@@ -26,6 +29,11 @@ const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const Hotspot := preload("res://scenes/kitchen/hotspot.gd")
 const CookPanel := preload("res://scenes/kitchen/cook_panel.gd")
 const Shelf := preload("res://scenes/kitchen/waiting_shelf.gd")
+const Wall := preload("res://scenes/kitchen/wall_drawings.gd")
+const Doze := preload("res://scenes/kitchen/doze.gd")
+## Idle seconds before Granny dozes off on a hint day, and where her chair stands (by the stove, where she waits).
+const DOZE_AFTER := 10.0
+const DOZE_AT := Vector2(86, 171)
 
 ## QA hook: merged into every mini-game ctx (e.g. {"autoplay": true, "duration": 4.0} makes stir_pot play itself).
 var debug_ctx: Dictionary = {}
@@ -51,6 +59,11 @@ var _last_spot := "stove"
 var _sticky_until := 0
 var _glow := ""
 var _room_active := true
+var _wall: Control
+var _viewer: Control = null  ## a drawing seen big (WallDrawings.Viewer)
+var _granny: TextureRect
+var _doze: Control
+var _idle := 0.0  ## seconds without any input (the doze clock)
 
 
 func _ready() -> void:
@@ -110,6 +123,7 @@ func _build_room() -> void:
 		g.size = Vector2(16, 32)
 		g.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_room.add_child(g)
+		_granny = g
 	var captions := {
 		"garden": tr("KITCHEN_TO_GARDEN"), "stove": tr("KITCHEN_STOVE"), "counter": tr("KITCHEN_COUNTER"),
 		"cupboard": tr("KITCHEN_CUPBOARD"), "pantry": tr("KITCHEN_TO_PANTRY"), "bed": tr("KITCHEN_BED_CAPTION"),
@@ -130,6 +144,14 @@ func _build_room() -> void:
 	_shelf = Shelf.new()
 	_room.add_child(_shelf)
 	_shelf.hovered.connect(_on_shelf_hover)
+	_wall = Wall.new()
+	_room.add_child(_wall)
+	_wall.hovered.connect(_on_shelf_hover)
+	_wall.open_requested.connect(func(letter: Dictionary) -> void: _open_drawing.call_deferred(letter))
+	_doze = Doze.new()
+	_doze.position = DOZE_AT
+	_doze.visible = false
+	_room.add_child(_doze)
 
 
 func _build_bar() -> void:
@@ -206,6 +228,7 @@ func _refresh() -> void:
 	for kind: String in Art.UNLOCK_OF:  # P1 stations appear once bought / given
 		_spots[kind].visible = Economy.unlocked(d, String(Art.UNLOCK_OF[kind]))
 	_shelf.show_items(_waiting(d))
+	_wall.show_letters(d)
 	if _panel.visible and _mg == null:
 		_panel.refresh()
 	_update_glow()
@@ -401,6 +424,8 @@ func _set_room_active(on: bool) -> void:
 		var h: Button = _spots[k]
 		h.focus_mode = Control.FOCUS_ALL if on else Control.FOCUS_NONE
 		h.mouse_filter = Control.MOUSE_FILTER_STOP if on else Control.MOUSE_FILTER_IGNORE
+	if _wall != null:
+		_wall.set_active(on)
 
 
 func _on_blocker_input(event: InputEvent) -> void:
@@ -545,6 +570,68 @@ func _on_card_closed() -> void:
 	_set_room_active(true)
 	_focus_spot()
 	_say(tr(_after_card), true)
+
+
+# ---------------------------------------------------------------- drawings and the doze (KITCHEN-P1C)
+
+## Shows one wall drawing big over the room; closing it gives the room back.
+func _open_drawing(letter: Dictionary) -> void:
+	if _viewer != null or not _room_active or _mg != null or _card != null:
+		return
+	Audio.play_sfx("sfx_page_turn")
+	_set_room_active(false)
+	var v: Control = Wall.Viewer.new()
+	v.setup(Wall.drawing(GameState.data, letter), Letters.kid_name(String(letter.from)))
+	_overlay.add_child(v)
+	v.closed.connect(_close_drawing)
+	_viewer = v
+
+
+func _close_drawing() -> void:
+	_viewer = null
+	Audio.play_ui("ui_back")
+	_set_room_active(true)
+	var f: Button = _wall.newest()
+	if f != null:
+		f.grab_focus()
+
+
+## True while Granny may nod off: a Farewell hint day, the room free (no panel, dialog, mini-game, card or drawing).
+func _can_doze() -> bool:
+	var d := GameState.data
+	return not d.is_empty() and Farewell.is_hint_day(int(d.get("day", 1))) and _room_active and _mg == null \
+		and _card == null and _viewer == null
+
+
+func _process(delta: float) -> void:
+	if _doze == null:
+		return
+	if not _can_doze():
+		_idle = 0.0
+		if _doze.visible:
+			_set_dozing(false)
+		return
+	_idle += delta
+	if _idle >= DOZE_AFTER and not _doze.visible:
+		_set_dozing(true)
+
+
+## Granny in her chair with closed eyes and a "z" bubble, or back at the stove. Looks only.
+func _set_dozing(on: bool) -> void:
+	_doze.visible = on
+	if on:
+		_doze.restart()
+	if _granny != null:
+		_granny.visible = not on
+
+
+## Any input wakes her and restarts the idle clock (the event itself goes on as usual).
+func _input(event: InputEvent) -> void:
+	if event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) < 0.3:
+		return
+	_idle = 0.0
+	if _doze != null and _doze.visible:
+		_set_dozing(false)
 
 
 # ---------------------------------------------------------------- bed

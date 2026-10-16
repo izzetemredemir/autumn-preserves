@@ -20,7 +20,7 @@ const REPLY_DAYS := 2
 const CARE_HEARTS := 2
 ## Love per kid that unlocks the kid's family recipes, in order.
 const LOVE_STEPS := [3, 6, 10]
-## Family recipe ids (P1-RECIPES defines the recipes; names are LET_RECIPE_<ID>).
+## Family recipe ids: recipes.json family rows (KITCHEN-P1C, Kitchen.family_*); names are LET_RECIPE_<ID>.
 const FAMILY_RECIPES := {
 	"mia": ["grannys_quince_butter", "blackberry_honey_jam", "crabapple_jelly"],
 	"leo": ["pepper_relish", "chili_pickles", "salted_porcini"],

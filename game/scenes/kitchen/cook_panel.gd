@@ -7,6 +7,8 @@ extends Panel
 ## fruit variety (Kitchen.product_stock); a recipe without slots (bread) only needs the cupboard.
 ## KITCHEN-P1B: a row above Cook holds the big pot's x1/x2 toggle (stove recipes once "big_pot" is bought; `mult`)
 ## and "Batch cook" once the recipe has a Mastered variant (ready only when the picked variant is Mastered).
+## KITCHEN-P1C: once a family recipe of this station is unlocked, a gold "Family recipes" button by Back swaps the tabs
+## between the base recipes and the family ones (`family`); a family recipe's add-in row holds only its fixed add-in.
 
 signal cook_requested(recipe_id: String, main_variety: String, second_variety: String, addin_id: String)
 signal batch_requested(recipe_id: String, main_variety: String, second_variety: String, addin_id: String)
@@ -26,6 +28,7 @@ const SLOTS := ["main", "second"]
 const LIST_H := 98
 const EXTRAS_Y := 170
 const MULT_W := 26
+const FAMILY_W := 112
 
 var station := ""
 var recipe := ""
@@ -34,10 +37,13 @@ var addin := ""
 var home := Vector2(8, 30)
 ## Pots per cook: 2 once the big pot is bought and x2 is picked (stove recipes only).
 var mult := 1
+## True while the tabs show this station's unlocked family recipes instead of the base ones.
+var family := false
 
 var _recipes: Array = []
 var _title: Label
 var _back: Button
+var _family_btn: Button
 var _tab_box: Control
 var _tabs: Dictionary = {}  # recipe id -> Button
 var _slots: Dictionary = {}  # "main"/"second" -> {"button", "caption", "need", "icon", "name"}
@@ -69,9 +75,14 @@ func _ready() -> void:
 
 # ---------------------------------------------------------------- pure helpers (state in, plain data out)
 
-## Recipes this save can cook with `method` (Kitchen.recipes_at): P0 first, then unlocked P1.
+## Recipes this save can cook with `method` (Kitchen.recipes_at): P0 first, then unlocked P1, then family.
 static func recipes_for(method: String) -> Array:
 	return Kitchen.recipes_at(GameState.data, method)
+
+
+## The tab set: `method`'s base recipes, or its unlocked family recipes when `family_set`.
+static func tab_recipes(method: String, family_set: bool) -> Array:
+	return recipes_for(method).filter(func(id: String) -> bool: return Kitchen.is_family(id) == family_set)
 
 
 ## Fresh units per variety id in the inbox and the pantry.
@@ -125,7 +136,8 @@ func open(station_id: String) -> void:
 		recipe = ""
 		picks = {"main": "", "second": ""}
 		addin = ""
-	_build_tabs()  # every time: a new unlock can add a tab (syrup once the press is bought)
+		family = false
+	_build_tabs()  # every time: a new unlock can add a tab (syrup once the press is bought, a family recipe)
 	if not _recipes.has(recipe):
 		recipe = _recipes[0] if not _recipes.is_empty() else ""
 	var d := GameState.data
@@ -147,6 +159,9 @@ func open(station_id: String) -> void:
 func refresh() -> void:
 	if recipe == "" or GameState.data.is_empty():
 		return
+	var fixed: Variant = Kitchen.fixed_addin(recipe)
+	if fixed != null:
+		addin = String(fixed)
 	var fk := _focus_key()
 	_update_tabs()
 	_update_extras()
@@ -175,6 +190,13 @@ func _build() -> void:
 	_back.size = Vector2(50, 26)
 	_back.pressed.connect(func() -> void: close_requested.emit())
 	add_child(_back)
+	_family_btn = Button.new()
+	_family_btn.position = Vector2(W - 58 - 6 - FAMILY_W, 3)
+	_family_btn.size = Vector2(FAMILY_W, 26)
+	_family_btn.tooltip_text = tr("UI_FAMILY_TIP")
+	_family_btn.visible = false
+	_family_btn.pressed.connect(_toggle_family)
+	add_child(_family_btn)
 
 	_tab_box = Control.new()
 	_tab_box.position = Vector2(8, 32)
@@ -295,7 +317,15 @@ func _build_tabs() -> void:
 		_tab_box.remove_child(c)
 		c.queue_free()
 	_tabs.clear()
-	_recipes = recipes_for(station)
+	var has_family := not tab_recipes(station, true).is_empty()
+	if not has_family:
+		family = false
+	_recipes = tab_recipes(station, family)
+	_family_btn.visible = has_family
+	_family_btn.text = tr("UI_FAMILY_BASE") if family else tr("UI_FAMILY_TAB")
+	_style(_family_btn, family)
+	for k in ["font_color", "font_hover_color", "font_focus_color", "font_pressed_color", "font_hover_pressed_color"]:
+		_family_btn.add_theme_color_override(k, Art.GOLD)
 	var all := Data.recipes()
 	# Three tabs keep the full width; the stove with syrup squeezes four in and shows one icon per slot.
 	var n := maxi(_recipes.size(), 1)
@@ -310,6 +340,10 @@ func _build_tabs() -> void:
 		b.clip_contents = true
 		b.pressed.connect(_select_recipe.bind(id))
 		_tab_box.add_child(b)
+		if Kitchen.is_family(id):
+			_family_tab(b, id, tab_w)
+			_tabs[id] = b
+			continue
 		var nm := _label(b, Vector2(6, 1), tab_w - 12)
 		nm.text = String(r.name)
 		nm.clip_text = true
@@ -347,6 +381,24 @@ func _build_tabs() -> void:
 			b.focus_neighbor_right = b.get_path_to(_tabs[_recipes[i + 1]])
 
 
+## A family recipe tab: its letter name in gold over up to two lines, and its gold-label jar in the top right corner
+## (first lines stay short of it: "Granny's", "Blackberry", "Pepper Relish"; the slots and the add-in row below say
+## what goes in).
+func _family_tab(b: Button, id: String, tab_w: int) -> void:
+	var nm := _label(b, Vector2(5, 1), tab_w - 21)
+	nm.size.y = TAB_H - 2
+	nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	nm.text = tr("LET_RECIPE_" + id.to_upper())
+	nm.add_theme_color_override("font_color", Art.GOLD)
+	var r: Dictionary = Data.recipes()[id]
+	var types: Array = r.main.get("types", [])
+	var jar := JarIcon.new()
+	jar.view = "icon"
+	jar.position = Vector2(tab_w - 18, 3)
+	b.add_child(jar)
+	jar.show_product(ProductGen.describe(ProductGen.make_key(id, types.slice(0, 1), String(r.get("fixed_addin", ""))), {}))
+
+
 func _build_addins() -> void:
 	for c in _addin_box.get_children():
 		_addin_box.remove_child(c)
@@ -357,6 +409,9 @@ func _build_addins() -> void:
 	ids.append_array(available_addins(d))
 	if addin != "" and not ids.has(addin):
 		ids.append(addin)
+	var fixed: Variant = Kitchen.fixed_addin(recipe)
+	if fixed != null:  # a family recipe: its own add-in (or none), shown even when the cupboard has none
+		ids = [String(fixed)]
 	var x := 0
 	# Up to six add-ins at 26 px; more (P1 nuts, herbs) narrow down so the row stays left of the stock list.
 	var each := clampi(floori((RIGHT_X - 56 - 38) / float(maxi(ids.size() - 1, 1))) - 2, 18, 26)
@@ -655,6 +710,8 @@ func _variety_name(vid: String) -> String:
 
 func _select_recipe(id: String) -> void:
 	if id != recipe:
+		if Kitchen.fixed_addin(recipe) != null:
+			addin = ""  # leaving a family recipe: its add-in was not the player's pick
 		recipe = id
 		for which in SLOTS:
 			if picks[which] != "" and not _fits(which, picks[which]):
@@ -726,6 +783,24 @@ func _on_batch() -> void:
 	batch_requested.emit(recipe, _main(), _second(), addin)
 
 
+## Swaps the tabs between the base recipes and this station's family recipes.
+func _toggle_family() -> void:
+	family = not family
+	if Kitchen.fixed_addin(recipe) != null:
+		addin = ""
+	_build_tabs()
+	recipe = _recipes[0] if not _recipes.is_empty() else ""
+	for which in SLOTS:
+		if picks[which] != "" and not _fits(which, picks[which]):
+			picks[which] = ""
+	if addin != "" and addin_count(GameState.data, addin) == 0:
+		addin = ""
+	Audio.play_ui("ui_click")
+	refresh()
+	_pop(_family_btn)
+	_family_btn.grab_focus()
+
+
 func _select_mult(n: int) -> void:
 	mult = clampi(n, 1, Kitchen.max_mult(GameState.data, recipe))
 	Audio.play_ui("ui_click")
@@ -777,6 +852,8 @@ func _focus_key() -> String:
 			return "mult:%d" % n
 	if f == _batch:
 		return "batch:"
+	if f == _family_btn:
+		return "family:"
 	return ""
 
 
@@ -799,6 +876,8 @@ func _restore_focus(key: String) -> void:
 			target = _mult_buttons.get(int(parts[1]))
 		"batch":
 			target = _batch
+		"family":
+			target = _family_btn
 	if target != null and not target.is_visible_in_tree():
 		target = null
 	if target == null and not _rows.is_empty():

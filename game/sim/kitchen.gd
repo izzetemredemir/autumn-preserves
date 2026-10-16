@@ -12,6 +12,9 @@ extends RefCounted
 ## (book.variants[key].mastered; "good" counts those cooks); batch_cook() then makes it without the mini-game, at its
 ## best quality, for the same energy. P1 big pot (spec §8.3): once "big_pot" is unlocked, stir_pot recipes may cook
 ## x2 (check_n / cook_n with mult 2): every input x2 -> 2 jars, one cook's energy, one mastery step.
+## KITCHEN-P1C family recipes (spec §7.6): recipes.json rows with "family_of" (priority 2), one per id in
+## Letters.FAMILY_RECIPES. Available once the grandchild's love unlocked them (state.letters.unlocked_recipes, love
+## 3/6/10 in Letters.pack); one fixed ingredient type and "fixed_addin" (exactly that add-in, "" = none allowed).
 
 const R_WRONG := "UI_KITCHEN_WRONG"
 const R_MISSING := "UI_KITCHEN_MISSING"
@@ -126,6 +129,8 @@ static func available(state: Dictionary, recipe_id: String) -> bool:
 	if not recipes.has(recipe_id):
 		return false
 	var recipe: Dictionary = recipes[recipe_id]
+	if recipe.has("family_of") and not family_unlocked(state, recipe_id):
+		return false
 	if int(recipe.get("priority", 0)) <= 0:
 		return true
 	var gate := String(STATION_UNLOCK.get(String(recipe.method), ""))
@@ -137,8 +142,63 @@ static func available(state: Dictionary, recipe_id: String) -> bool:
 	return true
 
 
+# --- family recipes (KITCHEN-P1C) ---------------------------------------------------------------------------------
+
+## A family recipe row (Granny's recipes the grandkids send back)?
+static func is_family(recipe_id: String) -> bool:
+	return Data.recipes().get(recipe_id, {}).has("family_of")
+
+
+## Every family recipe id in recipes.json order (Mia's three, then Leo's).
+static func family_ids() -> Array:
+	var out: Array = []
+	var all := Data.recipes()
+	for id: String in all:
+		if all[id].has("family_of"):
+			out.append(id)
+	return out
+
+
+## Has the grandchild's love unlocked it? Old saves without letters: no.
+static func family_unlocked(state: Dictionary, recipe_id: String) -> bool:
+	var l: Variant = state.get("letters")
+	if typeof(l) != TYPE_DICTIONARY or typeof(l.get("unlocked_recipes")) != TYPE_ARRAY:
+		return false
+	return l.unlocked_recipes.has(recipe_id)
+
+
+## Unlocked family recipes, in family_ids() order.
+static func unlocked_family(state: Dictionary) -> Array:
+	return family_ids().filter(func(id: String) -> bool: return family_unlocked(state, id))
+
+
+## The grandchild whose love unlocks it ("" for other recipes).
+static func family_kid(recipe_id: String) -> String:
+	for kid: String in Letters.FAMILY_RECIPES:
+		if Letters.FAMILY_RECIPES[kid].has(recipe_id):
+			return kid
+	return ""
+
+
+## Love that unlocks it (Letters.LOVE_STEPS by its place in the kid's list; 0 for other recipes).
+static func family_love(recipe_id: String) -> int:
+	var kid := family_kid(recipe_id)
+	if kid == "":
+		return 0
+	var i: int = Letters.FAMILY_RECIPES[kid].find(recipe_id)
+	return int(Letters.LOVE_STEPS[mini(i, Letters.LOVE_STEPS.size() - 1)])
+
+
+## The add-in a recipe insists on: null for free choice, "" for none at all, else the add-in id.
+static func fixed_addin(recipe_id: String) -> Variant:
+	var recipe: Dictionary = Data.recipes().get(recipe_id, {})
+	if recipe.has("fixed_addin"):
+		return String(recipe.fixed_addin)
+	return null
+
+
 ## Available recipes cooked with `method`: P0 first, each priority in recipes.json order (stove: jam, butter,
-## chutney, syrup; counter: pickles, brine, kraut; press: juice, vinegar; board: pie, bread).
+## chutney, syrup; counter: pickles, brine, kraut; press: juice, vinegar; board: pie, bread), unlocked family last.
 static func recipes_at(state: Dictionary, method: String) -> Array:
 	var all := Data.recipes()
 	var out: Array = []
@@ -194,6 +254,9 @@ static func _plan(state: Dictionary, recipe_id: String, main_variety: String, se
 		out.reason = R_WRONG
 		return out
 	var recipe: Dictionary = recipes[recipe_id]
+	if recipe.has("fixed_addin") and addin_id != String(recipe.fixed_addin):
+		out.reason = R_WRONG  # family recipes take exactly their own add-in
+		return out
 	out.action = String(recipe.method)
 	var missing: Dictionary = out.missing
 	var same_hint := false

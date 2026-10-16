@@ -2,6 +2,8 @@ class_name Book
 extends CanvasLayer
 ## Recipe book overlay (GD-BOOK, spec §7.9). Open with `Book.open()` (static, finds or creates the overlay).
 ## Tabs: Recipes (base recipes + discovered variants) and Varieties (found / "???"). Closes on cancel, B or the X button.
+## KITCHEN-P1C: unlocked family recipes get their own left pages after the base recipes ("Family recipes 2/6"):
+## a gold-label jar, the name, what goes in and which grandchild sent it back at how many hearts.
 
 const SCENE := "res://ui/book/book.tscn"
 const PAPER := Color("f2d9c5")
@@ -29,6 +31,7 @@ const PANEL_TEX := preload("res://assets/sprites/ui/ui_panel_paper.png")
 const RECIPE_ORDER := ["jam", "fruit_butter", "chutney", "pickle", "brined_mushroom", "kraut", "juice",
 	"fruit_vinegar", "syrup", "pie", "bread"]
 const RECIPES_PER_PAGE := 5  ## base recipes on the left page; P1 ones join once their station is unlocked
+const FAMILY_PER_PAGE := 3  ## family recipes per left page (three lines each, under the heading)
 
 var _tab := 0
 var _page := 0
@@ -287,10 +290,21 @@ func _recipe_ids() -> Array:
 	return out
 
 
+## Unlocked family recipes (KITCHEN-P1C), in Kitchen.family_ids() order.
+func _family_ids() -> Array:
+	var d := _data()
+	return [] if d.is_empty() else Kitchen.unlocked_family(d)
+
+
+## Left pages of base recipes; the family pages follow them.
+func _base_pages() -> int:
+	return maxi(ceili(_recipe_ids().size() / float(RECIPES_PER_PAGE)), 1)
+
+
 func _page_count() -> int:
 	if _tab == 0:
 		var variant_pages := ceili(_variant_keys().size() / float(VARIANTS_PER_PAGE))
-		var recipe_pages := ceili(_recipe_ids().size() / float(RECIPES_PER_PAGE))
+		var recipe_pages := _base_pages() + ceili(_family_ids().size() / float(FAMILY_PER_PAGE))
 		return maxi(maxi(variant_pages, recipe_pages), 1)
 	return maxi(ceili(_types().size() / float(TYPES_PER_PAGE * 2)), 1)
 
@@ -346,11 +360,15 @@ func _heading(box: Control, text: String) -> Label:
 
 func _fill_recipes() -> void:
 	_left.add_theme_constant_override("separation", 0)
-	_heading(_left, tr("BOOK_BASE_RECIPES"))
 	var recipes := Data.recipes()
-	var ids := _recipe_ids()
-	for i in range(_page * RECIPES_PER_PAGE, mini(ids.size(), (_page + 1) * RECIPES_PER_PAGE)):
-		_left.add_child(_recipe_entry(ids[i], recipes[ids[i]]))
+	var family := _family_ids()
+	if not family.is_empty() and _page >= _base_pages():
+		_fill_family(_page - _base_pages(), family)
+	else:
+		_heading(_left, tr("BOOK_BASE_RECIPES"))
+		var ids := _recipe_ids()
+		for i in range(_page * RECIPES_PER_PAGE, mini(ids.size(), (_page + 1) * RECIPES_PER_PAGE)):
+			_left.add_child(_recipe_entry(ids[i], recipes[ids[i]]))
 	var hr := _heading(_right, tr("BOOK_VARIANTS"))
 	hr.add_theme_constant_override("line_spacing", 0)
 	var keys := _variant_keys()
@@ -393,6 +411,56 @@ func _recipe_entry(id: String, r: Dictionary) -> Control:
 			n.text = "x%d" % int(r.base[item])
 			row.add_child(n)
 	return v
+
+
+## Family page `fp` (KITCHEN-P1C): heading with the count found, then up to FAMILY_PER_PAGE recipes.
+func _fill_family(fp: int, family: Array) -> void:
+	_heading(_left, tr("UI_FAMILY_HEADING") % [family.size(), Kitchen.family_ids().size()])
+	for i in range(fp * FAMILY_PER_PAGE, mini(family.size(), (fp + 1) * FAMILY_PER_PAGE)):
+		_left.add_child(_family_entry(String(family[i])))
+
+
+## A family recipe: its gold-label jar, the name, what goes in (+ its fixed add-in) and who sent it back.
+func _family_entry(id: String) -> Control:
+	var r: Dictionary = Data.recipes()[id]
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 4)
+	var jb := CenterContainer.new()
+	jb.custom_minimum_size = Vector2(16, 54)
+	var jar := JarIcon.new()
+	jar.view = "icon"
+	jb.add_child(jar)
+	var types: Array = r.main.get("types", [])
+	var fixed := String(r.get("fixed_addin", ""))
+	jar.show_product(ProductGen.describe(ProductGen.make_key(id, types.slice(0, 1), fixed), {}))
+	h.add_child(jb)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 0)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(v)
+	var name_l := _label(FONT_BODY, 18, GOLD_DK)
+	name_l.text = tr("LET_RECIPE_" + id.to_upper())
+	name_l.clip_text = true
+	v.add_child(name_l)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 0)
+	v.add_child(row)
+	_add_slot(row, r.main)
+	_plus(row)
+	for item: String in r.get("base", {}):
+		_icon(row, item)
+		if int(r.base[item]) > 1:
+			var n := _label(FONT_BODY, 18, TEXT)
+			n.text = "x%d" % int(r.base[item])
+			row.add_child(n)
+	if fixed != "":
+		_plus(row)
+		_icon(row, fixed)
+	var from_l := _label(FONT_BODY, 18, TEXT)
+	from_l.text = tr("UI_FAMILY_FROM") % [Letters.kid_name(Kitchen.family_kid(id)), Kitchen.family_love(id)]
+	from_l.clip_text = true
+	v.add_child(from_l)
+	return h
 
 
 func _plus(row: Control) -> void:

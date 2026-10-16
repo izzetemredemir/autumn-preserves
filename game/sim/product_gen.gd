@@ -15,6 +15,9 @@ const METAL_LIDS := [["9b8039", "e5bd7f"], ["b66813", "e5bd7f"], ["9b8039", "dbc
 const CLOTH_LIDS := [["a22512", "f2d9c5"], ["62272c", "e19064"], ["83571e", "e5bd7f"], ["b66813", "f2d9c5"], ["c94d2e", "dbcc83"]]
 ## Fill of a product without a variety (bread): bark ramp.
 const PLAIN_FILL := ["83571e", "c58845", "e5bd7f"]
+## Family recipes (KITCHEN-P1C) wear a gold label with a star, a colour no other label draws.
+const FAMILY_LABEL := "c5bf3f"
+const FAMILY_MOTIF := "star"
 
 
 static func make_key(recipe_id: String, variety_ids: Array, addin_id: String) -> String:
@@ -106,10 +109,17 @@ static func total_stars(quality: int, harmony_stars: int) -> int:
 
 
 ## "[Adjective] [Feature] [Type] [Short]": add-in adjective or profile adjective; repeat rule; 28-char fallbacks.
+## Family recipes (row "family_of"): "[Granny's] [Feature] [Short]", the short already naming the dish ("Quince
+## Butter"), with the same repeat rule and fallbacks ("Granny's Blackberry Honey Jam" is 29 -> "Blackberry Honey Jam").
 static func product_name(key: String, varieties: Dictionary) -> String:
 	var p := parse_key(key)
 	var recipe: Dictionary = Data.recipes().get(p.recipe, {})
 	var short := String(recipe.get("short", String(p.recipe).capitalize()))
+	if recipe.has("family_of"):
+		var feat := ""
+		if not p.varieties.is_empty():
+			feat = VarietyGen.feature_of(_variety_or_type(String(p.varieties[0]), varieties))
+		return compose_name(String(recipe.get("adjective", "")), feat, "", short)
 	var adjective := ""
 	if p.addin != "":
 		var addin: Dictionary = Data.addins().get(p.addin, {})
@@ -191,6 +201,7 @@ static func describe(key: String, varieties: Dictionary) -> Dictionary:
 		"profile": profile(t), "profile_label": profile_label(t), "harmony": harmony(t),
 		"rarity": rarity(key, varieties), "zone": String(recipe.get("zone", "room")), "vessel": vessel,
 		"size": vessel_size(vessel), "appearance": _appearance(key, p, vessel, varieties),
+		"family": recipe.has("family_of"),
 	}
 
 
@@ -244,6 +255,9 @@ static func _appearance(key: String, p: Dictionary, vessel: String, varieties: D
 	var lid := "metal" if r.randf() < 0.5 else "cloth"
 	var lids: Array = METAL_LIDS if lid == "metal" else CLOTH_LIDS
 	var lid_colors: Array = lids[r.randi_range(0, lids.size() - 1)].duplicate()
+	if Data.recipes().get(p.recipe, {}).has("family_of"):  # after every draw: the stream stays the same
+		label_color = FAMILY_LABEL
+		motif = FAMILY_MOTIF
 	return {
 		"vessel": vessel, "fill": fill, "chunk": chunk, "chunk_seed": seed_v, "label_shape": label_shape,
 		"label_color": label_color, "motif": motif, "lid": lid, "lid_colors": lid_colors, "tint": tint,

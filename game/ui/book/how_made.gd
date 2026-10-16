@@ -136,7 +136,11 @@ func _name_lines(box: VBoxContainer, p: Dictionary, desc: Dictionary, mains: Arr
 	var max_len := int(Data.grammar().product_name_max)
 	var adjective := ""
 	var adj_line := ""
-	if p.addin != "":
+	var family := recipe.has("family_of")
+	if family:  # KITCHEN-P1C: a family recipe always says "Granny's"; its short already names the dish
+		adjective = String(recipe.get("adjective", ""))
+		adj_line = tr("UI_FAMILY_HOW_ADJ") % adjective
+	elif p.addin != "":
 		adjective = String(Data.addins().get(p.addin, {}).get("adjective", String(p.addin).capitalize()))
 		adj_line = tr("BOOK_HOW_ADJ_ADDIN") % adjective
 	else:
@@ -148,7 +152,7 @@ func _name_lines(box: VBoxContainer, p: Dictionary, desc: Dictionary, mains: Arr
 	var type_part := ""
 	if not mains.is_empty():
 		feature = VarietyGen.feature_of(mains[0])
-		type_part = VarietyGen.base_name(mains[0])
+		type_part = "" if family else VarietyGen.base_name(mains[0])
 	var repeat := adjective != "" and feature != "" and adjective.left(4).to_lower() == feature.left(4).to_lower()
 	var with_feature := _join([adjective, "" if repeat else feature, type_part, short])
 	var no_feature := _join([adjective, type_part, short])
@@ -201,7 +205,8 @@ func _taste_lines(box: VBoxContainer, p: Dictionary, desc: Dictionary, mains: Ar
 	box.add_child(row)
 	_chart(row, base, tr("BOOK_HOW_AVERAGE") if mains.size() >= 2 else tr("BOOK_HOW_BASE"))
 	_op(row, "+")
-	_chart(row, method, String(recipe.get("short", p.recipe)))
+	var method_row: Dictionary = Data.recipes().get(String(recipe.get("family_of", "")), recipe)  # family: its base
+	_chart(row, method, String(method_row.get("short", p.recipe)))
 	_op(row, "+")
 	_chart(row, addin, addin_name)
 	_op(row, "=")
