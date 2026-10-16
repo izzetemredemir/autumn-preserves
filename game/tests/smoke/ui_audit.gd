@@ -9,7 +9,8 @@ const SCREEN := Rect2(0, 0, 480, 270)
 const EDGE := 2.0
 const SIZES := [18, 36]
 ## Path fragments (scene file or script) whose findings must be zero; others are only listed.
-const OWNED := ["scenes/garden/", "scenes/pantry/", "scenes/title/", "scenes/seed_lab/", "ui/book/", "ui/letters/", "ui/hud/", "ui/result_card/"]
+const OWNED := ["scenes/garden/", "scenes/pantry/", "scenes/title/", "scenes/seed_lab/", "ui/book/", "ui/letters/", "ui/hud/", "ui/result_card/",
+	"scenes/farewell/"]
 
 var _gs: Node
 var _findings: Array = []  ## {state, kind, path, origin, owned, detail}
@@ -60,6 +61,7 @@ func _run() -> void:
 			await _overlays("garden")
 		s.queue_free()
 		await _frames(2)
+	await _farewell()
 	# Overlays on top of a quiet backdrop
 	_fresh()
 	var bg := ColorRect.new()
@@ -95,6 +97,34 @@ func _title_panels(s: Node) -> void:
 	s._on_settings()
 	await _frames(4)
 	await _audit("title/settings", s)
+	s._show_menu()
+	if s.get("_completed_card") == null:
+		s._show_completed(100)
+	await _frames(4)
+	await _audit("title/completed", s)
+
+
+## P2-FAREWELL: each part of the farewell once its text is in (credits mid-scroll), the Memory screen and its shelf.
+func _farewell() -> void:
+	_fresh()
+	root.get_node("Router").params = {"mode": "play"}
+	var fw := (load("res://scenes/farewell/farewell.tscn") as PackedScene).instantiate()
+	root.add_child(fw)
+	await _frames(4)
+	for part in fw.get("_timeline"):
+		var into := 9.0 if part.id == "credits" else float(part.dur) - 1.5
+		fw.seek(float(part.start) + into)
+		await _frames(3)
+		await _audit("farewell/" + String(part.id), fw)
+	fw.open_memory()
+	await _frames(4)
+	await _audit("farewell/memory", fw)
+	fw._open_browse()
+	await _frames(4)
+	await _audit("farewell/memory_pantry", fw)
+	fw.queue_free()
+	root.get_node("Router").params = {}
+	await _frames(2)
 
 
 func _overlays(tag: String) -> void:

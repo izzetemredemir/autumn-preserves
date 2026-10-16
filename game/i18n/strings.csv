@@ -566,3 +566,55 @@ UI_UPGRADE_FX_BOOTS,Opens the creek bank
 UI_UPGRADE_FX_PRESS,Opens the press recipes
 UI_UPGRADE_FX_BIG_POT,Stir-pot recipes fill 2 jars
 UI_UPGRADE_FX_CELLAR,12 cool pantry cells
+FAREWELL_LETTER_DEAR_TWO,"My dear %s and %s,"
+FAREWELL_LETTER_DEAR,"My dear grandchildren,"
+FAREWELL_LETTER_DAYS,"%d days in Everfall, and not one of them was dull."
+FAREWELL_LETTER_JARS,I filled %d jars with these two old hands.
+FAREWELL_LETTER_JARS_ONE,"I filled only one jar, but it was a good one."
+FAREWELL_LETTER_JARS_NONE,I never filled as many jars as I meant to. Fill one for me.
+FAREWELL_LETTER_TOP_3,"Open the %s, the %s and the %s first. They are my best."
+FAREWELL_LETTER_TOP_2,Open the %s and the %s first. They are my best.
+FAREWELL_LETTER_TOP_1,Open the %s first. It is my very best.
+FAREWELL_LETTER_TOP_NONE,"The pantry is bare, but every recipe is in my book."
+FAREWELL_LETTER_RARE,I once found a %s in the woods. Imagine that!
+FAREWELL_LETTER_RARE_NONE,"The woods kept their rarest secrets from me, and that is all right."
+FAREWELL_LETTER_FRIEND,Take %s a jar now and then. They were so good to me.
+FAREWELL_LETTER_FRIEND_NONE,Say hello to the neighbours for me.
+FAREWELL_LETTER_LOVE,"Keep the kettle warm for me. All my love, always."
+FAREWELL_LETTER_SIGN,Granny Tonty
+FAREWELL_PAN_EMPTY,"The shelves are empty, waiting for another autumn."
+FAREWELL_SNOW_LINE,The autumn in Everfall lasted as long as she did.
+FAREWELL_BOOK_HEAD,Recipe book
+FAREWELL_BOOK_EMPTY,"No recipes were written down, but there is always next autumn."
+FAREWELL_CREDIT_JAM,"Made for KODTÜ 7, October 2026"
+FAREWELL_CREDIT_CAST,Starring
+FAREWELL_CREDIT_TONTY,Granny Tonty
+FAREWELL_CREDIT_KIDS,%s and %s
+FAREWELL_CREDIT_NEIGHBOURS,The neighbours
+FAREWELL_CREDIT_NAME,%s
+FAREWELL_CREDIT_FONTS,Fonts m5x7 and m6x11 by Daniel Linssen
+FAREWELL_CREDIT_PALETTE,Vintage Autumn palette by Goopy25
+FAREWELL_CREDIT_YOU,And you
+FAREWELL_CREDIT_JARS,%d jars made
+FAREWELL_CREDIT_RECIPES,%d recipes found
+FAREWELL_THANKS,Thank you for playing.
+FAREWELL_FOR_TONTY,For Tonty.
+FAREWELL_HOLD_SKIP,Hold to skip
+FAREWELL_WORRY_MIA_1,"Granny, are you resting enough? Mum says you sounded tired."
+FAREWELL_WORRY_MIA_2,Please put your feet up after supper. Promise me!
+FAREWELL_WORRY_MIA_3,"I dreamt of your kitchen last night. Are you keeping warm, Granny?"
+FAREWELL_WORRY_LEO_1,"Granny, are you resting enough? Don't carry the heavy baskets!"
+FAREWELL_WORRY_LEO_2,"Dad says we will visit soon. Wait for us, okay?"
+FAREWELL_WORRY_LEO_3,Your last letter was so short. Are you sleeping well?
+UI_MEMORY_OPEN,Memory
+UI_MEMORY_TITLE,Memory
+UI_MEMORY_COMPLETED,Completed - %d days
+UI_MEMORY_PANTRY,Pantry
+UI_MEMORY_BOOK,Recipe book
+UI_MEMORY_REPLAY,Watch the farewell
+UI_MEMORY_LEAVE,Back to title
+UI_MEMORY_PREV,Prev
+UI_MEMORY_NEXT,Next
+UI_MEMORY_COUNT,%d of %d
+UI_DEV_DAY99,Day 99
+UI_DEV_DAY99_DONE,This save is already completed.

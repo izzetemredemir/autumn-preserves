@@ -34,6 +34,14 @@ var _bump: Tween
 @onready var body: Node2D = $Body
 
 
+## Days 90-99 (spec §7.12): she walks and steps a little slower. Looks only: energy and rules never change.
+func _ready() -> void:
+	if GameState.has_game():
+		var k := Farewell.walk_scale(int(GameState.data.get("day", 1)))
+		speed *= k
+		body.set("anim_scale", k)
+
+
 ## `walkable(cell) -> bool` is called for in-bounds cells only.
 func setup(grid_size: Vector2i, walkable: Callable, start_cell: Vector2i, face := Vector2i.DOWN) -> void:
 	_size = grid_size

@@ -28,6 +28,7 @@ const FAMILY_RECIPES := {
 const BOX_COLS := 3
 const BOX_ROWS := 2
 ## Note keys LET_NOTE_<KID>_1..NOTE_COUNT, replies LET_REPLY_<KID>_1..REPLY_COUNT, care line LET_REPLY_CARE_<KID>.
+## On days 90-99 request notes are worried ones instead (Farewell.note_key, same draw: the stream is unchanged).
 const NOTE_COUNT := 6
 const REPLY_COUNT := 3
 ## Request draw: P(taste) and P(recipe) per item (both can hold), P(liked axis | taste), tries before the fallback.
@@ -127,7 +128,7 @@ static func make_request(state: Dictionary, kid: String, r: RandomNumberGenerato
 		seen[_req_id(req)] = true
 		reqs.append(req)
 	var letter := {"id": int(l.next_id), "kind": "request", "from": kid, "day": int(state.day),
-		"note": "LET_NOTE_%s_%d" % [kid.to_upper(), r.randi_range(1, NOTE_COUNT)],
+		"note": Farewell.note_key(kid, r.randi_range(1, NOTE_COUNT), int(state.day)),  # days 90-99: worried notes
 		"request": reqs, "done": false, "read": false}
 	l.next_id = int(l.next_id) + 1
 	return letter

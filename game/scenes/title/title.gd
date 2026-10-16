@@ -1,6 +1,7 @@
 extends Control
 ## Title (GD-META): name, slogan, New Game (with a seed field), Continue, Seed Lab, Settings.
-## New Game -> premise (ui/premise) -> garden (kitchen until the garden exists). Continue loads the save.
+## New Game -> premise (ui/premise) -> garden (kitchen until the garden exists). Continue loads the save; a save the
+## farewell closed (spec §7.12) shows a "Completed" card and Continue becomes Memory (scenes/farewell, Memory mode).
 ## Also applies saved settings and adds the debug panel (F1) in debug builds.
 
 const MUSIC_DIR := "res://assets/audio/music/"
@@ -13,6 +14,7 @@ var _overwrite: Label
 var _settings: SettingsPanel
 var _fallback_music: AudioStreamPlayer
 var _starting := false
+var _completed_card: Control
 
 
 func _ready() -> void:
@@ -29,6 +31,9 @@ func _ready() -> void:
 	%SeedLab.pressed.connect(_on_seed_lab)
 	%Settings.pressed.connect(_on_settings)
 	%Continue.disabled = not Save.has_save()
+	var saved := Save.load_game() if Save.has_save() else {}
+	if Farewell.is_completed(saved):
+		_show_completed(Farewell.completed_day(saved))
 	%SeedLab.disabled = not Router.exists("seed_lab")
 	if %Continue.disabled:
 		%NewGame.grab_focus()
@@ -113,12 +118,16 @@ func _show_menu() -> void:
 	_settings.visible = false
 	%Menu.visible = true
 	%Slogan.visible = true
+	if _completed_card != null:
+		_completed_card.visible = true
 	%NewGame.grab_focus()
 
 
 func _open(panel: Control) -> void:
 	Audio.play_ui("ui_click")
 	%Menu.visible = false
+	if _completed_card != null:
+		_completed_card.visible = false
 	panel.visible = true
 
 
@@ -148,8 +157,33 @@ func _on_continue() -> void:
 		return
 	_starting = true
 	Audio.play_ui("ui_confirm")
+	if GameState.is_memory():
+		# A completed save opens only in Memory mode; a farewell not watched to the end plays first.
+		Transition.go("farewell", {"mode": "memory" if Farewell.seen(GameState.data) else "play"})
+		return
 	GrannyTodo.ensure()
 	Transition.go(Transition.home_scene())
+
+
+## The save is closed (spec §7.12): Continue becomes Memory and a card under the menu says how long it lasted.
+func _show_completed(days: int) -> void:
+	%Continue.text = tr("UI_MEMORY_OPEN")
+	var card := PanelContainer.new()
+	card.theme_type_variation = &"PaperPanel"
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var row := CenterContainer.new()
+	row.anchor_left = 0.0
+	row.anchor_right = 1.0
+	row.offset_top = 208
+	row.offset_bottom = 238
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(row)
+	row.add_child(card)
+	var label := Label.new()
+	label.theme_type_variation = &"PaperLabel"
+	label.text = tr("UI_MEMORY_COMPLETED") % days
+	card.add_child(label)
+	_completed_card = row
 
 
 ## New Game: seed from the field (empty = random), fresh save, then the premise.

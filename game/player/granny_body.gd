@@ -27,6 +27,12 @@ var walking := false:
 			if v:
 				_acting = false
 			_update()
+## Animation speed multiplier (Granny sets it: slower steps on days 90-99, spec §7.12).
+var anim_scale := 1.0:
+	set(v):
+		anim_scale = v
+		if _sprite != null:
+			_sprite.speed_scale = v
 
 var _sprite: AnimatedSprite2D
 var _acting := false
@@ -38,6 +44,7 @@ func _ready() -> void:
 		return
 	_sprite = AnimatedSprite2D.new()
 	_sprite.sprite_frames = frames
+	_sprite.speed_scale = anim_scale
 	_sprite.centered = false
 	_sprite.offset = Vector2(-8, -32)
 	_sprite.animation_finished.connect(_on_action_done)

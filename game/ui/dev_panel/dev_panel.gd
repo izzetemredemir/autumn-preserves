@@ -1,7 +1,8 @@
 class_name DevPanel
 extends CanvasLayer
 ## Debug-only panel (spec §10), toggled with F1 (action "dev_panel"). `DevPanel.ensure()` adds it to the tree
-## root once, and only in debug builds. Coins, energy, items, skip a day, run the night, demo save, print seed.
+## root once, and only in debug builds. Coins, energy, items, skip a day, run the night, demo save, print seed,
+## jump to day 99 (the next night is the farewell, spec §7.12).
 
 const COINS := 100
 const ENERGY := 20
@@ -58,6 +59,7 @@ func _build() -> void:
 	_add(grid, "UI_DEV_NIGHT", _on_night, true)
 	_add(grid, "UI_DEV_SEED", _on_seed, true)
 	_add(grid, "UI_DEV_UNLOCK_P1", _on_unlock_p1, true)
+	_add(grid, "UI_DEV_DAY99", _on_day99, true)
 	_demo = _add(grid, "UI_DEV_DEMO", _on_demo, false)
 	_add(grid, "UI_DEV_CLOSE", func() -> void: _panel.visible = false, false)
 	_status = Label.new()
@@ -134,6 +136,17 @@ func _on_unlock_p1() -> void:
 	var n := DevTools.unlock_p1(GameState.data)
 	GameState.notify(PackedStringArray(["unlocks", "upgrades", "varieties", "cupboard", "inbox"]))
 	_say(tr("UI_DEV_P1_DONE") % n)
+
+
+## Spec §7.12: jump to day 99, so the next night is the farewell (the save is not closed, nothing else changes).
+func _on_day99() -> void:
+	var d := GameState.data
+	if GameState.is_memory() or Farewell.is_completed(d):
+		_say(tr("UI_DEV_DAY99_DONE"))
+		return
+	d.day = maxi(int(d.day), Farewell.LAST_DAY)
+	GameState.notify(PackedStringArray(["day"]))
+	_refresh()
 
 
 func _on_seed() -> void:

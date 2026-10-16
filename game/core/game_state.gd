@@ -33,20 +33,54 @@ func start_temp(save_seed: int) -> void:
 	day_started.emit(int(data.day))
 
 
+## Loads the save. A completed one (the farewell, spec §7.12) opens only in Memory mode: see is_memory().
 func load_saved() -> bool:
 	var d := Save.load_game()
 	if d.is_empty():
 		return false
 	data = d
 	VarietyGen.ensure_types(data.varieties, int(data.save_seed))  # P1 types (cabbage, grape...) for older saves
+	if Farewell.is_completed(data):
+		data.flags["memory"] = true
+		data.flags["temp"] = true  # Save.save_game skips it: the closed save is never written back
 	changed.emit(PackedStringArray(["*"]))
 	return true
 
 
+## Memory mode: a completed save, pantry and book to browse; the day never moves on and nothing is saved.
+func is_memory() -> bool:
+	return Farewell.is_memory(data)
+
+
+## The farewell has been watched once (from then on it can be skipped). Written even in Memory mode.
+func save_farewell_seen() -> void:
+	if not has_game():
+		return
+	data.flags["farewell_seen"] = true
+	if not is_memory():
+		Save.save_game(data)
+		return
+	var disk := data.duplicate(true)
+	disk.flags.erase("memory")
+	disk.flags.erase("temp")
+	Save.save_game(disk)
+
+
 ## Runs the night (spec §9), autosaves, starts the next day. Returns the night's events.
+## Memory mode: nothing happens. The night from day 99 to 100 is the farewell (spec §7.12): the day-99 save is kept
+## as Save.DAY99_PATH, the save is closed (flags.completed) and the farewell scene takes over under the night cover.
 func end_day() -> Array:
-	var events := DayEnd.run(data)
+	var night := Farewell.night(data)  # DayEnd, or the farewell night, or nothing in Memory mode
+	match String(night.kind):
+		"memory":
+			return []
+		"farewell":
+			Save.backup_day99(night.backup)
+			Save.save_game(data)
+			changed.emit(PackedStringArray(["*"]))
+			Router.goto.call_deferred("farewell", {"mode": "play"})
+			return []
 	Save.save_game(data)
 	changed.emit(PackedStringArray(["*"]))
 	day_started.emit(int(data.day))
-	return events
+	return night.events

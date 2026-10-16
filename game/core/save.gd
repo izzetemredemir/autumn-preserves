@@ -2,6 +2,8 @@ extends Node
 ## Autoload "Save": JSON save file in user:// (tech-spec §4). Numbers come back as floats; State keeps ints small (31-bit seeds).
 
 const PATH := "user://save.json"
+## The save as it was at bedtime on the farewell night (spec §7.12): kept for support, never shown in a menu.
+const DAY99_PATH := "user://save_day99.json"
 
 
 func has_save(path: String = PATH) -> bool:
@@ -17,6 +19,10 @@ func save_game(state: Dictionary, path: String = PATH) -> bool:
 		return false
 	f.store_string(JSON.stringify(state, "\t"))
 	return true
+
+
+func backup_day99(state: Dictionary) -> bool:
+	return save_game(state, DAY99_PATH)
 
 
 func load_game(path: String = PATH) -> Dictionary:
