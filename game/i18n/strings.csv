@@ -245,7 +245,7 @@ UI_NIGHT_ENERGY,You wake up with %d energy.
 UI_NIGHT_ENERGY_STARS,"A tidy pantry (%d stars): %d energy today."
 UI_NIGHT_WEATHER_SUNNY,A sunny day ahead.
 UI_NIGHT_WEATHER_RAINY,Rain today. Mushrooms love it.
-UI_NIGHT_WEATHER_WINDY,A windy day ahead.
+UI_NIGHT_WEATHER_WINDY,Windy! Fruit fell under the trees.
 UI_NIGHT_WEATHER_FOGGY,Fog today. Rare finds hide in it.
 UI_DEV_TITLE,Dev panel
 UI_DEV_COINS,+100 coins
@@ -631,3 +631,13 @@ UI_MASTERY_READY,Mastered! Batch cook skips the mini-game.
 UI_MASTERY_NEW,Mastered! Next time you can batch cook it.
 MG_KNEAD_PART2_BREAD,Shape the loaf
 MG_KNEAD_GO_BREAD,Shape!
+UI_WEEK_GRAPE_HARVEST,Grape Harvest
+UI_WEEK_APPLE_MOON,Apple Moon
+UI_WEEK_FIRST_FROST,First Frost
+UI_WEEK_CYCLE,"%s, Autumn %d"
+UI_WEEK_BEGINS,"%s begins! In season: %s."
+UI_WEEK_NOW,"This week: %s. In season: %s."
+UI_WEATHER_SUNNY,Sunny
+UI_WEATHER_RAINY,Rainy
+UI_WEATHER_WINDY,Windy
+UI_WEATHER_FOGGY,Foggy

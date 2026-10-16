@@ -4,7 +4,8 @@ extends "res://tests/_runner/test_case.gd"
 const SEEDS := 30
 const N4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 ## Forest fingerprints taken on the P0 generator before BIOMES (aed38cc): [save_seed, day, weather, md5].
-## The P0 part of a forest (everything but the "p1" points) must never change for an old seed.
+## The P0 part of a forest (everything but the "p1" points) must never change for an old seed in days 1-7 (from day 8
+## the harvest calendar weighs the week's types; test_calendar.gd).
 const FOREST_BEFORE := [
 	[1000, 1, "sunny", "ebe9dbeca0df9ae406f19040cf66e322"],
 	[452, 3, "rainy", "72c083f6c3484a2e68a5a2471ae89327"],
@@ -12,7 +13,8 @@ const FOREST_BEFORE := [
 	[31, 2, "rainy", "a0eefefec4a604a900516a8feb86e601"],
 	[7919, 5, "sunny", "6877048b2cf7cb7506ecdfb59405d9ef"],
 	[123456, 4, "foggy", "b5d88569890e683de1b9c1795f99b143"],
-	[8, 9, "sunny", "4701302d69c05211cbf536487226b7c1"],
+	# day 9 is in the harvest calendar (Grape Harvest: pear trees x2), retaken at CALENDAR-WEATHER; was 4701302d...
+	[8, 9, "sunny", "49412cfa5fd3454ffa82cc138b9f0fa0"],
 	[99991, 2, "rainy", "5d7a695847bee51f6b80278bea7a69a8"],
 ]
 

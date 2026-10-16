@@ -22,6 +22,9 @@ extends RefCounted
 ## The forest keeps its P0 steps untouched (old seeds give the same map) and then adds step "8_p1": a few P1 points
 ##  (rosehip bushes, hazelnut and chestnut) from new sub-streams "p1" / "p1_kinds", appended after every P0 item and
 ##  flagged "p1": true; a bush only goes where everything stays reachable.
+## CALENDAR-WEATHER (P1): from Calendar.start_day the week's types weigh more (Calendar.type_weights) wherever a type is
+##  drawn. A draw whose weights stay flat keeps its old randi_range, so days 1-7 (and weeks that boost none of a slot's
+##  types) give the same map as before. Windy days add Calendar.windfall pickups after everything else.
 
 const T_GRASS := 0
 const T_LEAVES := 1
@@ -49,7 +52,10 @@ static func generate(save_seed: int, day: int, biome: String, weather: String, v
 		return {}
 	var b := Builder.new()
 	b.setup(save_seed, day, biome, weather, varieties, record_steps or OS.is_debug_build())
-	return b.run()
+	var m := b.run()
+	if weather == "windy":
+		Calendar.windfall(m)
+	return m
 
 
 ## rules.biomes[<key>] ({} when missing): a biome's table, or "forest_p1", "bee_hive", "rosehip_thicket".
@@ -140,8 +146,9 @@ static func p1_types(biome: String, slot: String) -> Array:
 
 
 ## Ground-point type weights: 1 per type, uncommon_spawn_weight() for "uncommon_spawn" types,
-## mushrooms × rules.weather.rain_mushroom_mult when it rains (spec §7.10). {"types": [..], "weights": [..]}
-static func ground_type_weights(biome: String, weather: String, max_priority: int = -1) -> Dictionary:
+## mushrooms × rules.weather.rain_mushroom_mult when it rains (spec §7.10), × Calendar.type_mult on `day` (§7.11).
+## {"types": [..], "weights": [..]}
+static func ground_type_weights(biome: String, weather: String, max_priority: int = -1, day: int = 0) -> Dictionary:
 	var ing := Data.ingredients()
 	var rain_mult := float(Data.rules().weather.rain_mushroom_mult) if weather == "rainy" else 1.0
 	var types := biome_types(biome, "ground", max_priority)
@@ -151,8 +158,17 @@ static func ground_type_weights(biome: String, weather: String, max_priority: in
 		var wgt := uncommon_spawn_weight() if bool(row.get("uncommon_spawn", false)) else 1.0
 		if row.group == "mushroom":
 			wgt *= rain_mult
-		weights.append(wgt)
+		weights.append(wgt * Calendar.type_mult(day, t))
 	return {"types": types, "weights": weights}
+
+
+## One of `types` drawn from `r`: flat `weights` draw with randi_range like the P0 generator did (old maps stay the
+## same), otherwise by weight (Seeds.pick_weighted).
+static func pick_type(r: RandomNumberGenerator, types: Array, weights: Array) -> String:
+	for wgt in weights:
+		if not is_equal_approx(float(wgt), float(weights[0])):
+			return types[Seeds.pick_weighted(r, weights)]
+	return types[r.randi_range(0, types.size() - 1)]
 
 
 ## Rare-variety weight multiplier from the weather (fog, P1).
@@ -672,12 +688,13 @@ class Builder:
 			var weights: Array = []
 			for t in tree_types:
 				weights.append(float(tw.get(t, 1.0)))
+			weights = Calendar.type_weights(day, tree_types, weights)
 			for idx in chosen:
 				decor.erase(idx)
 				occ[idx] = O_FRUIT
 				var t: String
 				if tw.is_empty():
-					t = tree_types[r_kind.randi_range(0, tree_types.size() - 1)]
+					t = WildGen.pick_type(r_kind, tree_types, weights)
 				else:
 					t = tree_types[Seeds.pick_weighted(r_kind, weights)]
 				if biome == "vineyard" and t != "grape":
@@ -687,6 +704,7 @@ class Builder:
 					"yield": r.randi_range(int(yr[0]), int(yr[1]))})
 
 		var bush_types := WildGen.biome_types(biome, "bush")
+		var bush_w := Calendar.type_weights(day, bush_types)
 		var br: Array = wr.bushes
 		var n_bush := r.randi_range(int(br[0]), int(br[1]))
 		if not bush_types.is_empty():
@@ -697,11 +715,11 @@ class Builder:
 				spots = _pick_spaced(_free_cells(r, 1, 999, false), n_bush, 0, spots)
 			for idx in spots:
 				occ[idx] = O_BUSH
-				var t: String = bush_types[r_kind.randi_range(0, bush_types.size() - 1)]
+				var t := WildGen.pick_type(r_kind, bush_types, bush_w)
 				pickups.append({"id": -1, "x": idx % w, "y": _row(idx), "kind": "bush", "type": t,
 					"variety": WildGen.pick_variety(r_kind, varieties, t, rare_mult)})
 
-		var gtw := WildGen.ground_type_weights(biome, weather)
+		var gtw := WildGen.ground_type_weights(biome, weather, -1, day)
 		var gr: Array = wr.ground
 		var n_ground := r.randi_range(int(gr[0]), int(gr[1]))
 		if not (gtw.types as Array).is_empty():
@@ -775,7 +793,7 @@ class Builder:
 		var rare_mult := WildGen.weather_rare_mult(weather)
 		match kind:
 			"mushroom_ring":
-				var gtw := WildGen.ground_type_weights(biome, weather)
+				var gtw := WildGen.ground_type_weights(biome, weather, -1, day)
 				var types: Array = []
 				var weights: Array = []
 				var ing := Data.ingredients()
@@ -838,7 +856,7 @@ class Builder:
 						continue
 					placed.append(p)
 					occ[i] = O_FRUIT
-					var t: String = types[r_kind.randi_range(0, types.size() - 1)]
+					var t := WildGen.pick_type(r_kind, types, Calendar.type_weights(day, types))
 					fruit.append({"id": -1, "x": p.x, "y": p.y, "type": t,
 						"variety": WildGen.pick_variety(r_kind, varieties, t, rare_mult, garden),
 						"yield": r.randi_range(int(yr[0]), int(yr[1])), "special": true})
@@ -937,10 +955,10 @@ class Builder:
 					continue
 				placed += 1
 				taken.append(idx)
-				var t: String = bush_types[rk.randi_range(0, bush_types.size() - 1)]
+				var t := WildGen.pick_type(rk, bush_types, Calendar.type_weights(day, bush_types))
 				item.type = t
 				item.variety = WildGen.pick_variety(rk, varieties, t, rare_mult)
-		var gw := WildGen.ground_type_weights(biome, weather, 1)
+		var gw := WildGen.ground_type_weights(biome, weather, 1, day)
 		var p0 := WildGen.biome_types(biome, "ground", 0)
 		var types: Array = []
 		var weights: Array = []

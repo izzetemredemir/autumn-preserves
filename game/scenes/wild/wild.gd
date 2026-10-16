@@ -44,6 +44,7 @@ func _ready() -> void:
 	camera.target = granny
 	camera.bounds = Rect2i(Vector2i.ZERO, view.size_px())
 	camera.snap()
+	add_child(WildWeather.make(String(s.weather), granny))  # windy leaves / fog around Granny (P1 weather)
 	seed_label.text = "%s %d" % [tr("UI_SEED"), int(map.seed)]
 	Audio.play_music("mus_forest")
 	for id in _ambient():

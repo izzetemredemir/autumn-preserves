@@ -1,7 +1,8 @@
 class_name MorningText
 extends RefCounted
 ## Night events (DayEnd.run) -> plain-word lines for the morning card. Pure: returns [{"key", "args"}],
-## the view translates with tr(key) % args. Notable events first (at most MAX_NOTABLE), then weather and energy.
+## the view translates with tr(key) % args. Notable events first (at most MAX_NOTABLE), then the day's calendar lines
+## (week name and what is in season from day 8, "Market today!" on market days), then weather and energy.
 
 const MAX_NOTABLE := 6
 const NOTABLE := ["matured", "grown", "tree_refilled", "order_new", "spoiled", "fertilizer"]
@@ -10,7 +11,7 @@ const MANY := ["UI_NIGHT_GROWN", "UI_NIGHT_MATURED"]
 
 static func lines(events: Array, state: Dictionary) -> Array:
 	var notable: Array = []
-	var tail: Array = []
+	var tail: Array = calendar_lines(state)
 	for type in NOTABLE:
 		for e in events:
 			if typeof(e) == TYPE_DICTIONARY and e.get("type", "") == type:
@@ -25,13 +26,15 @@ static func lines(events: Array, state: Dictionary) -> Array:
 			if not l.is_empty():
 				tail.append(l)
 	notable = merge(notable)
+	# calendar lines take room from the notable ones, so the card keeps its height (it must fit the 270 px screen)
+	var cap := MAX_NOTABLE - calendar_lines(state).size()
 	var out: Array = []
 	if notable.is_empty():
 		out.append({"key": "UI_NIGHT_QUIET", "args": []})
 	else:
-		out.append_array(notable.slice(0, MAX_NOTABLE))
-		if notable.size() > MAX_NOTABLE:
-			out.append({"key": "UI_NIGHT_MORE", "args": [notable.size() - MAX_NOTABLE]})
+		out.append_array(notable.slice(0, cap))
+		if notable.size() > cap:
+			out.append({"key": "UI_NIGHT_MORE", "args": [notable.size() - cap]})
 	out.append_array(tail)
 	return out
 
@@ -67,6 +70,33 @@ static func line(e: Dictionary, state: Dictionary) -> Dictionary:
 				return _l("UI_NIGHT_ENERGY_STARS", [stars, int(e.get("energy", 0))])
 			return _l("UI_NIGHT_ENERGY", [int(e.get("energy", 0))])
 	return {}
+
+
+## state.day's calendar lines: the week (Calendar, from its start day) with what is plentiful in the wild
+## ("UI_WEEK_BEGINS" on the week's first day, else "UI_WEEK_NOW"), then "UI_MARKET_TODAY" when Market.is_market_day.
+static func calendar_lines(state: Dictionary) -> Array:
+	var day := int(state.get("day", 1))
+	var out: Array = []
+	if Calendar.week_key(day) != "":
+		var names: Array = []
+		for t in Calendar.wild_types(day):
+			names.append(type_name(String(t)).to_lower())
+		out.append(_l("UI_WEEK_BEGINS" if Calendar.first_day_of_week(day) else "UI_WEEK_NOW",
+			[week_name(day), ", ".join(names)]))
+	if Market.is_market_day(day):
+		out.append(_l("UI_MARKET_TODAY", []))
+	return out
+
+
+## The week's translated name ("Apple Moon"; with_cycle: "Apple Moon, Autumn 2" from the second round on), "" before
+## the calendar starts.
+static func week_name(day: int, with_cycle := true) -> String:
+	var key := Calendar.week_key(day)
+	if key == "":
+		return ""
+	var n := String(TranslationServer.translate(key))
+	var c := Calendar.cycle(day)
+	return String(TranslationServer.translate("UI_WEEK_CYCLE")) % [n, c] if c > 1 and with_cycle else n
 
 
 ## Identical lines become one; repeated beds and matured jars get a counted "_MANY" line.

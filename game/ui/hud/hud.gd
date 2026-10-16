@@ -1,6 +1,8 @@
 class_name Hud
 extends CanvasLayer
 ## Always-on HUD (GD-HUD): energy, bag, coins, day, weather, toasts (the seed label is drawn by the garden/wild scenes).
+## CALENDAR-WEATHER: the harvest week's name after the weather icon from day 8 (MorningText.week_name; hidden before;
+## "Autumn N" only in its tooltip), the weather's name as the icon's tooltip (UI_WEATHER_*).
 ## Any scene can call `Hud.toast("UI_KEY")`; the HUD node joins group "hud".
 
 const TOAST_SECONDS := 2.0
@@ -27,6 +29,7 @@ var _bag_label: Label
 var _coins_label: Label
 var _day_label: Label
 var _weather: TextureRect
+var _week_label: Label
 var _toast_holder: Control
 var _toast_tween: Tween
 
@@ -80,7 +83,12 @@ func _build() -> void:
 	_day_label = Label.new()
 	row.add_child(_day_label)
 	_weather = _icon("icon_weather_sun")
+	_weather.mouse_filter = Control.MOUSE_FILTER_PASS  # tooltip: the weather's name
 	row.add_child(_weather)
+	_week_label = Label.new()
+	_week_label.visible = false
+	_week_label.mouse_filter = Control.MOUSE_FILTER_PASS  # tooltip: the week with its "Autumn N"
+	row.add_child(_week_label)
 
 	var cursor := load(ICON_DIR + "ui_cursor.png") as Texture2D
 	if cursor != null:
@@ -110,7 +118,12 @@ func _refresh() -> void:
 	_bag_label.text = str(Forage.bag_count(d))
 	_coins_label.text = str(int(d.get("coins", 0)))
 	_day_label.text = "%s %d" % [tr("UI_DAY"), int(d.get("day", 1))]
-	_weather.texture = load(ICON_DIR + WEATHER_ICONS.get(String(d.get("weather", "sunny")), "icon_weather_sun") + ".png")
+	var w := String(d.get("weather", "sunny"))
+	_weather.texture = load(ICON_DIR + WEATHER_ICONS.get(w, "icon_weather_sun") + ".png")
+	_weather.tooltip_text = tr("UI_WEATHER_" + w.to_upper()) if WEATHER_ICONS.has(w) else ""
+	_week_label.text = MorningText.week_name(int(d.get("day", 1)), false)  # short: the HUD row must fit 480 px
+	_week_label.tooltip_text = MorningText.week_name(int(d.get("day", 1)))
+	_week_label.visible = _week_label.text != ""
 
 
 func show_toast(key: String, args := []) -> void:

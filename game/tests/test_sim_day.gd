@@ -23,17 +23,19 @@ func test_weather_is_deterministic_per_seed_and_day() -> void:
 		for d in range(1, 31):
 			var w := DayEnd.weather_for(sd, d)
 			assert_eq(w, DayEnd.weather_for(sd, d), "seed %d day %d" % [sd, d])
-			assert_has(["sunny", "rainy"], w)
+			# the tutorial week keeps the P0 table; the calendar's P1 table (windy, foggy) starts on day 8
+			assert_has(["sunny", "rainy"] if d < Calendar.start_day() else ["sunny", "rainy", "windy", "foggy"], w)
 	var a := State.new_game(55)
 	var b := State.new_game(55)
-	for i in 8:
+	for i in 12:
+		var prev := String(a.weather)
 		DayEnd.run(a)
 		DayEnd.run(b)
 		assert_eq(a.weather, b.weather, "night %d" % i)
-		assert_eq(a.weather, DayEnd.weather_for(55, int(a.day)), "weather of the new day")
+		assert_eq(a.weather, DayEnd.weather_for(55, int(a.day), prev), "weather of the new day")
 	var rainy := 0
 	for d in range(1, 2001):
-		if DayEnd.weather_for(9, d) == "rainy":
+		if DayEnd.weather_for(9, d, "", "p0") == "rainy":
 			rainy += 1
 	assert_true(rainy > 440 and rainy < 560, "P0 rain about 25%%, got %d / 2000" % rainy)
 	for d in range(1, 200):

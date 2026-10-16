@@ -42,7 +42,7 @@ static func run_with(state: Dictionary, seams: Dictionary) -> Array:
 	# 5. New day: every seed from here on uses the new day number.
 	state.day = int(state.day) + 1
 	events.append({"type": "day", "day": int(state.day)})
-	# 6. Weather.
+	# 6. Weather (P0 table in the tutorial week, P1 with windy and foggy from Calendar.start_day).
 	state.weather = weather_for(int(state.save_seed), int(state.day), String(state.weather))
 	events.append({"type": "weather", "weather": state.weather})
 	# 7. Orders: expired ones are replaced silently, empty slots fill, one stays satisfiable.
@@ -152,9 +152,11 @@ static func grow_garden(state: Dictionary) -> Array:
 	return events
 
 
-## Weather of `day` from stream "weather" (spec §7.10). P0 table: sunny 75 / rainy 25. Two foggy days never follow.
-static func weather_for(save_seed: int, day: int, prev: String = "", table: String = "p0") -> String:
-	var w: Dictionary = Data.rules().weather[table]
+## Weather of `day` from stream "weather" (spec §7.10). Two foggy days never follow (`prev` = the day before's).
+## `table` "" = the day's own (Calendar.weather_table): "p0" sunny 75 / rainy 25 in the tutorial week (days 1-7),
+## "p1" sunny 50 / rainy 20 / windy 20 / foggy 10 from day 8.
+static func weather_for(save_seed: int, day: int, prev: String = "", table: String = "") -> String:
+	var w: Dictionary = Data.rules().weather[table if table != "" else Calendar.weather_table(day)]
 	var ids: Array = w.keys()
 	ids.sort()
 	if prev == "foggy":
