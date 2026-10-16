@@ -17,11 +17,15 @@ const SILHOUETTE := Color("49423d")
 const FONT_BODY := preload("res://assets/fonts/m6x11plus.ttf")
 const FONT_TITLE := preload("res://assets/fonts/m6x11plus.ttf")
 const MILESTONES := [5, 15, 30, 60]
-const VARIANTS_PER_PAGE := 3
-const TYPES_PER_PAGE := 3
-const ROW_H := 52
-const PAGE_W := 206
-const PAGE_H := 176
+const VARIANTS_PER_PAGE := 2
+const TYPES_PER_PAGE := 2
+const ROW_H := 68  ## variant row: 2 name lines (36) + stars (14) + profile (18)
+const NAME_H := 36
+const PAGE_W := 212
+const PAGE_H := 192
+const SPINE_W := 6
+const LINE_H := 18
+const PANEL_TEX := preload("res://assets/sprites/ui/ui_panel_paper.png")
 const RECIPE_ORDER := ["jam", "fruit_butter", "chutney", "pickle", "brined_mushroom"]
 
 var _tab := 0
@@ -36,6 +40,8 @@ var _milestone: Label
 var _prev: Button
 var _next: Button
 var _page_label: Label
+var _num_l: Label
+var _num_r: Label
 var _close: Button
 var _icon_names := {}
 var _how: HowMadeCard  ## P1-SEEDLAB: open "How it was made" card, or null
@@ -127,12 +133,11 @@ func _build() -> void:
 	_panel.position = Vector2(12, 7)
 	_panel.custom_minimum_size = Vector2(456, 256)
 	_panel.size = Vector2(456, 256)
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = PAPER
-	sb.border_color = FRAME
-	sb.set_border_width_all(3)
-	sb.set_content_margin_all(6)
-	sb.anti_aliasing = false
+	var sb := StyleBoxTexture.new()  ## the shared paper panel art (9-slice, margin 5)
+	sb.texture = PANEL_TEX
+	sb.set_texture_margin_all(5)
+	sb.set_content_margin_all(8)
+	_panel.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_panel.add_theme_stylebox_override("panel", sb)
 	holder.add_child(_panel)
 
@@ -159,33 +164,37 @@ func _build() -> void:
 	top.add_child(_close)
 
 	var pages := HBoxContainer.new()
-	pages.add_theme_constant_override("separation", 4)
+	pages.add_theme_constant_override("separation", 1)
 	vb.add_child(pages)
 	_left = _page_box()
 	pages.add_child(_left)
-	var spine := ColorRect.new()
-	spine.color = PAPER_DK
-	spine.custom_minimum_size = Vector2(2, 0)
-	pages.add_child(spine)
+	pages.add_child(Spine.new())
 	_right = _page_box()
 	pages.add_child(_right)
 
 	var bottom := HBoxContainer.new()
 	bottom.add_theme_constant_override("separation", 4)
 	vb.add_child(bottom)
+	_num_l = _label(FONT_BODY, 18, PAPER_DK)
+	_num_l.custom_minimum_size.x = 28
+	bottom.add_child(_num_l)
 	_milestone = _label(FONT_BODY, 18, TEXT)
-	_milestone.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_milestone.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_milestone.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bottom.add_child(_milestone)
 	_prev = _button("<")
 	_prev.pressed.connect(_flip.bind(-1))
 	bottom.add_child(_prev)
-	_page_label = _label(FONT_BODY, 18, TEXT)
-	_page_label.custom_minimum_size.x = 36
+	_page_label = _label(FONT_BODY, 18, TEXT)  ## spread counter, kept for the test hooks
+	_page_label.visible = false
 	bottom.add_child(_page_label)
 	_next = _button(">")
 	_next.pressed.connect(_flip.bind(1))
 	bottom.add_child(_next)
+	_num_r = _label(FONT_BODY, 18, PAPER_DK)
+	_num_r.custom_minimum_size.x = 28
+	_num_r.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	bottom.add_child(_num_r)
 
 
 func _page_box() -> VBoxContainer:
@@ -212,6 +221,7 @@ func _button(text: String) -> Button:
 	b.add_theme_font_size_override("font_size", 18)
 	for c in ["font_color", "font_focus_color", "font_pressed_color", "font_hover_color", "font_hover_pressed_color"]:
 		b.add_theme_color_override(c, PAPER if c != "font_hover_color" else Color("dbcc83"))
+	b.add_theme_color_override("font_disabled_color", TEXT)
 	for st in ["normal", "hover", "pressed", "focus", "disabled"]:
 		var bs := StyleBoxFlat.new()
 		bs.bg_color = FRAME if st != "pressed" else TEXT
@@ -287,13 +297,16 @@ func _refresh() -> void:
 	_next.disabled = _page >= n - 1
 	_prev.visible = n > 1
 	_next.visible = n > 1
-	_page_label.visible = n > 1
 	_page_label.text = "%d/%d" % [_page + 1, n]
-	_page_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_num_l.text = str(_page * 2 + 1)
+	_num_r.text = str(_page * 2 + 2)
 	_update_milestone()
 
 
 func _update_milestone() -> void:
+	if _tab == 1:
+		_milestone.text = tr("BOOK_FOUND") % [_found_count(), _total_count()]
+		return
 	var n := _variant_keys().size()
 	var text := tr("BOOK_DISCOVERED") % n
 	var nxt := 0
@@ -318,12 +331,14 @@ func _heading(box: Control, text: String) -> Label:
 
 
 func _fill_recipes() -> void:
+	_left.add_theme_constant_override("separation", 0)
 	_heading(_left, tr("BOOK_BASE_RECIPES"))
 	var recipes := Data.recipes()
 	for id: String in RECIPE_ORDER:
 		if recipes.has(id):
 			_left.add_child(_recipe_entry(id, recipes[id]))
-	_heading(_right, tr("BOOK_VARIANTS"))
+	var hr := _heading(_right, tr("BOOK_VARIANTS"))
+	hr.add_theme_constant_override("line_spacing", 0)
 	var keys := _variant_keys()
 	if keys.is_empty():
 		var l := _label(FONT_BODY, 18, TEXT)
@@ -336,6 +351,8 @@ func _fill_recipes() -> void:
 		return
 	var vs: Dictionary = _data().book.variants
 	for i in range(_page * VARIANTS_PER_PAGE, mini(keys.size(), (_page + 1) * VARIANTS_PER_PAGE)):
+		if i > _page * VARIANTS_PER_PAGE:
+			_right.add_child(_rule())
 		_right.add_child(_variant_entry(keys[i], vs[keys[i]]))
 
 
@@ -418,9 +435,12 @@ func _variant_row(key: String, rec: Dictionary) -> Control:
 	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mid.alignment = BoxContainer.ALIGNMENT_CENTER
 	h.add_child(mid)
-	var nm := _label(FONT_BODY, 18, TEXT)
+	var nm := _label(FONT_BODY, 18, TEXT)  ## full name, up to two lines (fixed height so rows line up)
 	nm.text = String(desc.name)
-	nm.clip_text = true
+	nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	nm.max_lines_visible = 2
+	nm.custom_minimum_size = Vector2(0, NAME_H)
+	nm.tooltip_text = String(desc.name)
 	mid.add_child(nm)
 	var bs := int(rec.get("best_stars", 0))
 	var bq := clampi(int(rec.get("best_q", 0)), 0, 3)
@@ -432,10 +452,27 @@ func _variant_row(key: String, rec: Dictionary) -> Control:
 	pl.text = "%s  x%d" % [desc.profile_label, int(rec.get("count", 1))]
 	pl.clip_text = true
 	mid.add_child(pl)
+	var side := VBoxContainer.new()
+	side.add_theme_constant_override("separation", 0)
+	side.alignment = BoxContainer.ALIGNMENT_CENTER
+	h.add_child(side)
 	var ch := BarChart.new()
 	ch.set_taste(desc.taste)
-	h.add_child(ch)
+	side.add_child(ch)
+	var q := _label(FONT_BODY, 18, GOLD_DK)  ## "open me": the row opens its How it was made card
+	q.text = "?"
+	q.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	q.custom_minimum_size = Vector2(33, 0)
+	side.add_child(q)
 	return h
+
+
+func _rule() -> ColorRect:
+	var r := ColorRect.new()
+	r.color = PAPER_DK
+	r.custom_minimum_size = Vector2(0, 1)
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return r
 
 
 # --- "How it was made" (P1-SEEDLAB) ------------------------------------------------------------------------------
@@ -498,9 +535,8 @@ func _on_how_closed() -> void:
 func _fill_varieties() -> void:
 	var types := _types()
 	var base := _page * TYPES_PER_PAGE * 2
-	_heading(_left, tr("BOOK_TAB_VARIETIES"))
-	var cnt := _heading(_right, "%d/%d" % [_found_count(), _total_count()])
-	cnt.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	for pg in [_left, _right]:
+		pg.add_theme_constant_override("separation", 4)
 	for i in TYPES_PER_PAGE * 2:
 		if base + i >= types.size():
 			break
@@ -529,71 +565,76 @@ func _type_block(type: String) -> Control:
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 0)
 	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 2)
+	head.add_theme_constant_override("separation", 4)
 	v.add_child(head)
 	_icon(head, type)
-	var tl := _label(FONT_TITLE, 18, TEXT)
+	var tl := _label(FONT_TITLE, 18, GOLD_DK)
 	tl.text = tr("BOOK_TYPE_" + type.to_upper())
+	tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(tl)
-	var cells := HBoxContainer.new()
-	cells.add_theme_constant_override("separation", 2)
-	v.add_child(cells)
 	var found: Array = _data().get("found_varieties", [])
-	for variety: Dictionary in _by_type(type):
-		cells.add_child(_variety_cell(variety, found.has(variety.id)))
+	var list := _by_type(type)
+	var n := 0
+	for variety: Dictionary in list:
+		if found.has(variety.id):
+			n += 1
+	var cl := _label(FONT_BODY, 18, TEXT)
+	cl.text = "%d/%d" % [n, list.size()]
+	head.add_child(cl)
+	v.add_child(_rule())
+	for variety: Dictionary in list:
+		v.add_child(_variety_row(variety, found.has(variety.id)))
 	return v
 
 
-func _variety_cell(variety: Dictionary, found: bool) -> Control:
-	var c := VBoxContainer.new()
-	c.custom_minimum_size = Vector2(50, 0)
-	c.add_theme_constant_override("separation", 0)
-	var ib := HBoxContainer.new()
-	ib.alignment = BoxContainer.ALIGNMENT_CENTER
-	ib.add_theme_constant_override("separation", 1)
-	c.add_child(ib)
-	var type := String(variety.type)
+## One variety per line: tone swatch, full name, and a rarity pip (green uncommon, red rare; none for common).
+func _variety_row(variety: Dictionary, found: bool) -> Control:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 4)
+	var rar := String(variety.get("rarity", "common"))
+	var col: Color = {"common": TEXT, "uncommon": GREEN, "rare": RED}.get(rar, TEXT)
 	if found:
-		_icon(ib, type)
-		ib.add_child(SwatchBar.new().setup(ProductGen.fill_tones(variety, "")))
+		h.add_child(SwatchBar.new().setup(ProductGen.fill_tones(variety, "")))
 	else:
-		_icon(ib, type, SILHOUETTE)
-	var nm := _label(FONT_BODY, 18, TEXT if found else PAPER_DK)
-	nm.text = _short_name(variety) if found else tr("BOOK_UNKNOWN")
-	nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var sp := Control.new()
+		sp.custom_minimum_size = Vector2(4, 0)
+		h.add_child(sp)
+	var nm := _label(FONT_BODY, 18, col if found else PAPER_DK)
+	nm.text = String(variety.get("name", "?")) if found else tr("BOOK_UNKNOWN")
+	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	nm.clip_text = true
-	nm.custom_minimum_size.x = 50
-	c.add_child(nm)
-	var rl := _label(FONT_BODY, 18, PAPER_DK)
-	rl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	rl.custom_minimum_size.x = 50
+	h.add_child(nm)
 	if found:
-		var rar := String(variety.get("rarity", "common"))
-		rl.text = tr("BOOK_RARITY_" + rar.to_upper())
-		rl.add_theme_color_override("font_color", {"common": TEXT, "uncommon": GREEN, "rare": RED}.get(rar, TEXT))
-	else:
-		rl.text = " "
-	c.add_child(rl)
-	return c
-
-
-## "Ember Apple" -> "Ember" (the type is already in the block heading).
-func _short_name(variety: Dictionary) -> String:
-	var n := String(variety.get("name", "?"))
-	var suffix := " " + String(variety.get("type", "")).replace("_", " ")
-	if n.to_lower().ends_with(suffix):
-		n = n.substr(0, n.length() - suffix.length())
-	return n
+		var rl := _label(FONT_BODY, 18, col)
+		rl.text = "" if rar == "common" else ("*" if rar == "uncommon" else "**")
+		rl.tooltip_text = tr("BOOK_RARITY_" + rar.to_upper())
+		rl.mouse_filter = Control.MOUSE_FILTER_PASS
+		h.add_child(rl)
+	return h
 
 
 # --- widgets -----------------------------------------------------------------------------------------------------
+
+## The book's gutter: a dark binding strip with a light edge each side.
+class Spine extends Control:
+	func _init() -> void:
+		custom_minimum_size = Vector2(Book.SPINE_W, 0)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func _draw() -> void:
+		draw_rect(Rect2(0, 0, 1, size.y), Book.PAPER_DK)
+		draw_rect(Rect2(1, 0, 1, size.y), Book.GOLD)
+		draw_rect(Rect2(2, 0, 2, size.y), Book.FRAME)
+		draw_rect(Rect2(4, 0, 1, size.y), Book.GOLD)
+		draw_rect(Rect2(5, 0, 1, size.y), Book.PAPER_DK)
+
 
 ## 5 vertical bars, one per taste axis (value 0..9, 2 px per step).
 class BarChart extends Control:
 	var taste: Array = [0, 0, 0, 0, 0]
 
 	func _init() -> void:
-		custom_minimum_size = Vector2(33, 0)
+		custom_minimum_size = Vector2(33, 40)
 		mouse_filter = Control.MOUSE_FILTER_PASS
 
 	func set_taste(t: Array) -> void:
