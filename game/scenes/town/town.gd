@@ -32,6 +32,7 @@ func _ready() -> void:
 	_load_icons()
 	_paint_background()
 	_build()
+	_add_square()
 	GameState.changed.connect(func(_k: PackedStringArray) -> void: _render())
 	Audio.play_music("mus_town")
 	Audio.play_ambient("amb_town")
@@ -114,6 +115,17 @@ func _icon_file(id: String) -> Texture2D:
 
 func _paint_background() -> void:
 	$Background.texture = load("res://assets/sprites/scenes/bg_town.png") as Texture2D
+
+
+## LIVING-TOWN: the living square right above the backdrop (every panel stays on top); a click on a neighbour there
+## opens their page in the Neighbours tab.
+func _add_square() -> void:
+	var square: Control = load("res://scenes/town/town_square.gd").new()
+	add_child(square)
+	move_child(square, $Background.get_index() + 1)
+	square.connect("neighbour_clicked", func(id: String) -> void:
+		_npc = id
+		_on_tab("neighbours"))
 
 
 # ------------------------------------------------------------------ frame

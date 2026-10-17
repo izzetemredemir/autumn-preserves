@@ -1,0 +1,6 @@
+[
+	{"t": 0.0, "do": "load_demo", "args": [""], "note": "recorded with --scene res://scenes/town/town.tscn: the demo save before the town loads"},
+	{"t": 0.0, "do": "weather", "args": ["sunny"], "note": "a sunny ordinary day: the square at its busiest"},
+	{"t": 6.2, "do": "town_neighbour", "args": ["baker"], "note": "a click on Rosie at her door: she waves, her page opens"},
+	{"dt": 3.8, "quit": true, "note": "10 s in all"}
+]

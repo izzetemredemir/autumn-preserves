@@ -165,7 +165,7 @@ static func build(save_seed: int, day: int, visits: Array, layout: Dictionary, r
 # --- the walk graph ----------------------------------------------------------------------------------------------
 
 ## The layout's walk graph plus: the entries, the vendors' front points, a lane of nodes in front of Granny's counter
-## (one per stall column) and the pigeon zones, each joined to its nearest graph node.
+## (one per stall column, only when the layout has her stall) and the pigeon zones, each joined to its nearest graph node.
 ## {"nodes": [Vector2], "edges": [[i, j]], "adj": {i: [j...]}, "entries": [ids], "vendors": {id: node}, "lane": [ids],
 ##  "zones": [ids]}
 static func graph(layout: Dictionary) -> Dictionary:
@@ -198,7 +198,7 @@ static func graph(layout: Dictionary) -> Dictionary:
 	if valid:
 		for j in jar_nodes:
 			out.lane.append(int(j))
-	else:
+	elif layout.has("granny_stall"):  # LIVING-TOWN: a square without Granny's stall (the town) has no lane
 		var counter: Array = stall.get("counter", [168, 140, 144, 48])
 		var ly := lane_y(layout)
 		var prev := -1

@@ -1,0 +1,34 @@
+{
+ "size": [480, 270],
+ "background": "",
+ "note": "LIVING-TOWN: the town square on scenes/bg_town.png. Points are feet positions in screen pixels. The shop panel covers y >= 146, so the back row of the square is the stage; s_* entries are hidden behind the panel. Sheets are the market's (sprites/market/).",
+ "vendors": [
+  {"id": "grocer", "name": "Barnaby", "stand": [162, 152], "front": [190, 152], "front_node": 0},
+  {"id": "baker", "name": "Rosie", "stand": [391, 146], "front": [366, 153], "front_node": 6},
+  {"id": "postman", "name": "Pip", "stand": [454, 152], "front": [432, 153], "front_node": 7}
+ ],
+ "strollers": [
+  {"id": "vintner", "name": "Vito", "stops": ["gap", "steps", "box", "board_r"]},
+  {"id": "librarian", "name": "Edith", "stops": ["board", "pots", "board_l"]}
+ ],
+ "board": ["board_l", "board", "board_r"],
+ "walk": {
+  "nodes": [[190, 152], [214, 151], [240, 150], [266, 151], [300, 152], [334, 152], [366, 153], [432, 153], [466, 156],
+   [496, 156], [186, 214], [252, 214], [360, 214]],
+  "names": ["gap", "board_l", "board", "board_r", "fence", "pots", "steps", "box", "east", "e", "s_w", "s_c", "s_e"],
+  "edges": [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [10, 0], [11, 3], [12, 6]]
+ },
+ "entries": [[186, 214], [252, 214], [360, 214], [496, 156]],
+ "pigeon_zones": [[200, 141, 64, 4], [284, 139, 64, 4]],
+ "perches": [[214, 61], [262, 61], [291, 71], [313, 71], [431, 102], [398, 24]],
+ "dog_sit": [176, 150],
+ "dog_spots": [[226, 147], [318, 150], [348, 152], [276, 148]],
+ "lanterns": [[330, 71]],
+ "bubble_blocked": [[0, 0, 480, 60], [0, 144, 480, 126]],
+ "sheets": {
+  "pigeon": {"file": "pigeon.png", "frame": [16, 12], "feet": [8, 11], "anims": {"idle": [0], "peck": [1, 2], "walk": [3, 4], "flap": [5, 6, 7]}, "faces": "left"},
+  "sparrow": {"file": "sparrow.png", "frame": [8, 8], "feet": [4, 7], "anims": {"sit": [0], "flap": [1, 2]}, "faces": "left"},
+  "dog": {"file": "dog.png", "frame": [24, 18], "feet": [12, 17], "anims": {"trot": [0, 1, 2, 3], "sit": [4], "sniff": [5, 6], "wag": [7, 8]}, "faces": "right"},
+  "leaf": {"file": "leaf.png", "frame": [4, 4], "anims": {"tints": [0, 1, 2, 3]}}
+ }
+}

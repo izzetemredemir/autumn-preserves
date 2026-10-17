@@ -310,6 +310,19 @@ func town_tab(id: String) -> void:
 	_scene()._on_tab(id)
 
 
+## LIVING-TOWN: today's weather in the temp game (at t <= 0 it is set before the first scene loads).
+func weather(w: String) -> void:
+	_gs().data.weather = w
+	_gs().notify(PackedStringArray(["weather"]))
+
+
+## LIVING-TOWN: a click on a neighbour in the town square: they wave and their page opens in the Neighbours tab.
+func town_neighbour(id: String) -> void:
+	var square := _scene().get_node_or_null("Square")
+	if square != null:
+		square.poke(id)
+
+
 ## "Deliver" on `npc`'s order: the picker lists the jars that match it.
 func town_deliver(npc: String) -> void:
 	for o: Dictionary in _gs().data.orders:
