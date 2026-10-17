@@ -6,9 +6,12 @@ extends Control
 ## recipe's mini-game -> Kitchen.cook_n (x2 with the big pot) -> result card; a Mastered variant may skip the
 ## mini-game (Batch cook -> Kitchen.batch_cook). Mastering plays jgl_level. Rules stay in res://sim; this scene
 ## shows and routes.
-## KITCHEN-P1C: the grandkids' reply drawings hang on the wall left of the window (WallDrawings, click to see one
+## KITCHEN-P1C: the grandkids' reply drawings hang on the stone walls (WallDrawings, click to see one
 ## big); on days 90-99 (Farewell hint days) Granny nods off in a rocking chair after DOZE_AFTER idle seconds and any
 ## input wakes her (Doze; looks only, nothing in the save changes).
+## HOUSE-DOORS: the parlour has a real plank door in the painting (back wall, left of the window); the parlour door,
+## the garden door and the pantry cupboard carry fixed wooden signs (KitchenArt.SIGNS), and the room bar
+## (RoomBar: Garden · Kitchen · Pantry · Parlour) sits bottom-left over the hint line, hidden while the room is busy.
 ## Run alone it starts a throwaway game (GameState.start_temp, never saved) with a debug inventory.
 
 const HUD := "res://ui/hud/hud.tscn"
@@ -20,11 +23,12 @@ const TRANSITION_GD := "res://ui/transition/transition.gd"
 const TODO_GD := "res://ui/tutorial/granny_todo.gd"
 const MINIGAME := "res://minigames/%s/%s.tscn"
 const BACKGROUNDS := ["res://assets/sprites/backgrounds/bg_kitchen.png", "res://assets/sprites/scenes/bg_kitchen.png"]
-## Granny at the painting's own pixel density (2 frames 44x88: idle, blink), standing on the floor between the
-## stove and the bench's left end, feet at (94, 182); she blinks every BLINK_EVERY seconds.
+## Granny at the painting's own pixel density (2 frames 44x88: idle, blink), standing on the floor at the jar
+## counter, right of the parlour door and the pantry cupboard (both stay in full view), feet at (218, 184); she
+## blinks every BLINK_EVERY seconds.
 const GRANNY_KITCHEN := "res://assets/sprites/granny/granny_kitchen.png"
 const GRANNY_SIZE := Vector2(44, 88)
-const GRANNY_AT := Vector2(72, 96)
+const GRANNY_AT := Vector2(196, 98)
 const BLINK_EVERY := 3.4
 const BLINK_SEC := 0.14
 const PANEL_POS := Vector2(8, 30)
@@ -34,17 +38,18 @@ const STEP_SPOT := {"d1_jam": "stove", "d2_brine": "counter", "f_jam": "stove", 
 const NAV := [["move_left", SIDE_LEFT], ["move_right", SIDE_RIGHT], ["move_up", SIDE_TOP], ["move_down", SIDE_BOTTOM]]
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const Hotspot := preload("res://scenes/kitchen/hotspot.gd")
-const ParlorArt := preload("res://scenes/parlor/parlor_art.gd")  ## PARLOR: the book, letters and bed live next door
 const REVEAL_SEC := 1.5  ## every caption shows this long when Granny walks in
+## HOUSE-DOORS: the room bar's top-left, over the hint line (y 240) and under the stove's caption (y < 225).
+const ROOM_BAR_AT := Vector2i(8, 225)
 const CookPanel := preload("res://scenes/kitchen/cook_panel.gd")
 const Shelf := preload("res://scenes/kitchen/waiting_shelf.gd")
 const Wall := preload("res://scenes/kitchen/wall_drawings.gd")
 const Doze := preload("res://scenes/kitchen/doze.gd")
 const FormulaPanel := preload("res://scenes/kitchen/formula_panel.gd")  ## FORMULA-KITCHEN: the Invent panel
-## Idle seconds before Granny dozes off on a hint day, and where her chair stands (by the stove, where she waits;
-## rockers on the floor at y 186, same scale as her).
+## Idle seconds before Granny dozes off on a hint day, and where her chair stands (where she waits, at the jar
+## counter; rockers on the floor at y 186, same scale as her).
 const DOZE_AFTER := 10.0
-const DOZE_AT := Vector2(64, 102)
+const DOZE_AT := Vector2(189, 101)
 
 ## QA hook: merged into every mini-game ctx (e.g. {"autoplay": true, "duration": 4.0} makes stir_pot play itself).
 var debug_ctx: Dictionary = {}
@@ -53,6 +58,7 @@ var _spots: Dictionary = {}  # kind -> Hotspot
 var _room: Control
 var _shelf: Control
 var _bar: PanelContainer
+var _rooms: RoomBar  ## HOUSE-DOORS: Garden · Kitchen · Pantry · Parlour
 var _message: Label
 var _blocker: Control
 var _panel: Panel
@@ -168,21 +174,21 @@ func _build_room() -> void:
 	}
 	var rects: Dictionary = Art.OBJECTS.duplicate()
 	rects.merge(Art.P1_OBJECTS)
-	rects.erase("book")
+	rects.erase("book")  # PARLOR: the book and the bed live next door
 	rects.erase("bed")
-	rects["parlor"] = ParlorArt.KITCHEN_DOOR
 	for kind: String in rects:
 		var h: Button = Hotspot.new()
 		_room.add_child(h)
-		h.setup(kind, rects[kind], captions.get(kind, ""))
+		var signed := Art.painted and Art.SIGNS.has(kind)  # HOUSE-DOORS: the ways out carry a fixed sign
+		h.setup(kind, rects[kind], "" if signed else captions.get(kind, ""))
+		if signed:
+			h.add_sign(String(captions[kind]), Art.SIGNS[kind])
 		h.pressed.connect(_on_spot.bind(kind))
 		h.mouse_entered.connect(_on_spot_hover.bind(kind, true))
 		h.focus_entered.connect(_on_spot_hover.bind(kind, false))
 		h.mouse_exited.connect(_on_spot_leave)
 		h.focus_exited.connect(_on_spot_leave)
 		_spots[kind] = h
-	_spots.parlor.add_child(ParlorArt.KitchenDoor.new())
-	_spots.parlor.move_child(_spots.parlor.get_child(-1), 0)
 	_shelf = Shelf.new()
 	_room.add_child(_shelf)
 	_shelf.hovered.connect(_on_shelf_hover)
@@ -203,6 +209,8 @@ func _build_bar() -> void:
 	_message.theme_type_variation = &"BodyPaper"  # UI-COMPACT: hints in the body font
 	_message.clip_text = true
 	_bar.add_child(_message)
+	_rooms = RoomBar.attach(self, "kitchen", ROOM_BAR_AT)  # HOUSE-DOORS
+	_rooms.leaving.connect(func(_to: String) -> void: _set_room_active(false))
 
 
 func _build_panel() -> void:
@@ -351,11 +359,14 @@ func _guide_at(what: String) -> Variant:
 	return _guide_top(_spots[_glow]) if _spots.has(_glow) else null
 
 
-## Just above a hotspot's glow frame, in the middle (above its caption when the caption sits over the object).
+## Just above a hotspot's glow frame, in the middle (above its caption when the caption sits over the object, just
+## above its sign on a door: HOUSE-DOORS).
 func _guide_top(h: Control) -> Vector2:
 	var r := h.get_global_rect()
 	var top := r.position.y - 6
 	var cap: Control = h.get("caption")
+	if cap is DoorSign:
+		return Vector2(r.position.x + cap.position.x + floorf(cap.size.x / 2.0), r.position.y + cap.position.y - 1)
 	if cap != null and cap.position.y < 0:
 		top = minf(top, r.position.y + cap.position.y - 1)
 	return Vector2(r.position.x + roundf(r.size.x / 2.0), top)
@@ -503,6 +514,8 @@ func _set_room_active(on: bool) -> void:
 		h.mouse_filter = Control.MOUSE_FILTER_STOP if on else Control.MOUSE_FILTER_IGNORE
 	if _wall != null:
 		_wall.set_active(on)
+	if _rooms != null:
+		_rooms.set_active(on)
 
 
 func _on_blocker_input(event: InputEvent) -> void:

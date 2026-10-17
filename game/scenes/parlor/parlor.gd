@@ -139,6 +139,7 @@ func _build_room() -> void:
 	_tag = PArt.Tag.new()
 	_tag.position = Vector2(PArt.TAG_AT)
 	_spots.letters.add_child(_tag)
+	_spots.door.add_sign(tr("PARLOR_TO_KITCHEN"), PArt.DOOR_SIGN)  # HOUSE-DOORS: a fixed sign on the door
 
 
 func _build_bar() -> void:
@@ -152,6 +153,8 @@ func _build_bar() -> void:
 	_message.theme_type_variation = &"BodyPaper"
 	_message.clip_text = true
 	_bar.add_child(_message)
+	# HOUSE-DOORS: the room bar over the hint line (it hides itself under the letters, the book and the bed question)
+	RoomBar.attach(self, "parlor", Vector2i(8, 225)).leaving.connect(func(_to: String) -> void: _set_room_active(false))
 
 
 ## The bed's question (the kitchen's words): Sleep or Not yet, over a click-away blocker.

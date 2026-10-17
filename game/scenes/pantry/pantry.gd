@@ -11,6 +11,7 @@ extends Control
 ## and one plain tip for the next unmet rule, pantry_goal.gd), shelf signs that say what goes there, the shelves
 ## a held item likes glowing, "+★" over a drop that meets a rule, a compact inbox tray, and the three-star
 ## banner "Perfect pantry! +15 energy tomorrow" with FEEL's warm flash.
+## HOUSE-DOORS: a fixed "Kitchen" sign on the painted plank door and the house's room bar (RoomBar) at the bottom.
 
 const InboxView := preload("res://scenes/pantry/inbox_view.gd")
 const GoalChip := preload("res://scenes/pantry/goal_chip.gd")
@@ -66,6 +67,11 @@ const TRAY_ROWS := 3
 const TRAY_AREA := Rect2(0, 136, 178, 102)
 ## Shelf signs: a second line under each zone label with what goes there, right-aligned, never left of NOTE_LEFT.
 const NOTE_LEFT := 182
+## HOUSE-DOORS: the "Kitchen" sign's top-middle at the top of the plank door (room space, up and left of the "Dry"
+## plate, apart from the shelf signs), and the room bar at the bottom right of Auto-arrange, under the floor shelf
+## (y 254) and its sign.
+const DOOR_SIGN_AT := Vector2i(220, 2)
+const ROOM_BAR_AT := Vector2i(214, 254)
 ## Glow on the shelves a held item likes: a 1-in-4 gold dither that shimmers between two phases.
 const GLOW_STEP := 0.3
 ## Fallback look (no art): opaque cells and drawn shelf frames.
@@ -143,6 +149,9 @@ var _glow_tex: Array[ImageTexture] = []
 ## Board entry of the last drop, for the "+★" pop when that drop meets a rule (-1: none).
 var _last_drop := -1
 var _tip_queued := false
+var _door_sign: DoorSign
+## HOUSE-DOORS: Garden · Kitchen · Pantry · Parlour.
+var rooms: RoomBar
 
 
 func _ready() -> void:
@@ -191,12 +200,26 @@ func _ready() -> void:
 	_hints.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_hints)
 	_hints.draw.connect(_draw_scroll_hints)
+	_build_doors()
 	_refresh_inbox_labels()
 	_refresh_notes()
 	_refresh_tip()
 	queue_redraw()
 	GuideArrow.attach(self, _guide_at)  # ONBOARD-GUIDE: arrow and Granny's hint
 
+
+## HOUSE-DOORS: the "Kitchen" sign on the painted plank door (it scrolls with the room) and the room bar right of
+## the left column's buttons, under the floor shelf and its sign.
+func _build_doors() -> void:
+	if _on_art:
+		_door_sign = DoorSign.new()
+		_door_sign.name = "DoorSign"
+		add_child(_door_sign)
+		move_child(_door_sign, 0)  # under every label, item and button
+		_door_sign.set_name_text(tr("ROOM_KITCHEN"))
+		_door_sign.place_at(DOOR_SIGN_AT)
+	rooms = RoomBar.attach(self, "pantry", ROOM_BAR_AT)
+	rooms.leaving.connect(func(_to: String) -> void: board.cancel_hold())
 
 
 ## Scrolling runs before the GUI so focused buttons do not eat Up/Down and the wheel works over the board.
@@ -300,6 +323,8 @@ func _apply_scroll() -> void:
 		_zone_labels[i].position.y = _label_y[i] - off
 	for i in _zone_notes.size():
 		_zone_notes[i].position.y = _note_y[i] - off
+	if _door_sign != null:
+		_door_sign.position.y = DOOR_SIGN_AT.y - off
 	if board.is_holding() and _pointer.x >= 0.0:
 		board.move_hold_to(board.get_global_transform_with_canvas().affine_inverse() * _pointer)
 	queue_redraw()
@@ -776,7 +801,7 @@ func _show_lovely(energy: int) -> void:
 	(bubble.get_node("Box/Sub") as Label).text = tr("PANTRY_BONUS") % energy
 	bubble.visible = true
 	bubble.reset_size()
-	bubble.position = Vector2(roundi(BOARD_X + 72 - bubble.size.x / 2.0), int(size.y) - int(bubble.size.y) - 12)
+	bubble.position = Vector2(roundi(BOARD_X + 72 - bubble.size.x / 2.0), ROOM_BAR_AT.y - int(bubble.size.y))  # over the room bar
 	bubble.pivot_offset = (bubble.size * 0.5).floor()
 	bubble.scale = Vector2(0.4, 0.4)
 	_bubble_tween = create_tween()

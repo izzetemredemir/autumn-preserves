@@ -1,7 +1,7 @@
 extends SceneTree
 ## Smoke shot (KITCHEN-P1C): the kitchen alone (throwaway game, debug inventory) with four reply letters and all six
 ## family recipes unlocked.
-##   1. The wall: the three newest reply drawings in frames left of the window; a click opens the newest big.
+##   1. The wall: the three newest reply drawings in frames on the stone walls; a click opens the newest big.
 ##   2. Stove -> "Family recipes" -> Granny's Quince Butter with its fixed cinnamon -> stir -> result card (gold label).
 ##   3. The book's family section (heading, gold jars, who sent each) and the family jar's "How it was made" card.
 ##   4. Day 95: 10 s idle -> Granny dozes in her chair with a "z" bubble; a mouse move wakes her. Day 50: no doze.
@@ -57,10 +57,13 @@ func _run() -> void:
 	var newest: Button = wall.newest()
 	_check(newest != null and newest.position == Vector2(wall.SPOTS[0]), "the newest hangs in front")
 	var on_wall := true
+	# HOUSE-DOORS: the parlour door fills the wall left of the window; the stone strip right of the window (under the
+	# HUD, above the bench) and the side wall under the picture (under Granny's To-Do note) hold the frames
+	var walls := [Rect2(258, 31, 30, 28), Rect2(362, 91, 48, 24)]
 	for f: Control in wall._frames:
 		var r := Rect2(f.position, f.size)
-		on_wall = on_wall and r.position.y >= 32.0 and r.end.y <= 86.0 and r.position.x >= 88.0 and r.end.x <= 127.0
-	_check(on_wall, "frames on the stone wall: below the HUD, above the bench, left of the curtain")
+		on_wall = on_wall and walls.any(func(w: Rect2) -> bool: return w.encloses(r))
+	_check(on_wall, "frames on the stone walls: right of the window and under the picture")
 	await _move(newest.get_global_rect().get_center())
 	await _frames(6)
 	_check(_k._message.text == tr("UI_FAMILY_DRAWING_HINT") % "Leo", "hover names the child: %s" % _k._message.text)

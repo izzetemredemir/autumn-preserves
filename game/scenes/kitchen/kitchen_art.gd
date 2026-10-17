@@ -36,17 +36,24 @@ const FOREST := Color("314524")
 ## on the right are tall enough to stay visible and clickable under the note.
 const OBJECTS := {
 	"stove": Rect2i(4, 64, 76, 136),
-	"pantry": Rect2i(88, 100, 78, 56),
-	"counter": Rect2i(170, 100, 78, 56),
+	"parlor": Rect2i(86, 26, 46, 112),
+	"pantry": Rect2i(136, 90, 64, 54),
+	"counter": Rect2i(202, 90, 96, 54),
 	"book": Rect2i(254, 80, 26, 20),
 	"cupboard": Rect2i(288, 40, 72, 52),
 	"garden": Rect2i(430, 70, 48, 134),
 	"bed": Rect2i(392, 204, 70, 32),
 }
-## Hotspots sit on the painted bg_kitchen.png: stove (left), bench drawers (pantry, jar counter), recipe book on
-## the bench end, tall cupboard, front door (garden), rug by the door (bed). Their art is the painting; only the
-## book and the pantry's inbox tag are drawn. When no painting loads, Kitchen sets `painted = false` and the
+## Hotspots sit on the painted bg_kitchen.png: stove (left), the plank door to the parlour on the back wall left of
+## the window (HOUSE-DOORS), bench cupboards (pantry, jar counter), tall cupboard, front door (garden). Their art is
+## the painting; only the pantry's inbox tag and the door signs are drawn. The book and the bed live in the parlour
+## (their rects only place placeholder art). When no painting loads, Kitchen sets `painted = false` and the
 ## placeholder objects below draw instead.
+## HOUSE-DOORS: each way out carries a fixed wooden sign (top-middle, local to its hotspot): on the parlour door
+## under the HUD line, on the garden door under Granny's To-Do note (x >= 326, y < 91), on the pantry cupboard.
+const SIGNS := {"parlor": Vector2i(23, 26), "garden": Vector2i(24, 26), "pantry": Vector2i(32, 2)}
+## The pantry's inbox tag (22x16), local to its hotspot: under its sign.
+const PANTRY_TAG := Vector2i(21, 20)
 static var painted := true
 ## P1 stations (spec §8.3), drawn on top of the painting once unlocked (Economy.unlocked): the fruit press on the
 ## floor right of the stove, the dough board on a little table in the window light. Kitchen shows each when its
@@ -57,7 +64,7 @@ const P1_OBJECTS := {
 }
 const UNLOCK_OF := {"press": "press", "board": "knead"}
 ## Window sill over the bench where the waiting jars stand (WaitingShelf).
-const SILL := Rect2i(124, 66, 76, 38)
+const SILL := Rect2i(156, 60, 76, 38)
 const ICONS_JSON := "res://assets/sprites/icons/icons.json"
 const ICONS_PNG := "res://assets/sprites/icons/icons.png"
 ## The theme font at its native size (the only size besides 36 that stays crisp).
@@ -235,7 +242,7 @@ static func draw_object(ci: CanvasItem, kind: String, t: float, info: Dictionary
 		if kind == "book":
 			_book(ci)
 		elif kind == "pantry" and int(info.get("inbox", 0)) > 0:
-			_tag(ci, 28, 8, int(info.inbox))
+			_tag(ci, PANTRY_TAG.x, PANTRY_TAG.y, int(info.inbox))
 		return
 	match kind:
 		"garden":

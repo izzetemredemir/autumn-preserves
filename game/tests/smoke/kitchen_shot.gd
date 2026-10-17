@@ -29,7 +29,7 @@ func _run() -> void:
 	root.add_child(_k)
 	todo_script.ensure()
 	await _frames(12)
-	# --- ART-GRANNY: Granny at the painting's scale, feet on the floor between the stove and the bench
+	# --- ART-GRANNY: Granny at the painting's scale, feet on the floor at the jar counter (HOUSE-DOORS)
 	var g: TextureRect = _k._granny
 	_check(g != null and g.size == Vector2(44, 88) and g.mouse_filter == Control.MOUSE_FILTER_IGNORE,
 		"Granny at kitchen scale (44x88), the mouse passes through her")
@@ -143,17 +143,19 @@ func _run() -> void:
 	_action("cancel")
 	await _frames(4)
 	_check(not panel.visible and _k._room_active, "Esc closes the panel")
-	# a click on Granny's skirt reaches the stove behind her
-	await _click(Vector2(78, 160))
-	_check(panel.visible and panel.station == "stir_pot", "a click through Granny opens the stove")
+	# a click on Granny's apron reaches the jar counter behind her (HOUSE-DOORS: she stands at the counter now)
+	await _click(Vector2(220, 130))
+	_check(panel.visible and panel.station == "pack_jar", "a click through Granny opens the jar counter")
 	_action("cancel")
 	await _frames(4)
 
-	# --- PARLOR: the book and the bed moved next door; the parlour door (the doormat) is a captioned hotspot
+	# --- PARLOR: the book and the bed moved next door. HOUSE-DOORS: the parlour door is a painted door with a sign
 	_check(not _k._spots.has("bed") and not _k._spots.has("book"), "no bed or book hotspot in the kitchen")
 	var door: Control = _k._spots.get("parlor")
 	_check(door != null and door.is_visible_in_tree() and door.size.x >= 16 and door.size.y >= 16
-		and door.caption != null and door.caption.text == tr("KITCHEN_TO_PARLOR"), "the parlour door, captioned")
+		and door.caption != null and door.caption.text == tr("KITCHEN_TO_PARLOR") and door.is_sign(), "the parlour door, signed")
+	_check(door != null and door.get_global_rect().end.y < 140 and door.get_global_rect().position.x < 136,
+		"the parlour door stands on the back wall left of the window (no doormat)")
 	print("KITCHEN SMOKE ", "OK" if _fail == 0 else "FAILED (%d)" % _fail)
 	quit(1 if _fail > 0 else 0)
 
@@ -176,7 +178,7 @@ func _any_picked(hs: Dictionary) -> bool:
 func _any_caption(hs: Dictionary) -> bool:
 	for k in hs:
 		var cap: Control = hs[k].caption
-		if cap != null and cap.visible and not hs[k].glow:
+		if cap != null and cap.visible and not hs[k].glow and not hs[k].is_sign():  # door signs always show
 			return true
 	return false
 

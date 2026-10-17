@@ -30,7 +30,7 @@ func _run() -> void:
 	var router: Node = root.get_node("Router")
 	gs.start_temp(1)
 	var d: Dictionary = gs.data
-	d.flags["tutorial"] = 47  # day 1: mail, shake, jam, pantry and order done; the bed is next
+	d.flags["tutorial"] = 111  # day 1: mail, shake, pick (FIRST-60B), jam, pantry and order done; the bed is next
 	router.current = "parlor"  # the To-Do note hides outside game scenes
 	load(TODO_GD).ensure()  # in the game the note is already there when Granny walks in
 	await _frames(2)

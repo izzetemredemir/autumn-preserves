@@ -3,6 +3,8 @@ extends Button
 ## Draws its placeholder art through KitchenArt, a 1-px gold outline on hover/focus, a caption under it and,
 ## when `glow` is on (Granny's To-Do step), a blinking frame (Granny's guide draws the arrow over it, ONBOARD-GUIDE).
 ## It is a Button, so mouse, touch (emulated mouse) and keyboard (focus + ui_accept) all press it.
+## HOUSE-DOORS: a door carries a fixed wooden sign instead (add_sign, DoorSign): always shown, ringed in gold
+## whenever a caption would show; it is then the hotspot's `caption` (Granny's guide points just above it).
 
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const ANIMATED := ["stove"]
@@ -59,6 +61,24 @@ func setup(kind_id: String, rect: Rect2i, caption_text: String) -> void:
 	set_process(kind in ANIMATED)
 
 
+## Replaces the hover caption with a door sign whose top-middle sits at `top_mid` (local space).
+func add_sign(text: String, top_mid: Vector2i) -> DoorSign:
+	if caption != null:
+		remove_child(caption)
+		caption.queue_free()
+	var s := DoorSign.new()
+	add_child(s)
+	s.set_name_text(text)
+	s.place_at(top_mid)
+	caption = s
+	_on_state()
+	return s
+
+
+func is_sign() -> bool:
+	return caption is DoorSign
+
+
 func set_info(d: Dictionary) -> void:
 	info = d
 	queue_redraw()
@@ -82,7 +102,9 @@ func _process(delta: float) -> void:
 
 func _on_state() -> void:
 	var lit := reveal or picked() or (glow and int(_t * 3.0) % 2 == 0)
-	if caption != null:
+	if caption is DoorSign:
+		(caption as DoorSign).lit = lit
+	elif caption != null:
 		caption.visible = lit
 		caption.add_theme_color_override("font_color", Art.GOLD)
 	queue_redraw()

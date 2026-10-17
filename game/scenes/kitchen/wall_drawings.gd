@@ -1,8 +1,8 @@
 extends Control
 ## KITCHEN-P1C · The grandkids' reply drawings on the kitchen wall (spec §7.6: "the drawing hangs on the kitchen wall").
 ## Up to MAX_SHOWN latest reply letters, each the very picture its letter shows (KidDrawing.render with the letter's
-## seed and subject), as a small copy in a wooden frame pinned on the stone wall left of the window (under the HUD
-## line): the newest at half size on top, the two before it at a third, side by side below.
+## seed and subject), as a small copy in a wooden frame pinned on the stone wall (under the HUD line): the newest at
+## half size right of the window, the two before it at a third, side by side on the side wall (SPOTS).
 ## Each frame is a button: hovering names the child (`hovered`), a click or Enter asks the kitchen to open it big
 ## (`open_requested`, Viewer: the 48x48 drawing at 2x on paper, UI-COMPACT).
 ## show_letters(state) rebuilds the frames only when the set of letters changed.
@@ -12,9 +12,11 @@ signal open_requested(letter: Dictionary)
 
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const MAX_SHOWN := 3
-## Frame spots on the stone wall between the beam and the curtain (x 88-126, y 31-86), newest first, and how much
-## each copy shrinks the 48x48 drawing (2 -> 24x24, 3 -> 16x16; frames add a 1 px edge).
-const SPOTS := [Vector2i(99, 34), Vector2i(89, 63), Vector2i(108, 63)]
+## Frame spots, newest first, and how much each copy shrinks the 48x48 drawing (2 -> 24x24, 3 -> 16x16; frames add
+## a 1 px edge). HOUSE-DOORS: the parlour door now fills the wall left of the window, so the newest hangs on the
+## stone strip between the window's right curtain and the tall cupboard (x 259-287, y 31-58) and the two before it
+## on the side wall under the framed picture (x 362-410, below y 91: clear of Granny's To-Do note).
+const SPOTS := [Vector2i(260, 32), Vector2i(370, 91), Vector2i(390, 91)]
 const SHRINK := [2, 3, 3]
 const PAPER := Color("f2d9c5")
 
