@@ -2,6 +2,8 @@
 
 **Autumn Preserves** is made by **İzzet Emre Demir** for the KODTÜ 7 game jam (16–18 October 2026).
 
+The MIT license in [LICENSE](LICENSE) covers the source code only (GDScript, shaders and Python tools). Art and audio are © 2026 İzzet Emre Demir, all rights reserved.
+
 ## Fonts
 
 | Use | Font | Author | License | Source | File |
