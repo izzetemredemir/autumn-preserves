@@ -79,6 +79,17 @@ func _build() -> void:
 	add_child(root)
 	_panel = PanelContainer.new()
 	_panel.theme_type_variation = &"PaperPanel"
+	# JURY-MG: the theme's paper dithers 50 % at 4x and reads as noise: solid paper, one ink-brown edge.
+	var solid := StyleBoxFlat.new()
+	solid.bg_color = PAPER
+	solid.border_color = Color("111010")
+	solid.set_border_width_all(1)
+	solid.content_margin_left = 7
+	solid.content_margin_right = 7
+	solid.content_margin_top = 6
+	solid.content_margin_bottom = 6
+	solid.anti_aliasing = false
+	_panel.add_theme_stylebox_override("panel", solid)
 	_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_panel.offset_left = -4

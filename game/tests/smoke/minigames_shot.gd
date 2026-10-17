@@ -34,4 +34,47 @@ func _run() -> void:
 		print("saved mg_", id)
 		mg.queue_free()
 		await process_frame
+	await _action_shots()
 	quit()
+
+
+## JURY-MG: the moments the first-impression shots miss: a filled jar (Full!), a press mid-song, a dough squash.
+func _action_shots() -> void:
+	var jar: Node = (load("res://minigames/pack_jar/pack_jar.tscn") as PackedScene).instantiate()
+	root.add_child(jar)
+	jar.start(GAMES["pack_jar"])
+	var guard := 0
+	while jar._fill_label.text != tr("MG_PACK_FILL") % 100 and guard < 120:
+		guard += 1
+		jar._set_piece_x(guard % 6)
+		jar._drop_piece()
+		while not jar._fall.is_empty():
+			await process_frame
+	await create_timer(0.35).timeout
+	await _snap("mg_pack_jar_full")
+	jar.queue_free()
+	await process_frame
+	var press: Node = (load("res://minigames/press/press.tscn") as PackedScene).instantiate()
+	root.add_child(press)
+	var pctx: Dictionary = GAMES["press"].duplicate()
+	pctx["autoplay"] = true
+	press.start(pctx)
+	await create_timer(9.0).timeout
+	await _snap("mg_press_play")
+	press.queue_free()
+	await process_frame
+	var knead: Node = (load("res://minigames/knead/knead.tscn") as PackedScene).instantiate()
+	root.add_child(knead)
+	knead.start(GAMES["knead"])
+	await create_timer(1.5 + 0.8 + 0.05).timeout  # READY, then the first beat
+	knead._press(KneadRules.beat_side(0), Time.get_ticks_usec())
+	await create_timer(0.05).timeout
+	await _snap("mg_knead_hit")
+	knead.queue_free()
+	await process_frame
+
+
+func _snap(shot: String) -> void:
+	RenderingServer.force_draw(false)
+	root.get_texture().get_image().save_png("user://shots/%s.png" % shot)
+	print("saved ", shot)

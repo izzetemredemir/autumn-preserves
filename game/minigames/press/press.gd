@@ -9,7 +9,7 @@ const LEAD_IN := 2.5  ## seconds before the first beat
 const RESULT_HOLD := 2.5
 const HIT_X := 110.0
 const PX_PER_SEC := 120.0
-const TRACK_Y := 44.0
+const TRACK_Y := 46.0
 const IGNORE_MS := 450.0  ## presses earlier than this before a beat are ignored
 
 const T_BG := preload("res://assets/sprites/minigames/press/press_bg.png")
@@ -29,6 +29,8 @@ const C_JUICE := Color("c94d2e")
 const C_PERFECT := Color("dbcc83")
 const C_GOOD := Color("b7b768")
 const C_MISS := Color("62272c")
+const C_GRID := Color("81746a")
+const C_ZONE := Color("3d1f29")
 
 enum Phase { IDLE, PLAY, DONE }
 
@@ -52,11 +54,14 @@ var _emitted := false
 var _last_click := -1
 var _l_msg: Label
 var _l_hint: Label
+var _l_juice: Label
 
 
 func _ready() -> void:
 	_label(Vector2(12, 8), "MG_PRESS_TITLE")
 	_l_hint = _label(Vector2(12, 252), "MG_PRESS_HINT")
+	_l_juice = _label(Vector2(BOTTLE_POS.x + 26, BOTTLE_POS.y - 2), "MG_PRESS_JUICE")  # JURY-MG: names the bottle meter
+	_l_juice.z_index = 2
 	_l_msg = _label(Vector2(0, 143), "")
 	_l_msg.size = Vector2(480, 30)
 	_l_msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -219,8 +224,26 @@ func _draw() -> void:
 
 
 func _draw_track() -> void:
-	_box(Rect2(14, TRACK_Y - 18, 452, 36))
+	_box(Rect2(14, TRACK_Y - 24, 452, 48))
 	var now := _now_ms() / 1000.0 if phase != Phase.IDLE else 0.0
+	# JURY-MG: a rhythm grid (a tick every half beat, scrolling with the song) so the lane never looks empty.
+	var g0 := int(floor((now - LEAD_IN) / (INTERVAL * 0.5)))
+	for k in range(g0 - 1, g0 + 12):
+		var gx := roundf(HIT_X + (LEAD_IN + k * INTERVAL * 0.5 - now) * PX_PER_SEC)
+		if gx < 22 or gx > 456:
+			continue
+		var big := k % 2 == 0
+		draw_rect(Rect2(gx - 1, TRACK_Y + (14 if big else 17), 2, 4 if big else 2), C_GRID)
+	# the hit zone: ink box with a lit centre line
+	draw_rect(Rect2(HIT_X - 14, TRACK_Y - 22, 28, 44), C_ZONE)
+	draw_rect(Rect2(HIT_X - 14, TRACK_Y - 22, 28, 2), C_TEXT)
+	draw_rect(Rect2(HIT_X - 14, TRACK_Y + 20, 28, 2), C_TEXT)
+	draw_rect(Rect2(HIT_X - 1, TRACK_Y - 20, 2, 40), C_GRID)
+	var next := -1
+	for i in BEATS:
+		if grades[i] == "":
+			next = i
+			break
 	for i in BEATS:
 		var x := roundf(HIT_X + (LEAD_IN + i * INTERVAL - now) * PX_PER_SEC)
 		if x < 22 or x > 456:
@@ -230,11 +253,14 @@ func _draw_track() -> void:
 			"perfect": f = 1
 			"good": f = 2
 			"miss": f = 3
-		draw_texture_rect_region(T_BEAT, Rect2(x - 4, TRACK_Y - 10, 8, 20), Rect2(f * 8, 0, 8, 20))
-	draw_texture(T_HIT, Vector2(HIT_X - 14, TRACK_Y - 18))
+		var sc := 2  # drawn at 2x (16x40), whole pixels
+		draw_texture_rect_region(T_BEAT, Rect2(x - 4 * sc, TRACK_Y - 10 * sc, 8 * sc, 20 * sc), Rect2(f * 8, 0, 8, 20))
+		if i == next and f == 0:  # the beat to hit next gets a cream cap
+			draw_rect(Rect2(x - 8, TRACK_Y - 23, 16, 2), C_TEXT)
 	if _flash_t > 0.0:
 		var fc := C_PERFECT if _flash == "perfect" else (C_GOOD if _flash == "good" else C_MISS)
-		draw_rect(Rect2(HIT_X - 12, TRACK_Y + 20, 24, 3), fc)
+		draw_rect(Rect2(HIT_X - 14, TRACK_Y + 22, 28, 3), fc)
+		draw_rect(Rect2(HIT_X - 14, TRACK_Y - 25, 28, 3), fc)
 
 
 func _draw_press() -> void:
@@ -257,3 +283,14 @@ func _draw_press() -> void:
 			if h > 8.0:
 				draw_rect(Rect2(b.x + 5, b.y + 57 - h, 2, h - 6), fill_tones[2])  # glint down the left side
 	draw_texture(T_BOTTLE, b)
+	# JURY-MG: the bottle's progress meter, a bigger gauge beside it with quarter ticks.
+	var mx := b.x + 28.0
+	var my := b.y + 18.0
+	draw_rect(Rect2(mx - 1, my - 1, 12, 42), C_TEXT)
+	draw_rect(Rect2(mx, my, 10, 40), C_BAR_BG)
+	var mh := roundf(40.0 * juice)
+	if mh > 0.0:
+		draw_rect(Rect2(mx, my + 40 - mh, 10, mh), fill_tones[1])
+		draw_rect(Rect2(mx, my + 40 - mh, 10, 2), fill_tones[2])
+	for q in range(1, 4):
+		draw_rect(Rect2(mx + 6, my + q * 10 - 1, 4, 1), C_TEXT)

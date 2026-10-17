@@ -785,3 +785,9 @@ UI_PAUSE_QUIT_FESTIVAL,Festival sona erecek.
 UI_PAUSE_QUIT_TEMP,Bu gün kaydedilmeyecek.
 UI_PAUSE_QUIT_YES,Çık
 UI_PAUSE_QUIT_NO,Kal
+MG_PACK_FULL,Dolu!
+MG_PACK_LINE,dolum çizgisi
+MG_PRESS_JUICE,Meyve suyu
+UI_TIP_ENERGY,Enerji
+UI_TIP_BAG,Çanta
+UI_TIP_COINS,Para

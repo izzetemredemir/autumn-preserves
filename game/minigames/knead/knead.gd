@@ -16,6 +16,7 @@ const CENTER := Vector2(240, 140)
 const RING_R := 72.0
 const LOAF_RX := 96.0  ## the loaf's dotted outline
 const LOAF_RY := 44.0
+const JUDGE_COLORS := {"miss": Color("c94d2e"), "good": Color("b7b768"), "perfect": Color("dbcc83")}
 const JUDGE_KEYS := {"miss": "MG_KNEAD_MISS", "good": "MG_KNEAD_GOOD", "perfect": "MG_KNEAD_PERFECT"}
 
 const T_BG := preload("res://assets/sprites/minigames/knead/knead_bg.png")
@@ -92,7 +93,7 @@ func _ready() -> void:
 	_l_title = _label(Vector2(12, 8), "MG_KNEAD_PART1")
 	_l_stat = _label(Vector2(12, 24), "")
 	_l_hint = _label(Vector2(12, 252), "MG_KNEAD_HINT1")
-	_l_msg = _label(Vector2(0, 94), "")
+	_l_msg = _label(Vector2(0, 100), "")
 	_l_msg.size = Vector2(480, 30)
 	_l_msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_l_msg.z_index = 10
@@ -149,6 +150,8 @@ func _label(pos: Vector2, key: String) -> Label:
 
 func _set_phase(p: Phase) -> void:
 	phase = p
+	if _l_msg != null:
+		_l_msg.add_theme_color_override("font_color", C_TEXT)
 	_t0 = Time.get_ticks_usec()
 	_auto_i = 0
 	match p:
@@ -219,6 +222,7 @@ func _knead_tick() -> void:
 		_l_msg.text = tr(JUDGE_KEYS[_last_judge])
 	else:
 		_l_msg.text = ""
+		_l_msg.add_theme_color_override("font_color", C_TEXT)
 	if ms >= knead_time * 1000.0:
 		for i in beats:
 			if not _judged[i]:
@@ -325,6 +329,9 @@ func _register(j: String) -> void:
 			miss += 1
 	_last_judge = j
 	_last_judge_t = Time.get_ticks_msec() / 1000.0
+	if _l_msg != null:  # JURY-MG: Perfect / Good / Miss pop in their own colour
+		_l_msg.add_theme_color_override("font_color", JUDGE_COLORS[j])
+		Juice.pop(_l_msg, 1.5, 0.16)
 
 
 func _finish() -> void:
@@ -377,7 +384,9 @@ func _draw() -> void:
 func _draw_dough() -> void:
 	var step := KneadRules.squash_step(perfect + good)
 	var f := clampi(roundi(step * 4.0 / KneadRules.MAX_SQUASH), 0, 4)
-	draw_texture_rect_region(T_DOUGH, Rect2(204, 128, 72, 44), Rect2(f * 72, 0, 72, 44))
+	# JURY-MG: the dough squashes flat on every beat (wider, shorter, bottom edge fixed) and springs back.
+	var sq := roundi(6.0 * clampf(_press_flash / 0.12, 0.0, 1.0))
+	draw_texture_rect_region(T_DOUGH, Rect2(204 - sq, 128 + sq * 2, 72 + sq * 2, 44 - sq * 2), Rect2(f * 72, 0, 72, 44))
 	# Hands; the one that just pressed moves in and down.
 	var l_down := _press_flash > 0.0 and _last_side < 0
 	var r_down := _press_flash > 0.0 and _last_side > 0
@@ -385,10 +394,15 @@ func _draw_dough() -> void:
 	var rp := Vector2(282, 140) if r_down else Vector2(308, 124)
 	draw_texture_rect_region(T_HANDS, Rect2(lp, Vector2(32, 24)), Rect2(32 if l_down else 0, 0, 32, 24))
 	draw_texture_rect_region(T_HANDS, Rect2(rp + Vector2(32, 0), Vector2(-32, 24)), Rect2(32 if r_down else 0, 0, 32, 24))
-	# Beat lane: upcoming beats slide toward the centre hit mark.
+	# Beat lane: upcoming beats slide toward the centre hit mark, drawn at 2x so they read at a glance.
 	var ms := _elapsed_ms() if phase == Phase.KNEAD else 0.0
-	_box(Rect2(30, 48, 420, 40))
-	draw_texture(T_HIT, Vector2(226, 52))
+	_box(Rect2(30, 44, 420, 52))
+	var since := Time.get_ticks_msec() / 1000.0 - _last_judge_t
+	draw_texture_rect_region(T_HIT, Rect2(240 - 20, 48, 40, 44), Rect2(0, 0, 28, 36))
+	if since < 0.25 and _last_judge != "":  # the hit mark lights up in the judge's colour
+		var jc: Color = JUDGE_COLORS[_last_judge]
+		draw_rect(Rect2(220, 46, 40, 2), jc)
+		draw_rect(Rect2(220, 92, 40, 2), jc)
 	for i in beats:
 		if _judged[i]:
 			continue
@@ -396,7 +410,7 @@ func _draw_dough() -> void:
 		if dt < -200.0 or dt > 2400.0:
 			continue
 		var off := int(dt / 2400.0 * 200.0) * KneadRules.beat_side(i)
-		draw_texture_rect_region(T_BEAT, Rect2(240 + off - 4, 58, 8, 20), Rect2(0 if off != 0 else 8, 0, 8, 20))
+		draw_texture_rect_region(T_BEAT, Rect2(240 + off - 8, 50, 16, 40), Rect2(0 if off != 0 else 8, 0, 8, 20))
 
 
 func _draw_pie() -> void:

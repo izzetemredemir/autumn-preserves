@@ -22,7 +22,13 @@ const C_LINE := Color("e19064")
 const C_BRINE := Color("738c7a")
 const C_BRINE_DEEP := Color("4e7664")
 const C_BRINE_TOP := Color("b4b3a0")
-const C_GHOST := Color("415c5d")
+const C_GHOST := Color("f2d9c5")
+const C_GLASS := Color("415c5d")
+const C_GLASS_LIT := Color("567c7d")
+const C_GLASS_SHINE := Color("b4b3a0")
+const C_SHADOW := Color("3d1f29")
+const C_FULL := Color("dbcc83")
+const SETTLE_TIME := 0.18
 const FALLBACK_FILL := Color("b7b768")
 const FALLBACK_EDGE := Color("747c37")
 
@@ -39,6 +45,9 @@ var _piece: Dictionary = {}  # {type, w, h, x}
 var _next_type := ""
 var _fall: Dictionary = {}  # {x, w, h, row, id, t}
 var _shake := 0.0
+var _settle := {}  # {id, t}: a piece that just landed hops and settles (visual only)
+var _was_full := false
+var _full_t := -1.0
 var _pending_drop := -1.0
 var _press_pos := Vector2.ZERO
 var _press_moved := false
@@ -59,6 +68,8 @@ var _bot_pour := 0.0
 
 var _hint: Label
 var _fill_label: Label
+var _line_label: Label
+var _full_label: Label
 var _done_btn: Button
 
 
@@ -94,6 +105,20 @@ func _ready() -> void:
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_fill_label = _make_label(Vector2(314, 112), 108, HORIZONTAL_ALIGNMENT_LEFT)
+	_line_label = _make_label(Vector2(JAR_X - 84, JAR_Y + (ROWS - LINE_ROWS) * CELL - 20), 76, HORIZONTAL_ALIGNMENT_RIGHT)
+	_line_label.text = "MG_PACK_LINE"
+	_line_label.add_theme_color_override("font_color", C_FULL)
+	_line_label.add_theme_color_override("font_shadow_color", Color("111010"))
+	_line_label.add_theme_constant_override("shadow_offset_x", 1)
+	_line_label.add_theme_constant_override("shadow_offset_y", 1)
+	_full_label = _make_label(Vector2(JAR_X - 12, JAR_Y + 34), COLS * CELL + 24, HORIZONTAL_ALIGNMENT_CENTER)
+	_full_label.text = "MG_PACK_FULL"
+	_full_label.add_theme_color_override("font_color", C_FULL)
+	_full_label.add_theme_color_override("font_shadow_color", Color("111010"))
+	_full_label.add_theme_constant_override("shadow_offset_x", 1)
+	_full_label.add_theme_constant_override("shadow_offset_y", 1)
+	_full_label.z_index = 3
+	_full_label.visible = false
 	_done_btn = Button.new()
 	_done_btn.text = "MG_PACK_DONE"
 	_done_btn.position = Vector2(300, 196)
@@ -288,6 +313,7 @@ func _drop_piece() -> void:
 		for c in range(x, x + w):
 			_grid[r][c] = id
 	_fall = {"x": x, "w": w, "h": h, "row": row, "id": id, "t": 0.0}
+	_settle = {}
 	_piece = {}
 	_pending_drop = -1.0
 	Audio.play_sfx("sfx_jar_piece_drop")
@@ -296,8 +322,16 @@ func _drop_piece() -> void:
 
 
 func _update_fill_label() -> void:
-	var pct := int(round(PackJarRules.fill_ratio(PackJarRules.count_below_line(_grid)) * 100.0))
+	var ratio := PackJarRules.fill_ratio(PackJarRules.count_below_line(_grid))
+	var pct := int(round(ratio * 100.0))
 	_fill_label.text = tr("MG_PACK_FILL") % pct
+	_fill_label.add_theme_color_override("font_color", C_FULL if ratio >= 1.0 else C_TEXT)
+	if ratio >= 1.0 and not _was_full:  # the "Full!" moment, once
+		_was_full = true
+		_full_t = 0.0
+		_full_label.visible = true
+		Juice.pop(_full_label, 2.0, 0.25)
+		Juice.pop(_fill_label, 1.5, 0.2)
 
 
 # ---------------------------------------------------------------- phases
@@ -439,8 +473,20 @@ func _process(delta: float) -> void:
 	if not _fall.is_empty():
 		_fall.t += delta
 		if _fall.t >= FALL_TIME:
+			_settle = {"id": int(_fall.id), "t": 0.0}
 			_fall = {}
 			_spawn_piece()
+		queue_redraw()
+	if not _settle.is_empty():
+		_settle.t += delta
+		if _settle.t >= SETTLE_TIME:
+			_settle = {}
+		queue_redraw()
+	if _full_t >= 0.0:
+		_full_t += delta
+		if _full_t > 1.6:
+			_full_t = -1.0
+			_full_label.visible = false
 		queue_redraw()
 	if _pending_drop >= 0.0:
 		_pending_drop -= delta
@@ -523,7 +569,9 @@ func _draw_piece(pos: Vector2, type: String, w: int, h: int) -> void:
 func _draw() -> void:
 	draw_texture(_t("jar_bg"), Vector2.ZERO)
 	var jar := Rect2(JAR_X, JAR_Y, COLS * CELL, ROWS * CELL)
+	draw_rect(Rect2(JAR_X - 6, JAR_Y + ROWS * CELL + 6, COLS * CELL + 12, 5), C_SHADOW)  # base shadow on the counter
 	draw_texture(_t("jar_back"), jar.position)
+	_draw_glass()
 	if _brine > 0.0:
 		var bh := int(round(_brine * CELL))
 		var top := JAR_Y + int(jar.size.y) - bh
@@ -539,16 +587,23 @@ func _draw() -> void:
 			continue
 		var pi: Dictionary = _piece_info[id]
 		var pos := _cell_rect(int(pi.x), int(pi.row) + int(pi.h) - 1).position
+		if not _settle.is_empty() and int(_settle.id) == int(id):  # landing hop: up 3 px and back, whole pixels
+			pos.y -= roundf(sin(clampf(float(_settle.t) / SETTLE_TIME, 0.0, 1.0) * PI) * 3.0)
 		_draw_piece(pos, str(pi.type), int(pi.w), int(pi.h))
 	if not _fall.is_empty():
 		var k := clampf(float(_fall.t) / FALL_TIME, 0.0, 1.0)
 		var off := int(round((1.0 - k) * 2.0 * CELL))
 		var fi: Dictionary = _piece_info[falling_id]
 		var fpos := _cell_rect(int(fi.x), int(fi.row) + int(fi.h) - 1).position - Vector2(0, off)
+		if not _fall.is_empty() and k >= 0.7:  # nearly down: a one pixel squash
+			fpos.y += 1
 		_draw_piece(fpos, str(fi.type), int(fi.w), int(fi.h))
 	var ly := JAR_Y + (ROWS - LINE_ROWS) * CELL
+	var line_full := PackJarRules.count_below_line(_grid) >= BELOW_LINE_CELLS
 	for x in range(JAR_X, JAR_X + COLS * CELL, 8):
-		draw_rect(Rect2(x, ly, 4, 1), C_LINE)
+		draw_rect(Rect2(x, ly, 8 if line_full else 4, 2), C_FULL if line_full else C_LINE)
+	draw_rect(Rect2(JAR_X - 6, ly, 6, 2), C_LINE)  # solid ticks outside the glass mark the fill line
+	draw_rect(Rect2(JAR_X + COLS * CELL, ly, 6, 2), C_LINE)
 	if phase == Phase.PACK and not _piece.is_empty() and _fall.is_empty():
 		_draw_current_piece()
 	draw_texture(_t("jar_front"), Vector2(JAR_X - 8, JAR_Y - 4))
@@ -559,6 +614,18 @@ func _draw() -> void:
 	if phase == Phase.PACK:
 		var sz := PackJarRules.piece_size(_texture_of(_next_type))
 		_draw_piece(Vector2(120, 130), _next_type, sz.x, sz.y)
+
+
+## Glass inside the jar: a lighter teal tint, a lit strip down the left wall, a shine and a base reflection (palette only).
+func _draw_glass() -> void:
+	var w := COLS * CELL
+	var h := ROWS * CELL
+	draw_rect(Rect2(JAR_X + 2, JAR_Y + 2, w - 4, h - 4), C_GLASS)
+	draw_rect(Rect2(JAR_X + 2, JAR_Y + 2, 6, h - 4), C_GLASS_LIT)
+	draw_rect(Rect2(JAR_X + w - 8, JAR_Y + 2, 3, h - 4), C_GLASS_LIT)
+	draw_rect(Rect2(JAR_X + 4, JAR_Y + 8, 2, 24), C_GLASS_SHINE)
+	draw_rect(Rect2(JAR_X + 4, JAR_Y + 36, 2, 4), C_GLASS_SHINE)
+	draw_rect(Rect2(JAR_X + 2, JAR_Y + h - 6, w - 4, 4), C_GLASS_LIT)  # base reflection
 
 
 func _draw_current_piece() -> void:

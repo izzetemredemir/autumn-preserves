@@ -70,7 +70,7 @@ func _build() -> void:
 	row.add_theme_constant_override("separation", 8)
 	panel.add_child(row)
 
-	row.add_child(_icon("icon_energy"))
+	row.add_child(_icon("icon_energy", "UI_TIP_ENERGY"))
 	_energy_label = Label.new()
 	row.add_child(_energy_label)
 	_energy_bar = ProgressBar.new()
@@ -78,14 +78,15 @@ func _build() -> void:
 	_energy_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_energy_bar.show_percentage = false
 	row.add_child(_energy_bar)
-	_bag_icon = _icon("icon_bag")
+	_bag_icon = _icon("icon_bag", "UI_TIP_BAG")
 	row.add_child(_bag_icon)
 	_bag_label = Label.new()
 	row.add_child(_bag_label)
-	row.add_child(_icon("icon_coin"))
+	row.add_child(_icon("icon_coin", "UI_TIP_COINS"))
 	_coins_label = Label.new()
 	row.add_child(_coins_label)
 	_day_label = Label.new()
+	_day_label.add_theme_color_override("font_color", C_GOLD)  # JURY-MG: the day reads apart from the counters
 	row.add_child(_day_label)
 	_weather = _icon("icon_weather_sun")
 	_weather.mouse_filter = Control.MOUSE_FILTER_PASS  # tooltip: the weather's name
@@ -159,12 +160,15 @@ func show_toast(key: String, args := []) -> void:
 	_toast_tween.tween_callback(panel.queue_free)
 
 
-func _icon(icon_name: String) -> TextureRect:
+func _icon(icon_name: String, tip_key := "") -> TextureRect:
 	var t := TextureRect.new()
 	t.texture = load(ICON_DIR + icon_name + ".png")
 	t.custom_minimum_size = Vector2(16, 16)
 	t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if tip_key != "":
+		t.mouse_filter = Control.MOUSE_FILTER_PASS  # JURY-MG: hover names the icon for a newcomer
+		t.tooltip_text = tr(tip_key)
 	return t
 
 

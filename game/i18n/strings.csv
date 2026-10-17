@@ -785,3 +785,9 @@ UI_PAUSE_QUIT_FESTIVAL,The festival will end.
 UI_PAUSE_QUIT_TEMP,This day is not saved.
 UI_PAUSE_QUIT_YES,Quit
 UI_PAUSE_QUIT_NO,Stay
+MG_PACK_FULL,Full!
+MG_PACK_LINE,fill line
+MG_PRESS_JUICE,Juice
+UI_TIP_ENERGY,Energy
+UI_TIP_BAG,Bag
+UI_TIP_COINS,Coins
