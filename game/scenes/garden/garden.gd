@@ -855,7 +855,7 @@ func _todo_spot() -> GardenSpot:
 				for s in spots:
 					if s.kind == "tree" and s.tree_type == "apple":
 						return s
-			if step == "f_letter":
+			if step == "f_letter" or step == "d1_mail":
 				return find_spot("mailbox")
 		"kitchen", "pantry":
 			return find_spot("door")

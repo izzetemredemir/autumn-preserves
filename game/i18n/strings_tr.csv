@@ -216,8 +216,8 @@ TITLE_SET_SHOW_SEED,Tohumu göster
 TITLE_SET_TUTORIAL,Nine'nin İşleri
 TITLE_ON,Açık
 TITLE_OFF,Kapalı
-TITLE_PREMISE_1,"Everfall vadisinde sonbahar hiç bitmez, orman her sabah yeniden büyür."
-TITLE_PREMISE_2,"Tonty Nine, kışı çıkaracak herkes için o sonbaharı kavanozlara doldurur."
+TITLE_PREMISE_1,Everfall vadisinde sonbahar hiç bitmez. Orman her sabah yeniden büyür.
+TITLE_PREMISE_2,"Bu, Nine Tonty'nin onsuz ilk sonbaharı. Tepelerin ötesine kış çoktan geldi."
 TITLE_PREMISE_HINT,Devam etmek için tıkla ya da dokun
 TUT_TITLE,Nine'nin İşleri
 TUT_D1_SHAKE,Elma ağacını silkele
@@ -723,10 +723,10 @@ GARDEN_BENCH_2,Bu bankı Walter yaptı.\nHâlâ iki kişilik.
 GARDEN_BENCH_3,Otur. Nefes al. Dinle.\nArılar vızıldıyor.
 UI_NIGHT_HONEY,Arılar sana bal bıraktı.
 PREMISE_1,Everfall vadisinde sonbahar hiç bitmez.
-PREMISE_2,Tonty Nine'nin bahçesinin ötesindeki orman her sabah yeniden büyür.
-PREMISE_3,"O sonbaharı kavanozlara doldurur,"
-PREMISE_4,tepelerin ötesindeki kışı geçirecek herkes için.
-PREMISE_5,Yeni bir sabah. Bahçe kapısı açık.
+PREMISE_2,"Orman her sabah yeniden büyür. Teo, ""aynı günü iki kez vermez,"" derdi."
+PREMISE_3,"Bu, Nine Tonty'nin onsuz ilk sonbaharı."
+PREMISE_4,Tepelerin ötesine kış çoktan geldi.
+PREMISE_5,Yeni bir sabah. Posta kutusunda bir şey var.
 PREMISE_SKIP,Geçmek için tıkla ya da bir tuşa bas
 WORLD_GROW_FOREST,"Bugünün ormanı, %d tohumundan büyüdü"
 WORLD_GROW_VINEYARD,"Bugünün bağı, %d tohumundan büyüdü"
@@ -900,3 +900,12 @@ WILD_SURPRISE_FOUND,Çalının içinde: %s
 WILD_SURPRISE_SPARKLE,Şanslı bir parıltı! %s
 UI_TIP_SOUND_ON,Ses açık (M)
 UI_TIP_SOUND_OFF,Ses kapalı (M)
+STORY_LETTER_NORA_DEAR,"Sevgili anne,"
+STORY_LETTER_NORA_1,Bu sabah burada kar yağdı. Mia botlarını ters giydi ve kavanozların ne zaman geleceğini sordu.
+STORY_LETTER_NORA_2,"Leo, ormanın dedem için şimdiye yeni bir ağaç büyütmüş olması lazım diyor."
+STORY_LETTER_NORA_3,Babamdan beri bahçe kapısının kapalı olduğunu biliyorum. Rafların boş olduğunu da.
+STORY_LETTER_NORA_4,"Ama o rafların dolu olmasını isterdi, ben de."
+STORY_LETTER_NORA_5,Bize biraz sonbahar gönder. Başlamak için bir kavanoz yeter.
+STORY_LETTER_NORA_SIGN,"Sevgiyle, Nora"
+TUT_D1_MAIL,Posta kutusuna bak
+TODO_HINT_D1_MAIL,"Posta kutusunda bir şey var, canım. Kim yazmış bakalım."

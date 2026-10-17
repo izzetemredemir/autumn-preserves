@@ -383,6 +383,22 @@
 	"letters": {
 		"inbox": [
 			{
+				"day": 1,
+				"from": "nora",
+				"id": 0,
+				"kind": "story",
+				"lines": [
+					"STORY_LETTER_NORA_DEAR",
+					"STORY_LETTER_NORA_1",
+					"STORY_LETTER_NORA_2",
+					"STORY_LETTER_NORA_3",
+					"STORY_LETTER_NORA_4",
+					"STORY_LETTER_NORA_5",
+					"STORY_LETTER_NORA_SIGN"
+				],
+				"read": true
+			},
+			{
 				"day": 7,
 				"done": true,
 				"from": "leo",

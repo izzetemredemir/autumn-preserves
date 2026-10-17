@@ -216,8 +216,8 @@ TITLE_SET_SHOW_SEED,Show seed
 TITLE_SET_TUTORIAL,Granny's To-Do
 TITLE_ON,On
 TITLE_OFF,Off
-TITLE_PREMISE_1,"In the valley of Everfall, autumn never ends and the forest grows anew every morning."
-TITLE_PREMISE_2,Granny Tonty puts that autumn in jars for everyone who lives through winter.
+TITLE_PREMISE_1,"In the valley of Everfall, autumn never ends. Every morning the forest grows anew."
+TITLE_PREMISE_2,"This is Granny Tonty's first autumn without him. Beyond the hills, winter has already come."
 TITLE_PREMISE_HINT,Click or tap to continue
 TUT_TITLE,Granny's To-Do
 TUT_D1_SHAKE,Shake the apple tree
@@ -723,10 +723,10 @@ GARDEN_BENCH_2,Walter built this bench.\nIt still fits two.
 GARDEN_BENCH_3,Sit. Breathe. Listen.\nThe bees are humming.
 UI_NIGHT_HONEY,The bees left honey for you.
 PREMISE_1,"In the valley of Everfall, autumn never ends."
-PREMISE_2,Every morning the forest beyond Granny Tonty's garden grows anew.
-PREMISE_3,"She puts that autumn in jars,"
-PREMISE_4,for everyone who must live through the winter beyond the hills.
-PREMISE_5,A new morning. The garden gate is open.
+PREMISE_2,Every morning the forest grows anew. Teo used to say it never gives the same day twice.
+PREMISE_3,This is Granny Tonty's first autumn without him.
+PREMISE_4,"Beyond the hills, winter has already come."
+PREMISE_5,A new morning. Something is in the mailbox.
 PREMISE_SKIP,Click or press a key to skip
 WORLD_GROW_FOREST,"Today's forest, grown from seed %d"
 WORLD_GROW_VINEYARD,"Today's vineyard, grown from seed %d"
@@ -900,3 +900,12 @@ WILD_SURPRISE_FOUND,Tucked in the bush: %s
 WILD_SURPRISE_SPARKLE,A lucky sparkle! %s
 UI_TIP_SOUND_ON,Sound on (M)
 UI_TIP_SOUND_OFF,Sound off (M)
+STORY_LETTER_NORA_DEAR,"Dear Mum,"
+STORY_LETTER_NORA_1,It snowed here this morning. Mia put her boots on the wrong feet and asked when your jars would come.
+STORY_LETTER_NORA_2,Leo says the forest must have grown a new tree for Grandpa by now.
+STORY_LETTER_NORA_3,I know the gate has been shut since Dad. I know the shelves are empty.
+STORY_LETTER_NORA_4,"But he would want them full, and so would I."
+STORY_LETTER_NORA_5,Send us a little autumn. One jar is enough to start.
+STORY_LETTER_NORA_SIGN,"Love, Nora"
+TUT_D1_MAIL,Check the mailbox
+TODO_HINT_D1_MAIL,"Something is in the mailbox, dear. Let's see who wrote."

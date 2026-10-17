@@ -165,6 +165,11 @@ func _render_reader() -> void:
 	if letter.is_empty():
 		_paper(tr("LET_EMPTY"))
 		return
+	if Letters.is_story(letter):
+		_card.visible = false  # a letter from Nora: no child card, no love, no request, no Pack button
+		for key in letter.get("lines", []):
+			_paper(tr(String(key)))
+		return
 	var kid := String(letter.from)
 	_portrait.kid = kid
 	_kid_name.text = Letters.kid_name(kid)
@@ -716,7 +721,7 @@ func _envelope(letter: Dictionary) -> Texture2D:
 	if reply:
 		for p in [Vector2i(4, 3), Vector2i(6, 3), Vector2i(4, 4), Vector2i(5, 4), Vector2i(6, 4), Vector2i(5, 5)]:
 			img.set_pixel(p.x, p.y, Color("c94d2e"))
-	elif not bool(letter.get("done", false)):
+	elif String(letter.kind) == "request" and not bool(letter.get("done", false)):
 		img.fill_rect(Rect2i(4, 4, 3, 2), RED)
 	return ImageTexture.create_from_image(img)
 

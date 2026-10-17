@@ -187,7 +187,7 @@ func test_day_lists_are_unchanged_for_other_saves() -> void:
 	var s := State.new_game(7)
 	assert_false(TodoRules.is_festival(s))
 	assert_eq(TodoRules.steps_for(s), TodoRules.DAYS[1])
-	assert_eq(TodoRules.current_step(s, 0), "d1_shake")
+	assert_eq(TodoRules.current_step(s, 0), "d1_mail")
 
 
 func test_thousands() -> void:

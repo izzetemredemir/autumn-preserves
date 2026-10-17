@@ -56,6 +56,7 @@ static func new_game(save_seed: int) -> Dictionary:
 	s.orders.append({"id": 0, "npc": fo.npc, "recipe": "", "axes": fo.axes.duplicate(), "min_stars": int(fo.min_stars),
 		"made_day": 1, "expires_day": 1 + int(rules.orders.expire_days)})
 	Orders.refill(s)
+	Letters.add_story_letter(s)
 	return s
 
 

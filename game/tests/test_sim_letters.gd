@@ -309,3 +309,23 @@ func _reply_for(s: Dictionary, letter_id: int) -> Dictionary:
 		if String(l.kind) == "reply" and int(l.re) == letter_id:
 			return l
 	return {}
+
+
+func test_story_letter_from_nora_opens_every_new_game() -> void:
+	var s := State.new_game(7)
+	var l := Letters.find_letter(s, Letters.STORY_ID)
+	assert_false(l.is_empty())
+	assert_true(Letters.is_story(l))
+	assert_false(bool(l.read))
+	assert_eq(Letters.unread_count(s), 1)
+	assert_eq(Letters.open_requests(s).size(), 0, "no request, no parcel")
+	assert_eq(int(s.letters.love.leo) + int(s.letters.love.mia), 0, "no love")
+	assert_eq(int(s.letters.next_id), 1, "request ids still start at 1")
+	assert_eq(int(s.letters.next_day), Letters.FIRST_DAY, "first request day unchanged")
+	assert_eq(Letters.pack(s, Letters.STORY_ID, []).get("ok", false), false, "a story letter takes no parcel")
+	Letters.add_story_letter(s)
+	assert_eq(s.letters.inbox.size(), 1, "added once")
+	Letters.mark_read(s, Letters.STORY_ID)
+	assert_eq(Letters.unread_count(s), 0)
+	for key in l.lines:
+		assert_ne(tr(String(key)), String(key), "string exists: " + String(key))

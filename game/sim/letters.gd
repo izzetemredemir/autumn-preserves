@@ -8,6 +8,8 @@ extends RefCounted
 ##          request: "request": [{"recipe": recipe id or "", "taste": axis or ""}], "done": bool
 ##          reply:   "re": request letter id, "care": bool, "hearts": int, "unlocked": [recipe ids], "care_note": key
 ## parcel  {"letter", "to", "day", "reply_day", "keys": [product keys], "care", "hearts", "unlocked", "replied"}
+## story letter (STORY-01): {"id": STORY_ID (0, no clash with next_id), "kind": "story", "from": "nora", "day": 1,
+##   "lines": [i18n keys], "read": bool}. No request, no parcel, no love; added once by add_story_letter().
 ## Kids come from Data.npcs().grandkids ({"likes": [2 axes], "dislikes_group": ingredient group}).
 ## A parcel is a 3x2 box of ArrangeBoard entries ({"item","x","y","rot"}); straw is the item {"kind": "straw"}.
 
@@ -25,6 +27,9 @@ const FAMILY_RECIPES := {
 	"mia": ["grannys_quince_butter", "blackberry_honey_jam", "crabapple_jelly"],
 	"leo": ["pepper_relish", "chili_pickles", "salted_porcini"],
 }
+const STORY_ID := 0
+const STORY_LINES := ["STORY_LETTER_NORA_DEAR", "STORY_LETTER_NORA_1", "STORY_LETTER_NORA_2", "STORY_LETTER_NORA_3",
+	"STORY_LETTER_NORA_4", "STORY_LETTER_NORA_5", "STORY_LETTER_NORA_SIGN"]
 const BOX_COLS := 3
 const BOX_ROWS := 2
 ## Note keys LET_NOTE_<KID>_1..NOTE_COUNT, replies LET_REPLY_<KID>_1..REPLY_COUNT, care line LET_REPLY_CARE_<KID>.
@@ -59,6 +64,19 @@ static func ensure(state: Dictionary) -> Dictionary:
 	if not l.has("last_from"):
 		l["last_from"] = ""
 	return l
+
+
+## Nora's day-1 letter into the mailbox (new games only; no RNG, no love, nothing else changes). Once.
+static func add_story_letter(state: Dictionary, read := false) -> void:
+	var l := ensure(state)
+	if not find_letter(state, STORY_ID).is_empty():
+		return
+	l.inbox.push_front({"id": STORY_ID, "kind": "story", "from": "nora", "day": 1,
+		"lines": STORY_LINES.duplicate(), "read": read})
+
+
+static func is_story(letter: Dictionary) -> bool:
+	return String(letter.get("kind", "")) == "story"
 
 
 ## Sorted grandchild ids.

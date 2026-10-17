@@ -5,7 +5,8 @@ extends "res://tests/_runner/test_case.gd"
 func test_todo_day1_steps_tick_from_state() -> void:
 	var s := State.new_game(7)
 	assert_eq(TodoRules.evaluate(s, 0), 0, "fresh game: nothing done")
-	assert_eq(TodoRules.current_step(s, 0), "d1_shake")
+	assert_eq(TodoRules.current_step(s, 0), "d1_mail")
+	Letters.mark_read(s, Letters.STORY_ID)
 	for t in s.garden.trees:
 		if t.type == "apple":
 			t.fruit = false
@@ -143,3 +144,19 @@ func test_dev_give_items() -> void:
 		assert_has(types, t)
 	assert_false(types.has("grape"), "P1 ingredients stay out")
 	assert_eq(DevTools.load_demo("res://dev/no_such_file.json"), {})
+
+
+func test_todo_mailbox_step_first_and_old_saves_skip_it() -> void:
+	var s := State.new_game(7)
+	assert_eq(TodoRules.steps_for(s)[0], "d1_mail")
+	var bits := TodoRules.evaluate(s, 0)
+	assert_false(TodoRules.is_done(bits, "d1_mail"))
+	Letters.mark_read(s, Letters.STORY_ID)
+	bits = TodoRules.evaluate(s, bits)
+	assert_true(TodoRules.is_done(bits, "d1_mail"))
+	assert_eq(TodoRules.current_step(s, bits), "d1_shake")
+	s.letters.inbox.clear()  # a save from before Nora's letter
+	assert_false(TodoRules.steps_for(s).has("d1_mail"))
+	assert_eq(TodoRules.current_step(s, 0), "d1_shake")
+	s.erase("letters")
+	assert_eq(TodoRules.current_step(s, 0), "d1_shake")

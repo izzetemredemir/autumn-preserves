@@ -8,19 +8,19 @@ extends RefCounted
 ## different system, ticked by the same bits machinery (bits 16-21).
 
 const DAYS := {
-	1: ["d1_shake", "d1_jam", "d1_pantry", "d1_order", "d1_bed"],
+	1: ["d1_mail", "d1_shake", "d1_jam", "d1_pantry", "d1_order", "d1_bed"],
 	2: ["d2_forest", "d2_mushroom", "d2_brine", "d2_sell"],
 }
 const FESTIVAL := ["f_shake", "f_jam", "f_juice", "f_pantry", "f_market", "f_letter"]
 const BITS := {
-	"d1_shake": 0, "d1_jam": 1, "d1_pantry": 2, "d1_order": 3, "d1_bed": 4,
+	"d1_shake": 0, "d1_mail": 5, "d1_jam": 1, "d1_pantry": 2, "d1_order": 3, "d1_bed": 4,
 	"d2_forest": 8, "d2_mushroom": 9, "d2_brine": 10, "d2_sell": 11,
 	"f_shake": 16, "f_jam": 17, "f_juice": 18, "f_pantry": 19, "f_market": 20, "f_letter": 21,
 }
 const CLOSED_BIT := 15
 ## Scene each step happens in, so scenes can make the step's object glow (spec §8.5).
 const SCENE_OF := {
-	"d1_shake": "garden", "d1_jam": "kitchen", "d1_pantry": "pantry", "d1_order": "town", "d1_bed": "kitchen",
+	"d1_mail": "garden", "d1_shake": "garden", "d1_jam": "kitchen", "d1_pantry": "pantry", "d1_order": "town", "d1_bed": "kitchen",
 	"d2_forest": "wild", "d2_mushroom": "wild", "d2_brine": "kitchen", "d2_sell": "town",
 	"f_shake": "wild", "f_jam": "kitchen", "f_juice": "kitchen", "f_pantry": "pantry", "f_market": "town",
 	"f_letter": "garden",
@@ -33,7 +33,17 @@ static func steps_for_day(day: int) -> Array:
 
 ## The list the note shows for this save: the festival checklist on festival day, else today's day list.
 static func steps_for(state: Dictionary) -> Array:
-	return FESTIVAL if festival_today(state) else steps_for_day(int(state.get("day", 1)))
+	if festival_today(state):
+		return FESTIVAL
+	var steps := steps_for_day(int(state.get("day", 1)))
+	if steps.has("d1_mail") and not has_story_letter(state):
+		steps = steps.duplicate()
+		steps.erase("d1_mail")  # saves from before Nora's letter: no new step
+	return steps
+
+
+static func has_story_letter(state: Dictionary) -> bool:
+	return not Letters.find_letter(state, Letters.STORY_ID).is_empty()
 
 
 ## The festival's facts (flags.festival), {} for every other save.
@@ -82,7 +92,7 @@ static func close(bits: int) -> int:
 static func evaluate(state: Dictionary, bits: int, ctx: Dictionary = {}) -> int:
 	var out := bits
 	var day := int(state.get("day", 1))
-	var steps := steps_for_day(day) + steps_for_day(day - 1)
+	var steps := steps_for(state) + steps_for_day(day - 1)
 	if festival_today(state):
 		steps = FESTIVAL
 	for step in steps:
@@ -93,6 +103,9 @@ static func evaluate(state: Dictionary, bits: int, ctx: Dictionary = {}) -> int:
 
 static func step_done(state: Dictionary, step: String, ctx: Dictionary = {}) -> bool:
 	match step:
+		"d1_mail":
+			var l := Letters.find_letter(state, Letters.STORY_ID)
+			return l.is_empty() or bool(l.get("read", false))
 		"d1_shake":
 			for t in state.get("garden", {}).get("trees", []):
 				if t.get("type", "") == "apple" and not bool(t.get("fruit", true)):
