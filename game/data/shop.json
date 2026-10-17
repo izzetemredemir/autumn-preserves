@@ -19,9 +19,9 @@
   },
   "upgrades": {
     "pantry_row": {"prices": [250, 450, 800], "cells": 12, "priority": 0},
-    "bag":        {"prices": [200, 500], "capacity": [40, 50], "priority": 1},
+    "bag":        {"prices": [200, 800], "capacity": [40, 50], "priority": 1},
     "press":      {"price": 350, "priority": 1},
-    "big_pot":    {"price": 600, "priority": 1},
+    "big_pot":    {"price": 900, "priority": 1},
     "beds":       {"price": 150, "beds": 6, "priority": 1},
     "boots":      {"price": 400, "unlocks_biome": "creek", "priority": 1},
     "cellar":     {"price": 1000, "cells": 12, "zone": "cool", "priority": 2}

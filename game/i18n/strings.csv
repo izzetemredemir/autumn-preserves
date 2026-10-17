@@ -651,3 +651,5 @@ UI_FAMILY_DRAWING_HINT,A drawing from %s. Click to look closer.
 UI_FAMILY_DRAWING_FROM,Drawn by %s for Granny
 UI_FAMILY_DRAWING_CLOSE,Click to hang it back up.
 TITLE_SET_LANGUAGE,Language
+UI_NIGHT_STALLED_ONE,A jar is waiting for its own shelf to mature.
+UI_NIGHT_STALLED,%d jars are waiting for their own shelf to mature.

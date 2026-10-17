@@ -14,7 +14,7 @@ func test_bag_capacity_per_level() -> void:
 	assert_true(Economy.buy(s, "bag").ok, "bag I")
 	assert_eq(Forage.bag_capacity(s), 40)
 	assert_eq(Garden.bag_free(s), 40)
-	assert_eq(Economy.price(s, "bag"), 500, "bag II costs 500")
+	assert_eq(Economy.price(s, "bag"), 800, "bag II costs 800")
 	assert_true(Economy.buy(s, "bag").ok, "bag II")
 	assert_eq(Forage.bag_capacity(s), 50)
 	assert_eq(Economy.price(s, "bag"), -1, "no bag III")

@@ -66,6 +66,17 @@ static func tick_waiting(state: Dictionary, waits: Callable) -> Array:
 			item.wait_left = int(item.wait_left) - 1
 			if int(item.wait_left) == 0:
 				events.append({"type": "matured", "key": item.key})
+	# jars that did not count down (wrong shelf, or still in the inbox) get one gentle hint on the morning card
+	var stalled := 0
+	for entry in state.pantry.items:
+		var it: Dictionary = entry.item
+		if it.kind == "product" and int(it.wait_left) > 0 and not bool(waits.call(entry)):
+			stalled += 1
+	for it in state.get("inbox", []):
+		if String(it.get("kind", "")) == "product" and int(it.get("wait_left", 0)) > 0:
+			stalled += 1
+	if stalled > 0:
+		events.append({"type": "stalled", "count": stalled})
 	return events
 
 

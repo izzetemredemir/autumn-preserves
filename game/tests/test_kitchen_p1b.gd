@@ -125,11 +125,11 @@ func test_batch_cook_uses_the_best_quality_ever_cooked() -> void:
 func test_big_pot_is_on_sale_and_doubles_only_stove_recipes() -> void:
 	var s := _state()
 	s.coins = 1000
-	assert_eq(Economy.price(s, "big_pot"), 600)
+	assert_eq(Economy.price(s, "big_pot"), 900)
 	assert_eq(Kitchen.max_mult(s, "jam"), 1)
 	assert_eq(Kitchen.check_n(s, "jam", _apple(s), "", "", 2).reason, Kitchen.R_WRONG, "no x2 without the pot")
 	assert_true(Economy.buy(s, "big_pot").ok)
-	assert_eq(int(s.coins), 400)
+	assert_eq(int(s.coins), 100)
 	assert_true(Economy.unlocked(s, "big_pot"))
 	assert_eq(Economy.price(s, "big_pot"), -1, "bought once")
 	for rid in ["jam", "fruit_butter", "chutney"]:

@@ -9,7 +9,7 @@ const MAX_NOTABLE := 6
 ## onto two rows, so the notable lines are capped by rows, not by count (QA-WEEK: the day-8 card was 283 px).
 const MAX_ROWS := 10
 const ROW_CHARS := 32  ## about the card's 236 px at 18 px text, with room for word wrap
-const NOTABLE := ["matured", "grown", "tree_refilled", "order_new", "spoiled", "fertilizer"]
+const NOTABLE := ["matured", "stalled", "grown", "tree_refilled", "order_new", "spoiled", "fertilizer"]
 const MANY := ["UI_NIGHT_GROWN", "UI_NIGHT_MATURED"]
 
 
@@ -66,6 +66,9 @@ static func line(e: Dictionary, state: Dictionary) -> Dictionary:
 	match String(e.get("type", "")):
 		"matured":
 			return _l("UI_NIGHT_MATURED", [_product_name(String(e.get("key", "")), varieties)])
+		"stalled":
+			var n := int(e.get("count", 0))
+			return _l("UI_NIGHT_STALLED_ONE" if n == 1 else "UI_NIGHT_STALLED", [] if n == 1 else [n])
 		"spoiled":
 			return _l("UI_NIGHT_SPOILED", [item_name(e.get("item", {}), varieties)])
 		"grown":
