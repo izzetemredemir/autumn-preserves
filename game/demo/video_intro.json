@@ -1,0 +1,6 @@
+[
+	{"t": 0.0, "note": "VIDEO-01 intro clip (record.sh clip video_intro): the living title, then the premise intro without its captions"},
+	{"t": 0.6, "do": "intro_play", "args": [false], "note": "valley, cottage, a jar on the shelf, snow beyond the hills, Granny's garden (about 20 s)"},
+	{"dt": 20.6, "do": "intro_end", "note": "the premise goes: the title painting without its menu, name and slogan (the closing card)"},
+	{"dt": 7.0, "quit": true, "note": "28 s in all"}
+]

@@ -1,0 +1,7 @@
+[
+	{"t": 0.0, "scene": "res://scenes/wild/wild.tscn", "do": "festival_load", "args": ["", {"biome": "forest", "grow": true}, true], "note": "VIDEO-01 forest clip: the festival forest grows from its seed in the first frame (WorldGrow)"},
+	{"t": 5.6, "do": "wild_shake_rare", "note": "the overlay has dithered into the map; Granny walks up to the rare tree and shakes it"},
+	{"dt": 6.4, "do": "wild_pick_near", "args": ["ground"], "note": "a walk to the nearest pick, it flies into the bag"},
+	{"dt": 5.0, "do": "wild_pick_near", "args": ["bush"]},
+	{"dt": 5.0, "quit": true, "note": "22 s in all"}
+]

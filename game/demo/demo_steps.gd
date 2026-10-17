@@ -585,3 +585,45 @@ func garden_spot(kind: String) -> void:
 		push_warning("demo: no garden spot %s" % kind)
 		return
 	g.tap_world(s.hit_rect().get_center())
+
+
+# ---------------------------------------------------------------- video (VIDEO-01)
+
+## VIDEO-01 · The premise intro (FIRST-60: valley, cottage, jar, snow beyond the hills, garden) over the title, as New
+## Game shows it, without starting a game: no new save, and the intro is driven here (its own _process is off), so it
+## never reaches _leave() and the player's settings.cfg keeps its intro_seen. `captions` false hides its typed lines
+## and the skip hint (the jury video draws its own Turkish captions). Plays to the last beat and stays there.
+func intro_play(captions: bool = false) -> void:
+	var title: Node = null
+	for i in 180:
+		title = _scene()
+		if title != null and title.get_node_or_null("%Menu") != null:
+			break
+		await get_tree().process_frame
+	if title == null or title.get_node_or_null("%Menu") == null:
+		push_warning("demo: no title for the intro")
+		return
+	(title.get_node("%Menu") as CanvasItem).visible = false
+	var premise: Control = (load("res://ui/premise/premise.tscn") as PackedScene).instantiate()
+	premise.name = "VideoPremise"
+	title.add_child(premise)
+	premise.set_process(false)
+	premise.set_process_unhandled_input(false)
+	premise.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var total: float = load("res://ui/premise/intro_beats.gd").total()
+	var t := 0.0
+	while t <= total and is_instance_valid(premise):
+		premise.seek(t)
+		if not captions:
+			(premise.get("_caption_box") as CanvasItem).visible = false
+			(premise.get("_hint") as CanvasItem).visible = false
+		await get_tree().process_frame
+		t += get_process_delta_time() / maxf(Engine.time_scale, 0.001)
+
+
+## VIDEO-01 · Ends intro_play: the premise goes, the title painting stays without its menu (name, slogan, the valley).
+func intro_end() -> void:
+	var title := _scene()
+	var premise: Node = title.get_node_or_null("VideoPremise") if title != null else null
+	if premise != null:
+		premise.queue_free()
