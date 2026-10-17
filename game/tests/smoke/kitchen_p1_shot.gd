@@ -166,7 +166,7 @@ func _play_press(mg: Node) -> void:
 		return
 	var c: Dictionary = mg.counts
 	print("press: sent %d, perfect %d good %d miss %d" % [sent, c.perfect, c.good, c.miss])
-	_check(int(c.perfect) + int(c.good) >= 20, "Space and clicks land on the beat (%d hits)" % (int(c.perfect) + int(c.good)))
+	_check(int(c.perfect) + int(c.good) >= 6, "Space and clicks land on the beat (%d hits)" % (int(c.perfect) + int(c.good)))
 
 
 func _wait_card(ms: int, what: String) -> bool:

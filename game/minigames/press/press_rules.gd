@@ -2,10 +2,10 @@ class_name PressRules
 extends RefCounted
 ## Pure scoring helpers for the press mini-game (unit-tested in tests/test_mg_press.gd).
 
-const PERFECT_MS := 80.0
-const GOOD_MS := 160.0
-const STAR3_PERFECT := 0.70
-const STAR2_HIT := 0.60
+const PERFECT_MS := 100.0  ## wide, forgiving windows: the press should feel easy
+const GOOD_MS := 200.0
+const STAR3_PERFECT := 0.60
+const STAR2_HIT := 0.50
 
 
 ## Judge a hit by its offset (ms, signed) from the beat: "perfect", "good" or "miss".
@@ -18,7 +18,7 @@ static func judge(offset_ms: float) -> String:
 	return "miss"
 
 
-## Stars from {"perfect", "good", "miss"} counts: Perfect >= 70% -> 3, Perfect+Good >= 60% -> 2, else 1.
+## Stars from {"perfect", "good", "miss"} counts: Perfect >= 60% -> 3, Perfect+Good >= 50% -> 2, else 1.
 static func stars_for(counts: Dictionary) -> int:
 	var p := int(counts.get("perfect", 0))
 	var g := int(counts.get("good", 0))
@@ -58,7 +58,7 @@ static func fill_tones(fill: Variant, fallback: Color) -> Array[Color]:
 static func juice_for(grade: String) -> float:
 	match grade:
 		"perfect":
-			return 1.0 / 20.0
+			return 1.0 / 7.0  # 8 beats: the bottle fills even with one miss
 		"good":
-			return 1.0 / 32.0
+			return 1.0 / 11.0
 	return 0.0
