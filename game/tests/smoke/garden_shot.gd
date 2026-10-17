@@ -27,6 +27,7 @@ var _suffix := ""
 
 
 func _initialize() -> void:
+	GameSettings.apply_language("tr" if "--locale=tr" in OS.get_cmdline_user_args() else "en")  # UI-COMPACT: shots per language
 	_gs = root.get_node("GameState")
 	_router = root.get_node("Router")
 	if "--locale=tr" in OS.get_cmdline_user_args():
@@ -192,11 +193,11 @@ func _run() -> void:
 	quit(0)
 
 
-## Bubbles (paper panels) showing in the garden's fx layer.
+## Speech bubbles (UI-COMPACT: SpeechBubble) showing in the garden's fx layer.
 func _bubbles() -> int:
 	var n := 0
 	for c in _scene.get("fx").get_children():
-		n += 1 if c is PanelContainer else 0
+		n += 1 if c is SpeechBubble and not c.is_queued_for_deletion() else 0
 	return n
 
 

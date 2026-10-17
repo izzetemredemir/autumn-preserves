@@ -4,7 +4,7 @@ extends Control
 ## seed and subject), as a small copy in a wooden frame pinned on the stone wall left of the window (under the HUD
 ## line): the newest at half size on top, the two before it at a third, side by side below.
 ## Each frame is a button: hovering names the child (`hovered`), a click or Enter asks the kitchen to open it big
-## (`open_requested`, Viewer: the 48x48 drawing at 3x on paper).
+## (`open_requested`, Viewer: the 48x48 drawing at 2x on paper, UI-COMPACT).
 ## show_letters(state) rebuilds the frames only when the set of letters changed.
 
 signal hovered(text: String)
@@ -168,27 +168,17 @@ class Frame extends Button:
 		draw_rect(Rect2(cx, -1, 1, 1), Art.RED_HI)
 
 
-## The drawing big: 3x on paper in the middle of the screen, who drew it and how to close. Any click, Esc or
-## interact closes it (`closed`).
+## The drawing big: 2x on paper in the middle of the screen (UI-COMPACT: a small card on the light dim, lines in
+## the body font), who drew it and how to close. Any click, Esc or interact closes it (`closed`).
 class Viewer extends Control:
 	signal closed
 
-	const ZOOM := 3
+	const ZOOM := 2
 
 	func setup(img: Image, kid_name: String) -> void:
 		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		mouse_filter = Control.MOUSE_FILTER_STOP
-		var dim := Image.create(2, 2, false, Image.FORMAT_RGBA8)  # 50% dither of ink, no partial alpha
-		dim.fill(Color(0, 0, 0, 0))
-		dim.set_pixel(0, 0, Art.INK)
-		dim.set_pixel(1, 1, Art.INK)
-		var shade := TextureRect.new()
-		shade.texture = ImageTexture.create_from_image(dim)
-		shade.stretch_mode = TextureRect.STRETCH_TILE
-		shade.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(shade)
+		add_child(DitherCover.dim())  # sparse ink dither, no partial alpha
 		var center := CenterContainer.new()
 		center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		center.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -212,7 +202,7 @@ class Viewer extends Control:
 		box.add_child(pic)
 		for t in [tr("UI_FAMILY_DRAWING_FROM") % kid_name, tr("UI_FAMILY_DRAWING_CLOSE")]:
 			var l := Label.new()
-			l.theme_type_variation = &"PaperLabel"
+			l.theme_type_variation = &"BodyPaper"
 			l.text = t
 			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			l.mouse_filter = Control.MOUSE_FILTER_IGNORE

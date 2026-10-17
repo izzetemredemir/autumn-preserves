@@ -261,11 +261,12 @@ func _line(text: String) -> HBoxContainer:
 	bullet.custom_minimum_size = Vector2(4, 4)
 	var dot := ColorRect.new()
 	dot.color = C_SOFT
-	dot.position = Vector2(0, 7)
+	dot.position = Vector2(0, 5)  # beside the body font's lower-case letters
 	dot.size = Vector2(4, 4)
 	bullet.add_child(dot)
 	row.add_child(bullet)
 	var l := _label(text, C_TEXT)
+	l.theme_type_variation = &"BodyPaper"  # UI-COMPACT: reading text in the body font
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.custom_minimum_size = Vector2(TEXT_W - 10, 0)
 	row.add_child(l)

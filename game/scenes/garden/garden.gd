@@ -730,33 +730,10 @@ func _hive_line() -> String:
 	return tr("GARDEN_HIVES_TOMORROW") if n == 1 else tr("GARDEN_HIVES_DAYS") % n
 
 
-## A paper bubble over Granny's head with her line (like Fx.bubble), kept on screen: where it would hide under the
-## HUD or cover `keep_clear` (the thing she talks about) it goes under her feet instead.
+## Granny's line in a speech bubble over her head (Fx.bubble, UI-COMPACT): beside her where it would go under the
+## HUD, leave the screen or cover `keep_clear` (the thing she talks about). One bubble for her at a time.
 func _say(text: String, keep_clear := Rect2(), seconds := 2.6) -> void:
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"PaperPanel"
-	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.z_index = 50
-	var label := Label.new()
-	label.text = text
-	label.add_theme_color_override("font_color", Color("50361e"))
-	panel.add_child(label)
-	fx.add_child(panel)
-	var size := panel.get_combined_minimum_size()
-	panel.size = size
-	var view := get_canvas_transform().affine_inverse() * get_viewport_rect()
-	var x := clampf(roundf(granny.position.x - size.x * 0.5), view.position.x + 2, view.end.x - 2 - size.x)
-	var y := granny.position.y - 34 - size.y
-	if y < view.position.y + HUD_H or (keep_clear.has_area() and keep_clear.intersects(Rect2(Vector2(x, y), size))):
-		y = minf(granny.position.y + 6, view.end.y - 2 - size.y)
-	panel.position = Vector2(x, roundf(y))
-	panel.pivot_offset = Vector2(floori(size.x * 0.5), size.y)
-	panel.scale = Vector2(0.6, 0.6)
-	var t := panel.create_tween()
-	t.tween_property(panel, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	t.tween_property(panel, "position:y", panel.position.y - 4, 0.25)
-	t.tween_interval(seconds)
-	t.tween_callback(panel.queue_free)
+	Fx.bubble(fx, granny.position + Vector2(0, -31), text, seconds, "granny", keep_clear)
 
 
 ## A prop's blocked cells as one rectangle in garden px (the hen house's footprint), or an empty rect.

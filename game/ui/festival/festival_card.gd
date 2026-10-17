@@ -3,6 +3,8 @@ extends Control
 ## FESTIVAL · The Harvest Festival's start card (Mia and Leo came to visit, six jobs today) and end card (what this
 ## Everfall was grown from: seed, tiles, trees, varieties, new recipes, coins), on a dithered dim. Paper card,
 ## pops in. Emits `chosen` with "go" (start), "keep" or "title" (end).
+## UI-COMPACT: the card is sized to its content (text column WIDTH, under 60 % of the screen), its lines use the body
+## font and it sits on the light dim (DitherCover.dim) so the scene stays visible.
 ##   var c := FestivalCard.new(); add_child(c); c.show_start()  /  c.show_end(FestivalFacts.summary(state))
 
 signal chosen(id: String)
@@ -12,8 +14,7 @@ const FRAME := Color("83571e")
 const TEXT := Color("50361e")
 const TITLE := Color("a22512")
 const SOFT := Color("83571e")
-const INK := Color("111010")
-const WIDTH := 300
+const WIDTH := 260  ## text column: card 276 px wide with its frame
 const PORTRAIT := "res://assets/sprites/portraits/portrait_%s.png"
 const KIDS := ["mia", "leo"]
 
@@ -65,17 +66,7 @@ func _build(m: String) -> void:
 	for c in get_children():
 		c.queue_free()
 	_buttons.clear()
-	var di := Image.create(2, 2, false, Image.FORMAT_RGBA8)
-	di.fill(Color(0, 0, 0, 0))
-	di.set_pixel(0, 0, INK)
-	di.set_pixel(1, 1, INK)
-	var dim := TextureRect.new()
-	dim.texture = ImageTexture.create_from_image(di)
-	dim.stretch_mode = TextureRect.STRETCH_TILE
-	dim.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(dim)
+	add_child(DitherCover.dim())
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -102,6 +93,7 @@ func _title(text: String) -> void:
 
 func _text(text: String, color := TEXT) -> void:
 	var l := _label(text, color)
+	l.theme_type_variation = &"BodyPaper"
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.custom_minimum_size = Vector2(WIDTH, 0)
 	_box.add_child(l)

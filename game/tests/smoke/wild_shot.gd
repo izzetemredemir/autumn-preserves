@@ -111,7 +111,7 @@ func _check_burst(scene: Node, tree: Node2D) -> void:
 		if c is ColorRect and (c.size == Vector2(4, 3) or c.size == Vector2(3, 4)):  # FEEL leaves: 4x3 or 3x4 with an ink edge
 			leaves += 1
 			inside += 1 if c.position.y < feet - 24 and c.position.y > feet - 72 else 0
-		elif c is PanelContainer:
+		elif c is SpeechBubble:  # UI-COMPACT
 			bubble_y = minf(bubble_y, c.position.y + c.size.y)
 	_check(leaves > 0 and inside == leaves, "leaf burst starts in the canopy (%d / %d leaves)" % [inside, leaves])
 	_check(bubble_y <= feet - 64, "the +n bubble sits above the tree (bubble bottom %d, feet %d)" % [bubble_y, feet])

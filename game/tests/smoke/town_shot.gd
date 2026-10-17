@@ -6,6 +6,7 @@ extends SceneTree
 
 
 func _initialize() -> void:
+	GameSettings.apply_language("tr" if "--locale=tr" in OS.get_cmdline_user_args() else "en")  # UI-COMPACT: shots per language
 	var scene := (load("res://scenes/town/town.tscn") as PackedScene).instantiate()
 	root.add_child(scene)
 	_run(scene)

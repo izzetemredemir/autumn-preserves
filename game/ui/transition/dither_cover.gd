@@ -5,6 +5,8 @@ extends Control
 
 const LEVELS := 16
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
+const DIM_LEVEL := 4  ## UI-COMPACT: the dim behind a modal card, one ink pixel in four, so the scene stays readable
+const INK := Color("111010")
 
 static var _patterns: Array[ImageTexture] = []
 
@@ -20,6 +22,15 @@ func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+
+## UI-COMPACT · The light dim every modal card sits on: a sparse 25 % ink dither over the whole screen (clicks pass
+## through it; the card's own root decides whether they reach the scene).
+static func dim() -> DitherCover:
+	var d := DitherCover.new()
+	d.color = INK
+	d.level = DIM_LEVEL
+	return d
 
 
 ## White 4x4 tiles, one per level; drawn with `color` as modulate (white * color = exact palette colour).

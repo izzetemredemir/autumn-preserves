@@ -191,7 +191,7 @@ func _build_bar() -> void:
 	_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_bar)
 	_message = Label.new()
-	_message.theme_type_variation = &"PaperLabel"
+	_message.theme_type_variation = &"BodyPaper"  # UI-COMPACT: hints in the body font
 	_message.clip_text = true
 	_bar.add_child(_message)
 

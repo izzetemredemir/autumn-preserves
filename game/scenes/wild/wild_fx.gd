@@ -13,27 +13,11 @@ const FLIGHT_SECONDS := 0.36
 const THUMP_DELAY := 0.27  ## the first fruit lands
 
 
-## A paper bubble with `text` (already translated) centred above `at`; pops in, rises, goes away.
-static func bubble(parent: Node, at: Vector2, text: String, seconds := 1.4) -> void:
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"PaperPanel"
-	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.z_index = 50
-	var label := Label.new()
-	label.text = text
-	label.add_theme_color_override("font_color", Color("50361e"))
-	panel.add_child(label)
-	parent.add_child(panel)
-	var size := panel.get_combined_minimum_size()
-	panel.size = size
-	panel.position = Vector2(roundi(at.x - size.x * 0.5), roundi(at.y - size.y))
-	panel.pivot_offset = Vector2(floori(size.x * 0.5), size.y)
-	panel.scale = Vector2(0.6, 0.6)
-	var t := panel.create_tween()
-	t.tween_property(panel, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	t.tween_property(panel, "position:y", panel.position.y - 4, 0.25)
-	t.tween_interval(seconds)
-	t.tween_callback(panel.queue_free)
+## A speech bubble with `text` (already translated) for the speaker whose head top is `at`: SpeechBubble.pop
+## (UI-COMPACT: body font, at most 168 px and 3 lines, above the speaker or beside them, kept on screen, one per
+## speaker `who`, clear of `avoid`); goes away after `seconds`.
+static func bubble(parent: Node, at: Vector2, text: String, seconds := 1.4, who := "", avoid := Rect2()) -> Control:
+	return SpeechBubble.pop(parent, at, text, seconds, who, avoid)
 
 
 ## The whole tree-shake moment for any walked scene (the wild today; the garden can call it the same way, then drop

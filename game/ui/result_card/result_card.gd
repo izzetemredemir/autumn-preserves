@@ -35,7 +35,7 @@ const FONT_BODY := preload("res://assets/fonts/m6x11plus.ttf")
 const FONT_TITLE := preload("res://assets/fonts/m6x11plus.ttf")
 
 var _built := false
-var _dim: TextureRect
+var _dim: Control
 var _panel: PanelContainer
 var _banner: Label
 var _name: Label
@@ -96,16 +96,8 @@ func _build() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
-	# 50% checker dither instead of a translucent fill: stays on palette.
-	var di := Image.create(2, 2, false, Image.FORMAT_RGBA8)
-	di.fill(Color(0, 0, 0, 0))
-	di.set_pixel(0, 0, INK)
-	di.set_pixel(1, 1, INK)
-	_dim = TextureRect.new()
-	_dim.texture = ImageTexture.create_from_image(di)
-	_dim.stretch_mode = TextureRect.STRETCH_TILE
-	_dim.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# UI-COMPACT: a light 25% ink dither (DitherCover.dim) instead of a translucent fill: on palette, scene visible.
+	_dim = DitherCover.dim()
 	add_child(_dim)
 
 	_panel = PanelContainer.new()

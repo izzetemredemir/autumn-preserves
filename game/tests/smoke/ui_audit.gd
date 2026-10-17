@@ -1,7 +1,8 @@
 extends SceneTree
 ## QA-UI: loads every scene and overlay with the demo save, walks visible Label / RichTextLabel / Button nodes and reports
-## text that overflows its rect, font sizes other than 18/36, text closer than 2 px to the screen edge and overlapping
-## text boxes. Writes docs/qa/ui_audit.md. Exit 1 on any finding (CI runs it with --report=user://ui_audit.md).
+## text that overflows its rect, font sizes other than 18/36 (m6x11plus) or 16 (m5x7, the body font), text closer than
+## 2 px to the screen edge and overlapping text boxes. UI-COMPACT: every speech-bubble line (EN and TR) must fit a
+## bubble (168 px, 3 lines). Writes docs/qa/ui_audit.md. Exit 1 on any finding (CI runs it with --report=user://...).
 ##   godot --headless --path game -s res://tests/smoke/ui_audit.gd
 ## Extra args after `--`: `--report=<path>` to write elsewhere, `--locale=tr` to audit the Turkish texts (L10N-TR;
 ## default `en`, report docs/qa/ui_audit_tr.md). CI runs it once per language.
@@ -9,6 +10,13 @@ extends SceneTree
 const SCREEN := Rect2(0, 0, 480, 270)
 const EDGE := 2.0
 const SIZES := [18, 36]
+const BODY_SIZES := [16]  ## UI-COMPACT: m5x7 at 1x
+const BODY_FONT := "m5x7"
+## UI-COMPACT: string keys said in speech bubbles (market, town square, garden props, cat, grandkids, wild), by prefix.
+const BUBBLE_KEYS := ["MARKET_CHAT_", "MARKET_HELLO_", "MARKET_CALL_", "MARKET_PRICEY", "MARKET_WISH_", "MARKET_LIKE_",
+	"MARKET_OOH_", "MARKET_RARE", "TOWN_CHAT_", "GARDEN_TRUCK_", "GARDEN_HENS_", "GARDEN_SCARECROW_", "GARDEN_BENCH_",
+	"GARDEN_CLOTHESLINE_", "GARDEN_HIVES_", "GARDEN_COMPOST", "GARDEN_BED_", "GARDEN_NO_", "GARDEN_PLANTED", "CAT_PET_",
+	"FESTIVAL_MIA_", "FESTIVAL_LEO_", "WILD_CANT_REACH", "UI_BAG_FULL", "WILD_SURPRISE_"]
 ## Path fragments (scene file or script) whose findings must be zero; others are only listed.
 const OWNED := ["scenes/garden/", "scenes/pantry/", "scenes/title/", "scenes/seed_lab/", "ui/book/", "ui/letters/", "ui/hud/", "ui/result_card/",
 	"scenes/farewell/", "ui/festival/", "ui/pause/", "ui/howto/"]
@@ -74,6 +82,8 @@ func _run() -> void:
 	await _festival_cards()
 	await _festival_kitchen()
 	await _species()
+	await _bubble_lines()
+	await _drawing_viewer()
 	# Overlays on top of a quiet backdrop
 	_fresh()
 	var bg := ColorRect.new()
@@ -338,8 +348,8 @@ func _species() -> void:
 			longest = sp
 	_gs.notify(PackedStringArray(["*"]))
 	var card := SpeciesCard.open(root, String(longest.id))
-	await create_timer(0.5).timeout  # after the pop-in
-	await _audit("species_card", card)
+	await create_timer(0.5).timeout  # after the slide-in
+	await _audit("species_toast", card)
 	card.queue_free()
 	await _frames(2)
 	var b := Book.open()
@@ -350,6 +360,50 @@ func _species() -> void:
 	await _frames(4)
 	await _audit("book_species", b)
 	b.queue_free()
+	await _frames(2)
+
+
+## UI-COMPACT: every bubble line (placeholders filled with long sample values: 999, a long species name) in a
+## speech bubble: at most SpeechBubble.LINES lines and SpeechBubble.MAX_W px wide.
+func _bubble_lines() -> void:
+	var keys: Array = []
+	var f := FileAccess.open("res://i18n/strings.csv", FileAccess.READ)
+	while f != null and not f.eof_reached():
+		var row := f.get_csv_line()
+		for pre: String in BUBBLE_KEYS:
+			if row.size() > 1 and row[0].begins_with(pre):
+				keys.append(row[0])
+				break
+	var holder := Control.new()
+	root.add_child(holder)
+	var num := RegEx.create_from_string("%[-+0-9.]*d")
+	var word := RegEx.create_from_string("%s")
+	for key: String in keys:
+		var b := SpeechBubble.new()
+		holder.add_child(b)
+		var text := word.sub(num.sub(tr(key), "999", true), "Wild Honeycrisp Plum", true)  # a long species name
+		b.say(text)
+		if b.line_count() > SpeechBubble.LINES or b.size.x > SpeechBubble.MAX_W:
+			_add("bubbles", "bubble", b, "%s: %d lines, %d px wide: \"%s\"" % [key, b.line_count(), b.size.x, _clip(text)])
+		_texts += 1
+		b.free()
+	_states += 1
+	holder.queue_free()
+	await _frames(2)
+
+
+## UI-COMPACT: a grandchild's drawing opened big from the kitchen wall (the small modal card on the light dim).
+func _drawing_viewer() -> void:
+	_fresh()
+	var img := Image.create(48, 48, false, Image.FORMAT_RGBA8)
+	img.fill(Color("f2d9c5"))
+	var wall = load("res://scenes/kitchen/wall_drawings.gd")
+	var v: Control = wall.Viewer.new()
+	root.add_child(v)
+	v.call("setup", img, "Leo")
+	await _frames(4)
+	await _audit("kitchen/drawing", v)
+	v.queue_free()
 	await _frames(2)
 
 
@@ -514,7 +568,7 @@ func _check(state: String, it: Dictionary) -> void:
 	var c: Control = it.node
 	_texts += 1
 	var fs := _font_size(c)
-	if not SIZES.has(fs):
+	if not (BODY_SIZES if _is_body(c) else SIZES).has(fs):
 		_add(state, "font-size", c, "%d px" % fs)
 	var g := c.get_global_rect()
 	var need := _needed(c, it.text)
@@ -534,6 +588,12 @@ func _check(state: String, it: Dictionary) -> void:
 			or r.end.x > SCREEN.end.x - EDGE or r.end.y > SCREEN.end.y - EDGE:
 		if _visible_rect(c).intersects(SCREEN):
 			_add(state, "edge", c, "text rect %s \"%s\"" % [_fmt(r), _clip(it.text)])
+
+
+## True when `c` draws with the body font (m5x7).
+func _is_body(c: Control) -> bool:
+	var font := c.get_theme_font("normal_font" if c is RichTextLabel else "font")
+	return font != null and font.resource_path.get_file().begins_with(BODY_FONT)
 
 
 func _in_scroll(c: Control) -> bool:
@@ -615,7 +675,7 @@ func _write(ms: int) -> void:
 	out.append("")
 	out.append("Generated by `godot --headless --path game -s res://tests/smoke/ui_audit.gd -- --locale=%s` (demo save, %d states, %d text nodes, %.1f s)." % [_locale, _states, _texts, ms / 1000.0])
 	out.append("")
-	out.append("Checks: text larger than its rect (overflow), font size not 18/36, text rect closer than %d px to the 480x270 screen edge, overlapping text boxes on the same layer." % int(EDGE))
+	out.append("Checks: text larger than its rect (overflow), font size not 18/36 (m6x11plus) or 16 (m5x7 body font), text rect closer than %d px to the 480x270 screen edge, overlapping text boxes on the same layer, speech-bubble lines over 3 lines or 168 px." % int(EDGE))
 	out.append("")
 	out.append("- Owned folders (garden, pantry, title, seed_lab, book, letters, hud, result_card): **%d findings**." % owned.size())
 	out.append("- Other folders (kitchen, town, wild, market, shared; listed only, not fixed here): **%d findings**." % other.size())

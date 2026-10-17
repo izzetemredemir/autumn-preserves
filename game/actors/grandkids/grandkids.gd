@@ -132,7 +132,7 @@ func _say(k: Grandkid) -> void:
 	_last_line[k] = n
 	var fx: Node = garden.get("fx")
 	if fx != null:
-		load(FX).bubble(fx, k.top(), _line(k.kid, n), 1.8)
+		load(FX).bubble(fx, k.top(), _line(k.kid, n), 1.8, k.kid)  # one bubble per child (UI-COMPACT)
 
 
 func _line(kid: String, n: int) -> String:

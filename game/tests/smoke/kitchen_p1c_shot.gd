@@ -15,6 +15,7 @@ var _fail := 0
 
 
 func _initialize() -> void:
+	GameSettings.apply_language("tr" if "--locale=tr" in OS.get_cmdline_user_args() else "en")  # UI-COMPACT: shots per language
 	_run()
 
 

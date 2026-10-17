@@ -6,6 +6,7 @@ extends Control
 const ICONS_JSON := "res://assets/sprites/icons/icons.json"
 const ICONS_PNG := "res://assets/sprites/icons/icons.png"
 const PANEL_Y := 146  # the panel covers the lower ~44%; the painted shopfront stays visible above it
+const NPC_PANEL_H := 80  # UI-COMPACT: the neighbours tab's panel (names, portrait, two lines, Gift), under a third
 const ROWS := 3
 const GROUPS := ["supplies", "seeds", "upgrades"]
 const NPC_IDS := ["grocer", "baker", "postman", "vintner", "librarian"]
@@ -17,6 +18,7 @@ var _npc := "grocer"
 var _page := 0
 var _picker: Dictionary = {}  # {} or {"kind": "order"|"gift", "id": order id or npc id}
 var _content: VBoxContainer
+var _panel: PanelContainer
 var _tab_buttons: Dictionary = {}
 var _icon_sheet: Texture2D
 var _icon_cells: Dictionary = {}
@@ -161,15 +163,21 @@ func _build() -> void:
 	_back_btn = back
 	if Market.can_open(GameState.data):  # MARKET: "Market today!" banner on market days, until the stall opens
 		add_child(load("res://scenes/market/market_banner.gd").new())
-	var panel := PanelContainer.new()
-	panel.position = Vector2(8, PANEL_Y)
-	panel.size = Vector2(464, 270 - PANEL_Y - 4)
-	panel.clip_contents = true
-	add_child(panel)
+	_panel = PanelContainer.new()
+	_panel.clip_contents = true
+	add_child(_panel)
+	_fit_panel(false)
 	_content = VBoxContainer.new()
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_content.add_theme_constant_override("separation", 1)
-	panel.add_child(_content)
+	_panel.add_child(_content)
+
+
+## The panel at the bottom: PANEL_Y down for the lists, NPC_PANEL_H tall for a neighbour's page (UI-COMPACT).
+func _fit_panel(compact: bool) -> void:
+	var h := NPC_PANEL_H if compact else 270 - PANEL_Y - 4
+	_panel.position = Vector2(8, 270 - 4 - h)
+	_panel.size = Vector2(464, h)
 
 
 ## Selected tabs are shown pressed (not disabled) with a bright label.
@@ -256,6 +264,7 @@ func _render() -> void:
 		c.queue_free()
 	for id in _tab_buttons:
 		(_tab_buttons[id] as Button).set_pressed_no_signal(id == _tab)
+	_fit_panel(_tab == "neighbours" and _picker.is_empty())
 	if not _picker.is_empty():
 		_render_picker()
 		return
@@ -590,24 +599,34 @@ func _render_neighbours() -> void:
 	bust.custom_minimum_size = Vector2(48, 48)
 	bust.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	split.add_child(bust)
+	# UI-COMPACT: name, hearts and Gift on one row, then two body-font lines: what they say and what they like.
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation", 0)
 	split.add_child(info)
-	info.add_child(_label("%s  -  %s" % [npc.name, tr("TOWN_ROLE_" + String(npc.role).to_upper())]))
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 12)
+	var who := _label("%s  -  %s" % [npc.name, tr("TOWN_ROLE_" + String(npc.role).to_upper())])
+	who.autowrap_mode = TextServer.AUTOWRAP_OFF
+	who.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	top.add_child(who)
 	var hr := HeartRow.new()
 	hr.filled = hearts
 	hr.custom_minimum_size = Vector2(80, 12)
-	var top := HBoxContainer.new()  # hearts and the gift button share a row to fit five neighbours
-	top.add_theme_constant_override("separation", 12)
+	hr.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	top.add_child(hr)
 	var gift := _button(tr("TOWN_GIFT"), _on_gift)
 	gift.custom_minimum_size = Vector2(72, 18)
 	top.add_child(gift)
 	info.add_child(top)
-	info.add_child(_label(tr("TOWN_LIKES") % _axis_text(npc.likes)))
-	info.add_child(_label(tr("NPC_%s_%d" % [_npc.to_upper(), clampi(hearts / 2, 0, 2)])))
+	var says := tr("NPC_%s_%d" % [_npc.to_upper(), clampi(hearts / 2, 0, 2)])
 	if Economy.unlocked(d, "hints") and _npc == "librarian":
-		info.add_child(_label(tr("NPC_LIBRARIAN_HINT")))
+		says += "  " + tr("NPC_LIBRARIAN_HINT")
+	for t in [says, tr("TOWN_LIKES") % _axis_text(npc.likes)]:
+		var l := _label(t)
+		l.theme_type_variation = &"Body"
+		l.autowrap_mode = TextServer.AUTOWRAP_OFF
+		info.add_child(l)
 
 
 func _select_npc(id: String) -> void:

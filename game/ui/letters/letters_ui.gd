@@ -20,12 +20,14 @@ const RED := Color("a22512")
 const GREEN := Color("4e7664")
 const BOARD_POS := Vector2(200, 78)
 const PAPER_INK := Color("50361e")
-## Letter paper: text left edge and width, column beside the child's drawing, ruled line pitch (18 px font + 3).
+## Letter paper: text left edge and width, column beside the child's drawing, ruled line pitch (UI-COMPACT: the
+## body font, m5x7 16 px: 13 px line + 3).
 const TEXT_X := 165
 const TEXT_W := 290
 const NARROW_W := 234
-const LINE_PITCH := 21
+const LINE_PITCH := 16
 const LINE_GAP := 3
+const BODY_ASCENT := 11  ## m5x7 at 16 px: the rule sits right under the letters
 
 var _start_id := -1
 var _letter_id := -1
@@ -182,7 +184,7 @@ func _render_reader() -> void:
 	top.add_child(_top_text)
 	var sheet := DrawingSheet.new()
 	sheet.texture = ImageTexture.create_from_image(KidDrawing.render(_drawing_seed(letter), _drawing_subject(d, letter)))
-	sheet.custom_minimum_size = Vector2(52, LINE_PITCH * 3 - LINE_GAP)
+	sheet.custom_minimum_size = Vector2(52, LINE_PITCH * 4 - LINE_GAP)
 	sheet.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	top.add_child(sheet)
 	_paper_text.add_child(top)
@@ -250,7 +252,7 @@ func _select(letter_id: int) -> void:
 ## `wide` = full paper width; false = beside the child's drawing (greeting and note).
 func _paper(text: String, wide := true) -> void:
 	var l := _label(text)
-	l.theme_type_variation = &"PaperLabel"
+	l.theme_type_variation = &"BodyPaper"
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if wide or _top_text == null:
 		l.custom_minimum_size.x = TEXT_W
@@ -498,7 +500,7 @@ func _build_reader() -> void:
 	var rules := RuledLines.new()
 	rules.position = Vector2(155, 17)
 	rules.size = Vector2(306, 202)
-	rules.first = 18 + 15 - 17  # text top + font ascent, in the rules' own coordinates
+	rules.first = 18 + BODY_ASCENT - 17  # text top + font ascent, in the rules' own coordinates
 	rules.margin_x = TEXT_X - 4 - 155
 	_read_page.add_child(rules)
 	_paper_text = VBoxContainer.new()

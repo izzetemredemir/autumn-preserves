@@ -174,10 +174,9 @@ func _use(o: WildObject) -> void:
 	GameState.notify(PackedStringArray(["energy", "bag", "wild_today", "found_varieties", "species_seen", "stats"]))
 
 
-## SPECIES-GEN: the "New species!" card; Granny waits while it is open.
+## SPECIES-GEN: the "New species!" note (UI-COMPACT: a toast at the top; Granny keeps walking).
 func _species_card(type: String) -> void:
-	granny.input_enabled = false
-	SpeciesCard.open(self, type).closed.connect(func() -> void: granny.input_enabled = not _leaving)
+	SpeciesCard.open(self, type)
 
 
 ## ONBOARD-GUIDE: what Granny's guide asks the wild (GuideArrow header): the festival's rare tree, the nearest
