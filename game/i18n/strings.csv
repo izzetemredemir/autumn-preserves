@@ -849,3 +849,28 @@ UI_LANG_CHOOSE_EN,Choose your language
 UI_LANG_CHOOSE_TR,Dilini seç
 UI_NEWGAME_LINE,A new autumn begins: Granny's first day.
 UI_NEWGAME_SEED_LINK,World seed (optional)
+HOWTO_TITLE,How to Play
+HOWTO_NEXT,Next
+HOWTO_BACK,Back
+HOWTO_DONE,Got it!
+HOWTO_CLOSE,Close
+HOWTO_AUTUMN,Your autumn
+HOWTO_AUTUMN_1,Granny Tonty fills jars with the endless autumn for winter.
+HOWTO_AUTUMN_2,"No death, no penalty, no clock."
+HOWTO_AUTUMN_3,The day ends at her bedtime.
+HOWTO_FORAGE,Forage
+HOWTO_FORAGE_1,The forest past the garden gate grows anew every morning.
+HOWTO_FORAGE_2,"Walk (WASD / click), shake trees and pick (E / click)."
+HOWTO_FORAGE_3,New kinds appear every day.
+HOWTO_COOK,Cook
+HOWTO_COOK_1,"At the stove, pick a recipe and press Cook!"
+HOWTO_COOK_2,A 20-second kitchen game sets the stars.
+HOWTO_COOK_3,"Every jar gets its own name, taste and value. Invent mixes anything into new dishes."
+HOWTO_PANTRY,Pantry
+HOWTO_PANTRY_1,Put jars on the right shelves and keep kinds together.
+HOWTO_PANTRY_2,Make a pretty shelf.
+HOWTO_PANTRY_3,Three stars give Granny more energy tomorrow.
+HOWTO_SHARE,Share
+HOWTO_SHARE_1,"Neighbours' orders, and the market every seventh day."
+HOWTO_SHARE_2,Letters and parcels for the grandchildren.
+HOWTO_SHARE_3,Esc: menu. B: recipe book.

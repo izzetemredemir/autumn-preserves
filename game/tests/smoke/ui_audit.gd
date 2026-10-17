@@ -11,7 +11,7 @@ const EDGE := 2.0
 const SIZES := [18, 36]
 ## Path fragments (scene file or script) whose findings must be zero; others are only listed.
 const OWNED := ["scenes/garden/", "scenes/pantry/", "scenes/title/", "scenes/seed_lab/", "ui/book/", "ui/letters/", "ui/hud/", "ui/result_card/",
-	"scenes/farewell/", "ui/festival/", "ui/pause/"]
+	"scenes/farewell/", "ui/festival/", "ui/pause/", "ui/howto/"]
 
 var _gs: Node
 var _findings: Array = []  ## {state, kind, path, origin, owned, detail}
@@ -87,6 +87,7 @@ func _run() -> void:
 	await create_timer(0.4).timeout
 	await _audit("hud", hud)
 	await _pause_menu()
+	await _howto()
 	hud.queue_free()
 	await _overlays("backdrop")
 	for p in ["res://ui/premise/premise.tscn", "res://ui/transition/night.tscn"]:
@@ -130,6 +131,18 @@ func _pause_menu() -> void:
 	m.visible = false
 	m._ui.queue_free()
 	m._ui = null
+	await _frames(2)
+
+
+## ONBOARD-HOWTO: every page of the How to Play book.
+func _howto() -> void:
+	var h := HowToPlay.open(root)
+	await _frames(4)
+	for i in HowToPlay.page_count():
+		h.show_page(i)
+		await _frames(3)
+		await _audit("howto/%d" % (i + 1), h)
+	h.close()
 	await _frames(2)
 
 

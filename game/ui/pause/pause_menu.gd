@@ -1,6 +1,6 @@
 class_name PauseMenu
 extends CanvasLayer
-## PAUSE-MENU · The in-game menu: Resume, Settings (the title's SettingsPanel), Recipe book, Save and back to title
+## PAUSE-MENU · The in-game menu: Resume, Settings (the title's SettingsPanel), Recipe book, How to Play, Save and back to title
 ## (a temporary game - festival, demo day, market day, Forest Lab walk, Memory - says "Back to title" and is never
 ## saved) and Quit game (desktop builds only) with a confirm line. A paper panel over a dithered dim; the tree is
 ## paused while it shows (this node runs with PROCESS_MODE_ALWAYS, the Audio node too so music and the menu's clicks
@@ -24,6 +24,7 @@ const TRANSITION := "res://ui/transition/transition.gd"
 const NIGHT := "res://ui/transition/night.gd"
 const BOOK := "res://ui/book/book.gd"
 const SETTINGS := "res://scenes/title/settings_panel.gd"
+const HOWTO := "res://ui/howto/how_to_play.gd"
 const BUTTON_W := 188  ## the longest Turkish label ("Kaydet ve ana menüye dön") with room on both sides
 const C_INK := Color("111010")
 const C_TITLE := Color("a22512")
@@ -281,6 +282,7 @@ func _build() -> void:
 	_resume = _button(box, "Resume", tr("UI_PAUSE_RESUME"), resume)
 	_settings_btn = _button(box, "Settings", tr("UI_PAUSE_SETTINGS"), _open_settings)
 	_button(box, "Book", tr("UI_PAUSE_BOOK"), _open_book)
+	_button(box, "HowTo", tr("HOWTO_TITLE"), _open_how_to)
 	var title_text := tr("UI_PAUSE_TO_TITLE") if is_temp() else tr("UI_PAUSE_SAVE_TITLE")
 	_title_btn = _button(box, "ToTitle", title_text, _leave_to_title)
 	_quit = _button(box, "Quit", tr("UI_PAUSE_QUIT"), _ask_quit)
@@ -391,6 +393,22 @@ func _on_language_changed() -> void:
 func _open_book() -> void:
 	resume()
 	load(BOOK).call("open")
+
+
+## ONBOARD-HOWTO: the How to Play book over the paused game (inside the menu's view, so it goes with the menu); the
+## menu comes back when it closes.
+func _open_how_to() -> void:
+	_sound("ui_click")
+	_panel.visible = false
+	var h: Node = load(HOWTO).call("open", _ui)
+	h.connect("closed", _on_how_to_closed, CONNECT_ONE_SHOT)
+
+
+func _on_how_to_closed() -> void:
+	if not _open or _panel == null or not is_instance_valid(_panel):
+		return
+	_panel.visible = true
+	(_panel.find_child("HowTo", true, false) as Button).grab_focus()
 
 
 ## Normal games save first; a temporary game is left as it is. The scene stops at once (a running mini-game is

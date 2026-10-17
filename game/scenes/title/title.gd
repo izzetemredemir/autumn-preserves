@@ -46,6 +46,7 @@ func _ready() -> void:
 	%Continue.pressed.connect(_on_continue)
 	%SeedLab.pressed.connect(_on_seed_lab)
 	%Settings.pressed.connect(_on_settings)
+	_build_how_to_button()
 	%Continue.disabled = not Save.has_save()
 	var saved := Save.load_game() if Save.has_save() else {}
 	if Farewell.is_completed(saved):
@@ -339,9 +340,34 @@ func _start() -> void:
 	premise.finished.connect(_after_premise, CONNECT_ONE_SHOT)
 
 
+## ONBOARD-HOWTO: the How to Play book once, over the intro's last picture, then the garden.
 func _after_premise() -> void:
+	HowToPlay.open(self).closed.connect(_go_home, CONNECT_ONE_SHOT)
+
+
+func _go_home() -> void:
 	GrannyTodo.ensure()
 	Transition.go(Transition.home_scene())
+
+
+## ONBOARD-HOWTO: How to Play in the menu (above Settings); the book opens over the title art.
+func _build_how_to_button() -> void:
+	var b := Button.new()
+	b.name = "HowTo"
+	b.text = tr("HOWTO_TITLE")
+	b.pressed.connect(_on_how_to)
+	%Menu.add_child(b)
+	%Menu.move_child(b, %Settings.get_index())
+
+
+func _on_how_to() -> void:
+	Audio.play_ui("ui_click")
+	%Menu.visible = false
+	if _completed_card != null:
+		_completed_card.visible = false
+	HowToPlay.open(self).closed.connect(func() -> void:
+		_show_menu()
+		(%Menu.get_node("HowTo") as Button).grab_focus(), CONNECT_ONE_SHOT)
 
 
 func _unhandled_input(event: InputEvent) -> void:

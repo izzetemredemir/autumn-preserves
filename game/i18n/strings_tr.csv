@@ -849,3 +849,28 @@ UI_LANG_CHOOSE_EN,Choose your language
 UI_LANG_CHOOSE_TR,Dilini seç
 UI_NEWGAME_LINE,"Yeni bir sonbahar başlıyor: Nine'nin ilk günü."
 UI_NEWGAME_SEED_LINK,Dünya tohumu (isteğe bağlı)
+HOWTO_TITLE,Nasıl Oynanır
+HOWTO_NEXT,İleri
+HOWTO_BACK,Geri
+HOWTO_DONE,Anladım!
+HOWTO_CLOSE,Kapat
+HOWTO_AUTUMN,Senin sonbaharın
+HOWTO_AUTUMN_1,Tonty Nine bitmeyen sonbaharı kış için kavanozlara doldurur.
+HOWTO_AUTUMN_2,"Ölüm yok, ceza yok, saat yok."
+HOWTO_AUTUMN_3,Gün o yatağa gidince biter.
+HOWTO_FORAGE,Toplama
+HOWTO_FORAGE_1,Bahçe kapısının ötesindeki orman her sabah yeniden büyür.
+HOWTO_FORAGE_2,"Yürü (WASD / tıkla), ağaçları salla ve topla (E / tıkla)."
+HOWTO_FORAGE_3,Her gün yeni türler çıkar.
+HOWTO_COOK,Pişirme
+HOWTO_COOK_1,"Ocakta tarif seç, Pişir!'e bas."
+HOWTO_COOK_2,20 saniyelik bir mutfak oyunu yıldızları belirler.
+HOWTO_COOK_3,"Her kavanozun kendi adı, tadı ve değeri olur. Buluş yap, her şeyi karıştırıp yeni yemekler çıkarır."
+HOWTO_PANTRY,Kiler
+HOWTO_PANTRY_1,"Kavanozları doğru raflara koy, türleri bir arada tut."
+HOWTO_PANTRY_2,Güzel bir raf diz.
+HOWTO_PANTRY_3,"Üç yıldız, Nine'ye yarın daha çok enerji verir."
+HOWTO_SHARE,Paylaşma
+HOWTO_SHARE_1,"Komşuların siparişleri, her yedinci gün de pazar."
+HOWTO_SHARE_2,Torunlara mektuplar ve koliler.
+HOWTO_SHARE_3,Esc: menü. B: tarif defteri.
