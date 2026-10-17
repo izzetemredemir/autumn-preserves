@@ -845,3 +845,7 @@ PANTRY_TIP_GROUP_MORE,Put %d of one kind side by side
 PANTRY_TIP_FILL,Fill the %s shelf (%d left)
 PANTRY_TIP_PRETTY,"Fill a shelf, or set %d jars light to dark in a row"
 PANTRY_TIP_DONE,All three stars. Lovely!
+UI_LANG_CHOOSE_EN,Choose your language
+UI_LANG_CHOOSE_TR,Dilini seç
+UI_NEWGAME_LINE,A new autumn begins: Granny's first day.
+UI_NEWGAME_SEED_LINK,World seed (optional)

@@ -202,6 +202,16 @@ func _title_panels(s: Node) -> void:
 	s._on_new_game()
 	await _frames(4)
 	await _audit("title/new_game", s)
+	s._seed_link.pressed.emit()  # ONBOARD-TITLE: the optional seed row open
+	await _frames(3)
+	await _audit("title/new_game_seed", s)
+	s._show_menu()
+	s._build_lang_picker()  # ONBOARD-TITLE: the first-launch language card
+	await _frames(4)
+	await _audit("title/lang", s)
+	s._lang_layer.queue_free()
+	s._show_menu()
+	s._on_new_game()
 	s._show_menu()
 	s._on_settings()
 	await _frames(4)

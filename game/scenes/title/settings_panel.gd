@@ -137,8 +137,7 @@ func _language_button() -> Button:
 	b.pressed.connect(func() -> void:
 		var codes: Array = GameSettings.LANGUAGES.keys()
 		var next := String(codes[(codes.find(GameSettings.language()) + 1) % codes.size()])
-		GameSettings.set_value("game", "language", next)
-		GameSettings.apply_language(next)
+		GameSettings.set_language(next)
 		b.text = String(GameSettings.LANGUAGES[next])
 		Audio.play_ui("ui_click")
 		language_changed.emit())

@@ -1,10 +1,11 @@
 extends SceneTree
 ## GD-META smoke shots -> user://shots/title.png (default view) or user://shots/title_<view>.png
-##   godot --path game -s res://tests/smoke/title_shot.gd [-- --view newgame|settings|premise|todo|night|dev]
+##   godot --path game -s res://tests/smoke/title_shot.gd [-- --view lang|newgame|settings|premise|todo|night|dev]
 ## `--view flow` (works --headless) plays New Game -> premise -> home scene -> night -> Continue and prints
 ## FLOW OK / FLOW FAIL; the player's own save file is restored afterwards.
 
 const TITLE := "res://scenes/title/title.tscn"
+const TITLE_SCRIPT := "res://scenes/title/title.gd"
 # Scripts are loaded by path: their class names use autoloads, which --check-only of this file cannot see.
 const TODO := "res://ui/tutorial/granny_todo.gd"
 const NIGHT := "res://ui/transition/night.gd"
@@ -30,12 +31,15 @@ func _run() -> void:
 			await _flow()
 			quit(1 if not _fails.is_empty() else 0)
 			return
-		"title", "newgame", "settings":
+		"title", "newgame", "settings", "lang":
+			if _view != "lang":
+				load(TITLE_SCRIPT).skip_lang = true
 			var title := _title()
 			await _frames(4)
-			if _view == "newgame":
+			if _view == "lang":
+				title._build_lang_picker()
+			elif _view == "newgame":
 				title._on_new_game()
-				title._seed_edit.text = "granny"
 			elif _view == "settings":
 				title._on_settings()
 		"premise":
@@ -110,6 +114,7 @@ func _flow() -> void:
 	var gs := root.get_node("GameState")
 	var router := root.get_node("Router")
 	var backup: String = FileAccess.get_file_as_string(save.PATH) if save.has_save() else ""
+	load(TITLE_SCRIPT).skip_lang = true
 	var title := _title()
 	await _frames(3)
 	title._on_new_game()

@@ -8,7 +8,7 @@ const PATH := "user://settings.cfg"
 const DEFAULTS := {
 	"audio": {"music": 0.8, "sfx": 0.8, "ambient": 0.8},
 	"display": {"fullscreen": false},
-	"game": {"show_seed_corner": false, "tutorial": true, "language": "en", "show_grow": true, "intro_seen": false},
+	"game": {"show_seed_corner": false, "tutorial": true, "language": "en", "show_grow": true, "intro_seen": false, "lang_chosen": false},
 }
 ## L10N-TR · Languages of the settings picker: locale -> its own name (shown untranslated). English stays the default,
 ## whatever the OS locale is.
@@ -53,6 +53,18 @@ static func show_grow() -> bool:
 
 static func tutorial_enabled() -> bool:
 	return bool(get_value("game", "tutorial"))
+
+
+## ONBOARD-TITLE: true once the player picked a language (first-launch card or Settings). `--skip-lang` pretends so.
+static func lang_chosen() -> bool:
+	return bool(get_value("game", "lang_chosen")) or OS.get_cmdline_user_args().has("--skip-lang")
+
+
+## Stores `lang` as the language (and that one was chosen), then applies the locale.
+static func set_language(lang: String) -> void:
+	set_value("game", "language", lang)
+	set_value("game", "lang_chosen", true)
+	apply_language(lang)
 
 
 static func language() -> String:
