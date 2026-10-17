@@ -48,6 +48,7 @@ func load_saved() -> bool:
 		return false
 	data = d
 	VarietyGen.ensure_types(data.varieties, int(data.save_seed))  # P1 types (cabbage, grape...) for older saves
+	SpeciesGen.sync(data)  # SPECIES-GEN: the species known by the save's day (rows in Data, one variety each)
 	if Farewell.is_completed(data):
 		data.flags["memory"] = true
 		data.flags["temp"] = true  # Save.save_game skips it: the closed save is never written back

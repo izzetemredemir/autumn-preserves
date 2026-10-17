@@ -44,6 +44,8 @@ static func run_with(state: Dictionary, seams: Dictionary) -> Array:
 	events.append({"type": "day", "day": int(state.day)})
 	# 5b. The garden hives (GARDEN-LIFE): honey in the cupboard every 4th morning (no RNG).
 	events.append_array(Garden.night_honey(state))
+	# 5c. SPECIES-GEN: the new day's forest species join the save (own streams, nothing else moves).
+	SpeciesGen.sync(state)
 	# 6. Weather (P0 table in the tutorial week, P1 with windy and foggy from Calendar.start_day).
 	state.weather = weather_for(int(state.save_seed), int(state.day), String(state.weather))
 	events.append({"type": "weather", "weather": state.weather})

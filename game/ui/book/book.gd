@@ -306,6 +306,10 @@ func _page_count() -> int:
 		var variant_pages := ceili(_variant_keys().size() / float(VARIANTS_PER_PAGE))
 		var recipe_pages := _base_pages() + ceili(_family_ids().size() / float(FAMILY_PER_PAGE))
 		return maxi(maxi(variant_pages, recipe_pages), 1)
+	return _type_pages() + SpeciesPage.pages(_data())  # SPECIES-GEN: the forest species follow the types
+
+
+func _type_pages() -> int:
 	return maxi(ceili(_types().size() / float(TYPES_PER_PAGE * 2)), 1)
 
 
@@ -500,7 +504,9 @@ func _icon(row: Control, icon_name: String, tint := Color.WHITE) -> TextureRect:
 	t.stretch_mode = TextureRect.STRETCH_KEEP
 	t.modulate = tint
 	var path := "res://assets/sprites/icons/%s.png" % icon_name
-	if _icon_names.has(icon_name) and ResourceLoader.exists(path):
+	if IconLib.is_generated(icon_name):  # SPECIES-GEN
+		t.texture = IconLib.ingredient(icon_name)
+	elif _icon_names.has(icon_name) and ResourceLoader.exists(path):
 		t.texture = load(path)
 	else:
 		t.texture = JarIcon.supply_icon(icon_name)  # P1 supplies (bottle, flour, cabbage) without an icon file yet
@@ -631,6 +637,9 @@ func _on_how_closed() -> void:
 # --- varieties tab -----------------------------------------------------------------------------------------------
 
 func _fill_varieties() -> void:
+	if _page >= _type_pages():  # SPECIES-GEN
+		SpeciesPage.fill(self, _left, _right, _data(), _page - _type_pages())
+		return
 	var types := _types()
 	var base := _page * TYPES_PER_PAGE * 2
 	for pg in [_left, _right]:

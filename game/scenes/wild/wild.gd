@@ -26,7 +26,10 @@ func _ready() -> void:
 	var s: Dictionary = GameState.data
 	if not VarietyGen.ensure_types(s.varieties, int(s.save_seed)).is_empty():
 		GameState.notify(PackedStringArray(["varieties"]))
+	if not SpeciesGen.sync(s).is_empty():  # SPECIES-GEN: demo, festival and temp games too
+		GameState.notify(PackedStringArray(["varieties"]))
 	map = WildGen.generate(int(s.save_seed), int(s.day), biome, String(s.weather), s.varieties)
+	SpeciesGen.add_pickups(map, int(s.save_seed), int(s.day))  # SPECIES-GEN: today's species, after every other item
 	if map.is_empty():
 		push_warning("Wild: no map for biome '%s'" % biome)
 		_exit.call_deferred()
@@ -147,11 +150,19 @@ func _use(o: WildObject) -> void:
 	if n > 0:
 		Fx.bubble(view.fx, o.top(), "+%d" % n, 0.6)
 	var found: Array = r.get("new", [])
-	if not found.is_empty():
+	if SpeciesGen.mark_seen(GameState.data, String(o.info.get("type", ""))):  # SPECIES-GEN: first meeting
+		_species_card(String(o.info.type))
+	elif not found.is_empty():
 		var v: Dictionary = GameState.data.varieties.get(String(found[0]), {})
 		Hud.toast("WILD_NEW_VARIETY", [VarietyGen.display_name(v) if not v.is_empty() else String(found[0])])
 		Audio.play_sfx("sfx_sparkle")
-	GameState.notify(PackedStringArray(["energy", "bag", "wild_today", "found_varieties", "stats"]))
+	GameState.notify(PackedStringArray(["energy", "bag", "wild_today", "found_varieties", "species_seen", "stats"]))
+
+
+## SPECIES-GEN: the "New species!" card; Granny waits while it is open.
+func _species_card(type: String) -> void:
+	granny.input_enabled = false
+	SpeciesCard.open(self, type).closed.connect(func() -> void: granny.input_enabled = not _leaving)
 
 
 ## Pulls today's progress (shaken trees, collected pickups) from Forage into the view.

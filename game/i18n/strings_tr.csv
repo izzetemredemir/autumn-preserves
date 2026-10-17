@@ -763,6 +763,15 @@ GARDEN_CLOTHESLINE_2,Sonbahar rüzgârı gibi kurutan yok.
 GARDEN_CLOTHESLINE_3,"Walter'ın önlüğü. Reçel\ngünleri ben takıyorum."
 FESTIVAL_RARE_TREE,Nadir ağaç
 TITLE_SEED_LAB_HINT,Her tohumdan bir ormanın büyüyüşünü izle.
+SPECIES_NEW_TITLE,Yeni tür!
+SPECIES_NEW_NOTE,Nine onu defterine yazıyor.
+SPECIES_OK,Ne güzel
+SPECIES_STANDS_OUT,Öne çıkan: %s
+SPECIES_KIND_FRUIT,Yaban meyvesi
+SPECIES_KIND_MUSHROOM,Yaban mantarı
+SPECIES_KIND_VEGETABLE,Yaban sebzesi
+SPECIES_BOOK_TITLE,Orman türleri
+SPECIES_NEW_TAG,Yeni
 UI_PAUSE_TIP,Menü (Esc)
 UI_PAUSE_TITLE,Oyun durdu
 UI_PAUSE_RESUME,Devam et

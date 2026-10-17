@@ -763,6 +763,15 @@ GARDEN_CLOTHESLINE_2,Nothing dries like an autumn wind.
 GARDEN_CLOTHESLINE_3,"Walter's apron. I wear it\nfor jam days."
 FESTIVAL_RARE_TREE,Rare tree
 TITLE_SEED_LAB_HINT,Watch a forest grow from any seed.
+SPECIES_NEW_TITLE,New species!
+SPECIES_NEW_NOTE,Granny notes it in her book.
+SPECIES_OK,Lovely
+SPECIES_STANDS_OUT,Stands out: %s
+SPECIES_KIND_FRUIT,Wild fruit
+SPECIES_KIND_MUSHROOM,Wild mushroom
+SPECIES_KIND_VEGETABLE,Wild green
+SPECIES_BOOK_TITLE,Forest species
+SPECIES_NEW_TAG,New
 UI_PAUSE_TIP,Menu (Esc)
 UI_PAUSE_TITLE,Paused
 UI_PAUSE_RESUME,Resume

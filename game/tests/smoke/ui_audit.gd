@@ -69,6 +69,7 @@ func _run() -> void:
 		await _frames(2)
 	await _farewell()
 	await _festival_cards()
+	await _species()
 	# Overlays on top of a quiet backdrop
 	_fresh()
 	var bg := ColorRect.new()
@@ -199,6 +200,40 @@ func _festival_cards() -> void:
 		await _audit("festival/" + which, c)
 		c.queue_free()
 		await _frames(2)
+
+
+## SPECIES-GEN: the "New species!" card (the species with the longest names) and the book's forest species page with
+## every species met today (all rows tagged New), the demo save moved on to day 40.
+func _species() -> void:
+	_fresh()
+	var d: Dictionary = _gs.data
+	d.day = 40
+	SpeciesGen.sync(d)
+	var known := SpeciesGen.known(int(d.save_seed), int(d.day))
+	if known.is_empty():
+		return
+	d["species_seen"] = {}
+	var longest: Dictionary = known[0]
+	for sp: Dictionary in known:
+		d.species_seen[sp.id] = int(d.day)
+		if String(sp.display_name).length() + String(sp.display_name_tr).length() > \
+				String(longest.display_name).length() + String(longest.display_name_tr).length():
+			longest = sp
+	_gs.notify(PackedStringArray(["*"]))
+	var card := SpeciesCard.open(root, String(longest.id))
+	await create_timer(0.5).timeout  # after the pop-in
+	await _audit("species_card", card)
+	card.queue_free()
+	await _frames(2)
+	var b := Book.open()
+	await _frames(6)
+	b.show_book(1)
+	b._page = b._type_pages()
+	b._refresh()
+	await _frames(4)
+	await _audit("book_species", b)
+	b.queue_free()
+	await _frames(2)
 
 
 func _overlays(tag: String) -> void:

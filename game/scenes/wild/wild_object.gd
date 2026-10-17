@@ -32,14 +32,12 @@ const CANOPY := {
 	"oak": ["53612e", "747c37", "b1a13d"],
 }
 const CANOPY_KINDS := ["maple", "birch", "oak"]
-const ICON := "res://assets/sprites/icons/%s.png"
 const SPRITE := "res://assets/sprites/forest/%s.png"
 ## Fruit tag: its tail tip overlaps the canopy top by TAG_OVERLAP px; it bobs 1 px every BOB_MS.
 const TAG_OVERLAP := 3
 const TAG_HEIGHT := 23
 const BOB_MS := 450.0
 
-static var _icons := {}
 static var _sprites := {}
 static var _outlines := {}  ## "<texture key>|<colour>" -> ImageTexture (null when the image can't be read)
 static var _tops := {}  ## texture key -> first opaque row
@@ -91,12 +89,9 @@ func _process(_delta: float) -> void:
 	_tag.position = Vector2(0, _tag_tip_y() - bob)
 
 
-## The type's 16x16 icon, or null while it doesn't exist.
+## The type's 16x16 icon, or null while it doesn't exist (SPECIES-GEN: IconLib, so generated species have one too).
 static func icon_for(type: String) -> Texture2D:
-	if not _icons.has(type):
-		var path := ICON % type
-		_icons[type] = load(path) if type != "" and ResourceLoader.exists(path) else null
-	return _icons[type]
+	return IconLib.ingredient(type)
 
 
 ## A forest sprite by file name (no extension), or null while it doesn't exist.
@@ -332,6 +327,8 @@ func _texture() -> Texture2D:
 		"fruit_tree":
 			return sprite("tree_%s_%s" % [String(info.get("type", "")), state])
 		"bush":
+			if IconLib.is_generated(String(info.get("type", ""))):  # SPECIES-GEN: the bush with species berries
+				return IconLib.bush(String(info.type), done)
 			return sprite("bush_%s_%s" % [String(info.get("type", "")), state])
 		"hive":
 			return sprite("bee_hive_" + state)

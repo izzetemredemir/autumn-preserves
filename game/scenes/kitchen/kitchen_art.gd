@@ -72,6 +72,8 @@ static var _icon_cells: Dictionary = {}
 
 ## 16x16 icon for an ingredient type, nut, cupboard item or add-in id; null when the atlas has none.
 static func icon(id: String) -> Texture2D:
+	if IconLib.is_generated(id):  # SPECIES-GEN: generated species icons
+		return IconLib.ingredient(id)
 	if _icons.has(id):
 		return _icons[id]
 	if _icon_cells.is_empty():

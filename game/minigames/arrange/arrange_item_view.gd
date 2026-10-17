@@ -46,6 +46,8 @@ static func make(p_item: Dictionary, _rot: int, px: Vector2i, varieties: Diction
 		var path := ICON_DIR + type + ".png"
 		if ResourceLoader.exists(path):
 			v._icon = load(path)
+		elif IconLib.is_generated(type):  # SPECIES-GEN: generated species icons (pantry, inbox)
+			v._icon = IconLib.ingredient(type)
 		var ing: Dictionary = Data.ingredients().get(type, {})
 		v._ramp = ing.get("ramp", DEFAULT_RAMP)
 		v._count = int(p_item.get("count", 1))

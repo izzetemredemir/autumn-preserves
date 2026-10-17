@@ -107,6 +107,8 @@ func _icon(id: String) -> Control:
 
 ## Icons the atlas lacks: a single file icons/<id>.png (press, boots, bag, beds ...) or JarIcon's drawn supplies (bottle, flour).
 func _icon_file(id: String) -> Texture2D:
+	if IconLib.is_generated(id):  # SPECIES-GEN: generated species icons
+		return IconLib.ingredient(id)
 	var path := "res://assets/sprites/icons/%s.png" % id
 	if ResourceLoader.exists(path):
 		return load(path) as Texture2D

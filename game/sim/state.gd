@@ -22,6 +22,7 @@ static func new_game(save_seed: int) -> Dictionary:
 		"weather": "sunny",
 		"varieties": varieties,
 		"found_varieties": [],
+		"species_seen": {},  # SPECIES-GEN: species id -> day Granny first met it (old saves: get("species_seen", {}))
 		"garden": {"trees": [], "beds": [], "compost": 0, "fertilizer": 0},
 		"bag": [],
 		"inbox": [],
