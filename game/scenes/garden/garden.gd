@@ -20,7 +20,7 @@ const BIOME := "forest"  ## the gate goes straight here until a second wild open
 const C_HUSK := Color("b7b768")  ## olive_300
 const FOREST_DB := -8.0  ## forest ambience in the background here; the wild plays it full
 ## Props Granny can use, by kind ("hive_2" -> "hive"; the run and its fence count as "coop"), with their line count.
-const USABLE := {"truck": 4, "coop": 3, "hive": 0, "scarecrow": 3, "bench": 3}
+const USABLE := {"truck": 4, "coop": 3, "hive": 0, "scarecrow": 3, "bench": 3, "clothesline": 3}
 const HUD_H := 32  ## px under the screen's top edge that the HUD covers: bubbles stay below it
 const HENS_NEAR_PX := 18.0  ## Granny's feet this close to the run: the hens scatter
 const HIVE_NEAR := 2  ## cells (Chebyshev) from a hive: the bees buzz
@@ -611,7 +611,7 @@ func find_prop(id: String) -> GardenProp:
 	return null
 
 
-## What using a prop does: "truck" | "coop" | "hive" | "scarecrow" | "bench", or "" (the clothesline, others).
+## What using a prop does: "truck" | "coop" | "hive" | "scarecrow" | "bench" | "clothesline", or "" (others).
 func use_kind(p: GardenProp) -> String:
 	return use_kind_of(p.id)
 
@@ -699,6 +699,8 @@ func use_prop(p: GardenProp) -> void:
 		"bench":
 			Audio.play_ui("ui_click")
 		"scarecrow":
+			Audio.play_sfx("sfx_bush_rustle")
+		"clothesline":
 			Audio.play_sfx("sfx_bush_rustle")
 	var n := GardenLifeRules.line(_rng, int(USABLE[kind]), int(_last_line.get(kind, 0)))
 	_last_line[kind] = n

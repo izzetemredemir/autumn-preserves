@@ -1,0 +1,14 @@
+[
+	{"t": 0.0, "do": "load_demo", "args": [""], "note": "recorded with --scene res://scenes/wild/wild.tscn: the demo save before the forest loads"},
+	{"t": 0.3, "do": "wild_shake_rare", "note": "tree shake: trunk wiggle, leaves, fruit bounce with shadows, pop up and fly into the HUD bag"},
+	{"dt": 2.2, "do": "wild_pick_near", "args": ["ground"], "note": "a pick pops up and flies into the bag"},
+	{"dt": 1.4, "do": "go", "args": ["kitchen"]},
+	{"dt": 0.7, "do": "kitchen_spot", "args": ["stove"]},
+	{"dt": 0.2, "do": "kitchen_pick", "args": ["jam", "crabapple", "rare"]},
+	{"dt": 0.2, "do": "kitchen_addin", "args": ["cinnamon"]},
+	{"dt": 0.2, "do": "kitchen_cook", "args": [5.0, 11.0, true], "note": "the stove: steam and bubbles follow the spoon, perfect stirring twinkles"},
+	{"dt": 5.4, "do": "card_close", "note": "before: result card, jar drops and squashes, label stamps on, stars pop one by one"},
+	{"dt": 0.1, "do": "go", "args": ["pantry"]},
+	{"dt": 0.7, "do": "pantry_drag", "args": [0.5], "note": "lifted jar with its shadow, snaps onto the shelf with a dust puff"},
+	{"dt": 1.2, "quit": true}
+]

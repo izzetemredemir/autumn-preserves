@@ -95,6 +95,8 @@ func _on_stepped(cell: Vector2i) -> void:
 		return
 	var t := int(map.ground[cell.y * int(map.w) + cell.x])
 	Audio.play_sfx("sfx_step_leaves" if t == WildGen.T_LEAVES else "sfx_step_grass")
+	if t == WildGen.T_LEAVES and Juice.rng().randf() < 0.45:  # FEEL: now and then a leaf kicks up
+		Fx.kick_leaf(view.fx, granny.position, granny.facing)
 
 
 func _use(o: WildObject) -> void:
@@ -118,7 +120,8 @@ func _use(o: WildObject) -> void:
 		if reason != "":
 			Fx.bubble(view.fx, o.top(), tr(reason))
 		return
-	o.pop()
+	if o.kind != "fruit_tree":
+		o.pop()  # trees wiggle in Fx.shake_tree
 	_refresh()  # the tree turns bare and drops its tag before the bubble is placed over it
 	var n := _count(r.get("items", []))
 	if o.kind == "hive":  # honey goes straight to the cupboard, not the bag
@@ -131,12 +134,13 @@ func _use(o: WildObject) -> void:
 		return
 	if o.kind == "fruit_tree":
 		granny.act("shake")
-		camera.shake(2, 0.25)
-		Fx.leaf_burst(view.fx, o.canopy(), 16, Vector2i(16, 10))
-		Fx.fruit_to_bag(view.fx, o.canopy(), o.position.y, granny, o.color, n)
+		Fx.shake_tree(view.fx, o, o.canopy(), o.position.y, granny, o.color, n, camera,
+			WildObject.icon_for(String(o.info.get("type", ""))))
 		Audio.play_sfx("sfx_tree_shake")
 	else:
 		granny.act("pick")
+		var from := o.position if o.kind == "ground" else o.canopy() + Vector2(0, 8)
+		Fx.item_to_bag(view.fx, from, WildObject.icon_for(String(o.info.get("type", ""))), o.color)
 		Audio.play_sfx("sfx_bush_rustle" if o.kind == "bush" else "sfx_pick")
 	Audio.play_sfx("sfx_bag_add")
 	if n > 0:

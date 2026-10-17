@@ -26,6 +26,7 @@ const C_STONE := Color("b4b3a0")
 var _energy_bar: ProgressBar
 var _energy_label: Label
 var _bag_label: Label
+var _bag_icon: TextureRect
 var _coins_label: Label
 var _day_label: Label
 var _weather: TextureRect
@@ -74,7 +75,8 @@ func _build() -> void:
 	_energy_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_energy_bar.show_percentage = false
 	row.add_child(_energy_bar)
-	row.add_child(_icon("icon_bag"))
+	_bag_icon = _icon("icon_bag")
+	row.add_child(_bag_icon)
 	_bag_label = Label.new()
 	row.add_child(_bag_label)
 	row.add_child(_icon("icon_coin"))
@@ -160,3 +162,23 @@ func _icon(icon_name: String) -> TextureRect:
 	t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return t
+
+
+## FEEL: screen point (HUD canvas) in the middle of the bag icon, for picked things flying into the bag;
+## (-1, -1) when no HUD is showing.
+static func bag_point() -> Vector2:
+	var tree := Engine.get_main_loop() as SceneTree
+	var hud := tree.get_first_node_in_group("hud") as Hud if tree != null else null
+	if hud == null or hud._bag_icon == null or not hud._bag_icon.is_visible_in_tree():
+		return Vector2(-1, -1)
+	return hud._bag_icon.get_global_rect().get_center().floor()
+
+
+## FEEL: the bag icon and its counter bump (something just landed in the bag).
+static func bump_bag() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var hud := tree.get_first_node_in_group("hud") as Hud if tree != null else null
+	if hud == null or hud._bag_icon == null:
+		return
+	Juice.pop(hud._bag_icon, 1.5, 0.16)
+	Juice.pop(hud._bag_label, 1.5, 0.16)

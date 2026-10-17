@@ -574,8 +574,6 @@ func _show_result(res: Dictionary) -> void:
 	if not ResourceLoader.exists(RESULT_CARD):
 		_on_card_closed()
 		return
-	if not res.is_new and not mastered:
-		Audio.play_sfx("sfx_star_pop")
 	_card = load(RESULT_CARD).instantiate()
 	_overlay.add_child(_card)
 	_card.show_result(desc, stars, bool(res.is_new))

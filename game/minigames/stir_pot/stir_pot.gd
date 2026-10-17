@@ -2,6 +2,8 @@ class_name StirPot
 extends MiniGame
 ## MG-STIR: stove stirring (design 11.1). Circle the pot with mouse/touch or tap Space; keep the needle in the
 ## green band; skim foam (click or E). Never touches GameState: only emits finished({"stars", "bar"}).
+## FEEL: bubbles swirl and steam rises faster the faster Granny stirs; stirring in the band (perfect) twinkles on
+## the jam, and the bar sparkles as it passes a star line. All visual (own clocks and generator, never `rng`).
 
 const DURATION := 40.0
 const READY_TIME := 3.0
@@ -24,6 +26,8 @@ const C_BAND := Color("4e7664")
 const C_NEEDLE := Color("f2d9c5")
 const C_BAR_BG := Color("111010")
 const C_TEXT := Color("f2d9c5")
+const C_STEAM := [Color("f2d9c5"), Color("b9a697"), Color("b4b3a0")]  ## fresh, thinning, almost gone
+const SPARKLE_EVERY := 0.15  ## s between twinkles while the stir is perfect
 
 enum Phase { IDLE, READY, PLAY, DONE }
 
@@ -53,6 +57,9 @@ var _ph: Array[float] = [0.0, 0.0, 0.0]
 var _result_t := 0.0
 var _emitted := false
 var _auto_t := 0.0
+var _bub_t := 0.0
+var _steam_t := 0.0
+var _sparkle_cd := 0.0
 
 var _l_time: Label
 var _l_msg: Label
@@ -188,6 +195,9 @@ func _label(pos: Vector2, key: String) -> Label:
 
 func _process(delta: float) -> void:
 	_clock += delta
+	var heat := clampf(stir_speed, 0.0, 1.2)
+	_bub_t += delta * (0.5 + heat * 1.4)
+	_steam_t += delta * (0.45 + heat * 0.9 + (0.25 if needle > 0.7 else 0.0))
 	match phase:
 		Phase.READY:
 			ready_left -= delta
@@ -218,8 +228,15 @@ func _play(dt: float) -> void:
 	_update_stir(dt)
 	var wobble := 0.05 * (sin(_clock * 1.3 + _ph[0]) + sin(_clock * 2.9 + _ph[1]) * 0.6 + sin(_clock * 0.7 + _ph[2]) * 0.8)
 	needle = StirScoring.needle_step(needle, stir_speed, wobble, dt)
+	var was := bar
 	if StirScoring.in_band(needle):
 		bar = minf(1.0, bar + FILL_RATE * dt)
+		_perfect_feel(dt)
+	for line in [StirScoring.STAR2, StirScoring.STAR3]:
+		if was < line and bar >= line:  # a star line passed: the bar twinkles there
+			var y := roundf(GAUGE_TOP + GAUGE_H * (1.0 - line))
+			Juice.sparkle(self, Rect2(GAUGE_X + 42, y - 6, 28, 12), 6, 5)
+			Audio.play_sfx("sfx_sparkle")
 	_update_foam(dt)
 	if Input.is_action_just_pressed("skim") and not foam.is_empty():
 		_skim(0)
@@ -265,6 +282,18 @@ func _update_foam(dt: float) -> void:
 			foam.append(Vector2(roundf(cos(ang) * r), roundf(sin(ang) * r)))
 
 
+## Perfect stir (needle in the band while stirring): a twinkle on the jam now and then.
+func _perfect_feel(dt: float) -> void:
+	_sparkle_cd -= dt
+	if _sparkle_cd > 0.0 or stir_speed < 0.15:
+		return
+	_sparkle_cd = SPARKLE_EVERY
+	var r := Juice.rng()
+	var a := r.randf() * TAU
+	var p := CENTER + Vector2(cos(a), sin(a)) * r.randf_range(6.0, POT_R - 14.0)
+	Juice.sparkle(self, Rect2(p.round(), Vector2.ONE), 1, 5)
+
+
 func _skim(i: int) -> void:
 	foam.remove_at(i)
 	bar = minf(1.0, bar + SKIM_BONUS)
@@ -302,6 +331,9 @@ func _finish() -> void:
 	_hint_panel.visible = false
 	_result_panel.visible = true
 	_result_t = 0.0
+	if stars >= 3:
+		Juice.sparkle(self, Rect2(CENTER - Vector2(44, 40), Vector2(88, 80)), 14, 5)
+		Audio.play_sfx("sfx_sparkle")
 	print("STIR RESULT stars=%d bar=%.3f" % [stars, bar])
 
 
@@ -335,19 +367,42 @@ func _draw_pot() -> void:
 	var idx := posmod(roundi(spoon_angle / (TAU / SPOON_FRAMES)), SPOON_FRAMES)
 	draw_texture_rect_region(_t("stir_spoon"), Rect2(CENTER - Vector2(SPOON_SIZE, SPOON_SIZE) / 2, Vector2(SPOON_SIZE, SPOON_SIZE)),
 			Rect2(idx * SPOON_SIZE, 0, SPOON_SIZE, SPOON_SIZE))
+	if phase == Phase.PLAY or phase == Phase.DONE:
+		_draw_steam()
 
 
-## Purely visual bubbles (no RNG, no gameplay): more of them when the pot runs hot.
+## Purely visual bubbles (no RNG, no gameplay): more of them when the pot runs hot or the spoon goes fast; they
+## pop quicker and swirl round with the spoon.
 func _draw_bubbles() -> void:
 	var tex := _t("stir_bubbles")
-	var n := 2 + int(clampf(needle, 0.0, 1.0) * 5.0)
+	var n := 2 + int(clampf(needle, 0.0, 1.0) * 4.0) + int(clampf(stir_speed, 0.0, 1.0) * 3.0)
 	for i in n:
-		var t := fmod(_clock * 0.6 + float(i) * 0.37, 1.0)
-		var ang := float(i) * 2.399
+		var t := fmod(_bub_t + float(i) * 0.37, 1.0)
+		var ang := float(i) * 2.399 + spoon_angle * 0.45
 		var r := 8.0 + float((i * 17) % 34)
 		var pos := (CENTER + Vector2(cos(ang), sin(ang)) * r).round() - Vector2(4, 4)
 		var fr := clampi(int(t * 3.0), 0, 2)
 		draw_texture_rect_region(tex, Rect2(pos, Vector2(8, 8)), Rect2(fr * 8, 0, 8, 8))
+
+
+## Steam wisps rising off the jam (no RNG): more and quicker the faster the stir; each is a wavy 1 px curl that
+## grows, thins from cream to stone and is gone.
+func _draw_steam() -> void:
+	var n := 2 + roundi(clampf(stir_speed, 0.0, 1.0) * 4.0) + (1 if needle > 0.7 else 0)
+	for i in n:
+		var u := _steam_t * (0.8 + 0.07 * i) + float(i) * 0.618
+		var t := fmod(u, 1.0)
+		if t > 0.85:
+			continue
+		var cycle := int(u)
+		var bx := float(((i * 37 + cycle * 23) % 64) - 32)
+		var by := float(((i * 19 + cycle * 29) % 40) - 10)
+		var c: Color = C_STEAM[0 if t < 0.35 else (1 if t < 0.6 else 2)]
+		var segs := 2 + mini(int(t * 8.0), 3)  # a short puff that stretches into a curl
+		for j in segs:
+			var x := CENTER.x + bx + roundf(sin(t * 6.0 + j * 0.8 + i) * 2.0)
+			var y := CENTER.y + by - roundf(t * 34.0) - j * 2
+			draw_rect(Rect2(roundf(x), y - 1, 1, 2), c)
 
 
 func _draw_gauge() -> void:

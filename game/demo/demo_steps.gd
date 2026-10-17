@@ -155,6 +155,25 @@ func wild_pick_special(n: int = 0) -> void:
 			found += 1
 
 
+## Granny picks the nearest pickup with something to take ("ground" or "bush"; "" = either).
+func wild_pick_near(kind: String = "") -> void:
+	var w := _scene()
+	var at: Vector2i = w.granny.current_cell()
+	var best: Node = null
+	var best_d := INF
+	for p: Dictionary in w.map.pickups:
+		if kind != "" and String(p.kind) != kind:
+			continue
+		var o: Node = w.view.find(String(p.kind), int(p.id))
+		if o == null or not o.has_take():
+			continue
+		var d := Vector2(o.cell - at).length()
+		if d < best_d:
+			best_d = d
+			best = o
+	_approach(w, best)
+
+
 func wild_walk(x: int, y: int) -> void:
 	_scene().granny.walk_to(Vector2i(x, y))
 

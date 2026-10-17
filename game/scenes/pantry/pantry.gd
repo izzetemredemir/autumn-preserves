@@ -116,6 +116,9 @@ func _ready() -> void:
 	board.stars_changed.connect(_on_stars_changed)
 	board.hold_started.connect(_on_hold_started)
 	board.hold_ended.connect(_on_hold_ended)
+	board.preview_changed.connect(func(_info: Dictionary) -> void: _lift_shadow())  # FEEL: again after a rotate
+	board.entry_added.connect(func(i: int, _from: Dictionary) -> void: _puff(i))
+	board.entry_moved.connect(_puff)
 	_build_rule_stars()
 	board.setup(b, pantry.items, {
 		"item_size": _item_size, "can_place": _can_place, "zone_for": _zone_for,
@@ -441,9 +444,11 @@ func _on_stars_changed(result: Dictionary, prev: Dictionary) -> void:
 	if n >= 3 and not first and int(prev.get("stars", 0)) < 3:
 		Audio.play_jingle("jgl_pantry_3stars")
 		_show_lovely()
+		_warm_flash()
 
 
 func _on_hold_started(item: Dictionary, _from: Dictionary) -> void:
+	_lift_shadow()
 	_edge_armed = _edge_dir(_pointer) == 0
 	_set_hint(PantryRules.zone_for(item))
 	inbox_empty.visible = false
@@ -474,6 +479,49 @@ func _on_auto() -> void:
 func _on_back() -> void:
 	board.cancel_hold()
 	Router.goto("kitchen" if Router.exists("kitchen") else "title")
+
+
+# --- feel (FEEL) -------------------------------------------------------------------------------------------------
+
+## The held item floats ArrangeBoard.LIFT px up; a 1 px shadow stays on the shelf under it (plum, lower edge).
+func _lift_shadow() -> void:
+	var v: Variant = board.get("_held_view")
+	if not (v is Control) or not is_instance_valid(v) or (v as Control).has_node("LiftShadow"):
+		return
+	var held := v as Control
+	var w := int(held.size.x)
+	var h := int(held.size.y)
+	var r := Rect2i(floori((w - 16) / 2.0) + 3, floori((h - 16) / 2.0) + 16, 10, 1)  # a 16x16 icon, centred
+	var jar: JarIcon = null
+	for c in held.get_children():
+		if c is JarIcon:
+			jar = c
+	if bool(held.get("_crate")):
+		r = Rect2i(2, h, w - 4, 1)
+	elif jar != null:
+		r = Rect2i(int(jar.position.x) + 2, int(jar.position.y + jar.size.y), maxi(int(jar.size.x) - 4, 2), 1)
+	var sh := ColorRect.new()
+	sh.name = "LiftShadow"
+	sh.color = C_INK  # the back wall is plum already: the shadow one tone darker
+	sh.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sh.position = Vector2(r.position.x, r.position.y + ArrangeBoard.LIFT - 1)
+	sh.size = Vector2(r.size)
+	held.add_child(sh)
+
+
+## A tiny dust puff from both bottom corners of the item just set down at board entry `index`.
+func _puff(index: int) -> void:
+	if index < 0 or index >= board.entries.size():
+		return
+	var r := board.entry_rect(index)
+	Juice.dust_puff(board, Vector2(r.position.x + floori(r.size.x / 2.0), r.end.y - 1), floori(r.size.x / 2.0) - 2)
+
+
+## Third star: a warm gold flash over the shelves and a few twinkles.
+func _warm_flash() -> void:
+	var r := Rect2(board.position - Vector2(6, 6), board.size + Vector2(12, 12)).intersection(Rect2(Vector2.ZERO, size))
+	Juice.dither_flash(self, r, C_TEXT_HI, 30)
+	Juice.sparkle(self, r.grow(-8), 12, 31)
 
 
 # --- view helpers ------------------------------------------------------------------------------------------------

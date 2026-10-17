@@ -3,6 +3,8 @@ extends Control
 ## Result card shown after cooking (spec §7.3): jar at x2, name, taste chart, profile, stars, value.
 ## show_result(desc, quality, is_new). `desc` is a ProductGen.describe() dict; an optional "value" int is shown.
 ## Emits `closed` when the player confirms.
+## FEEL: every card plays in (never blocking the button): the jar drops in with a squash, its label stamps on, the
+## earned stars pop in one by one with rising notes, and a "New recipe!" (or Mastered) banner gets a ribbon burst.
 
 signal closed
 
@@ -25,6 +27,8 @@ const STAR := [
 	".##.##.",
 	".#...#.",
 ]
+const DROP := 20  ## px the jar falls in from
+const STAR_SEMITONES := [0, 3, 7, 10, 12]  ## sfx_star_pop pitch per star, one by one (docs/audio.md)
 const FONT_BODY := preload("res://assets/fonts/m6x11plus.ttf")
 const FONT_TITLE := preload("res://assets/fonts/m6x11plus.ttf")
 
@@ -35,6 +39,9 @@ var _banner: Label
 var _name: Label
 var _profile: Label
 var _jar: JarIcon
+var _jar_holder: Control
+var _stamp: LabelStamp
+var _feel: Tween
 var _chart: TasteChart
 var _stars: StarRow
 var _value: Label
@@ -50,6 +57,8 @@ func _ready() -> void:
 func show_result(desc: Dictionary, quality: int, is_new: bool) -> void:
 	_build()
 	_jar.show_product(desc)
+	_jar_holder.custom_minimum_size = _jar.custom_minimum_size
+	_stamp.setup(desc, _jar.zoom)
 	_name.text = str(desc.get("name", "?"))
 	_profile.text = str(desc.get("profile_label", ""))
 	_chart.set_taste(desc.get("taste", [0, 0, 0, 0, 0]))
@@ -69,6 +78,7 @@ func show_result(desc: Dictionary, quality: int, is_new: bool) -> void:
 		_pop_in()
 	else:
 		_panel.modulate.a = 1.0
+	_play_in(is_new)
 
 
 func _build() -> void:
@@ -125,9 +135,14 @@ func _build() -> void:
 	var jar_box := CenterContainer.new()
 	jar_box.custom_minimum_size = Vector2(52, 0)
 	hb.add_child(jar_box)
+	_jar_holder = Control.new()  # FEEL: the jar drops and squashes in here; the container never moves it
+	_jar_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	jar_box.add_child(_jar_holder)
 	_jar = JarIcon.new()
 	_jar.zoom = 2
-	jar_box.add_child(_jar)
+	_jar_holder.add_child(_jar)
+	_stamp = LabelStamp.new()
+	_jar.add_child(_stamp)
 
 	var right := VBoxContainer.new()
 	right.add_theme_constant_override("separation", 2)
@@ -205,6 +220,113 @@ func _pop_in() -> void:
 	_sparkles.burst(Rect2(_panel.global_position - global_position, _panel.size))
 
 
+## FEEL: jar drop and squash, label stamp, stars one by one, ribbons for a banner. Purely visual.
+func _play_in(is_new: bool) -> void:
+	if _feel != null:
+		_feel.kill()
+	var earned := _stars.quality + _stars.harmony
+	_stars.reveal = 0
+	_jar.position = Vector2(0, -DROP)
+	_stamp.covered = _stamp.has_label()
+	_stamp.queue_redraw()
+	_feel = create_tween()
+	_feel.tween_interval(0.14 if is_new else 0.05)
+	_feel.tween_method(func(y: float) -> void: _jar.position.y = roundf(y), float(-DROP), 0.0, 0.2) \
+		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	_feel.tween_callback(_on_jar_landed)
+	_feel.tween_callback(_burst_ribbons)  # checks the banner then: kitchen shows its Mastered line after show_result
+	_feel.tween_interval(0.16)
+	if _stamp.has_label():
+		_feel.tween_callback(_stamp_label)
+		_feel.tween_interval(0.05)
+		_feel.tween_callback(_stamp.set_big.bind(3))
+		_feel.tween_interval(0.05)
+		_feel.tween_callback(_stamp.set_big.bind(0))
+		_feel.tween_interval(0.1)
+	for k in earned:
+		_feel.tween_callback(_pop_star.bind(k))
+		_feel.tween_interval(0.13)
+
+
+func _on_jar_landed() -> void:
+	Juice.squash(_jar, 0.25, 0.16)
+	_sfx("sfx_pantry_place")
+
+
+func _stamp_label() -> void:
+	_stamp.covered = false
+	_stamp.set_big(4)
+	_sfx("sfx_board_pin")
+	var t := create_tween()  # the stamp presses the jar 1 px down
+	t.tween_callback(func() -> void: _jar.position.y = 1.0)
+	t.tween_interval(0.06)
+	t.tween_callback(func() -> void: _jar.position.y = 0.0)
+
+
+func _pop_star(order: int) -> void:
+	_stars.pop_star(order)
+	Juice.sfx_pitched(self, "sfx_star_pop", STAR_SEMITONES[mini(order, STAR_SEMITONES.size() - 1)])
+
+
+## Ribbons from the banner line (wherever kitchen's Mastered text or "New recipe!" sits right now).
+func _burst_ribbons() -> void:
+	if not _banner.visible:
+		return
+	var r := _banner.get_global_rect()
+	var at := r.get_center() - global_position
+	Juice.ribbons(self, Vector2(at.x, r.position.y - global_position.y + 2), mini(int(r.size.x), 90), 18)
+
+
+func _sfx(id: String) -> void:
+	var audio := get_node_or_null("/root/Audio")
+	if audio:
+		audio.play_sfx(id)
+
+
+## FEEL: hides the jar's label until it stamps on: a cover in the jar's fill colour, then the label drawn 4x, 3x
+## and gone (the real one shows underneath at the jar's zoom). Vessels without a label (pie, bread) have none.
+class LabelStamp extends Control:
+	var zoom := 2
+	var rect := Rect2i()  ## label rect in jar pixels (JarIcon geometry); empty = no label
+	var fill := Color()
+	var tex: Texture2D
+	var covered := false
+	var big := 0  ## zoom of the stamp drawn over the label while it lands (0 = none)
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func setup(desc: Dictionary, z: int) -> void:
+		zoom = z
+		covered = false
+		big = 0
+		rect = Rect2i()
+		tex = null
+		var g := JarIcon._geometry(JarIcon._vessel(desc), false)
+		if g.has("label"):
+			rect = g["label"]
+			tex = ImageTexture.create_from_image(JarIcon.render(desc, "shelf").get_region(rect))
+			fill = JarIcon._tones(desc.get("appearance", {}))[1]
+		queue_redraw()
+
+	func has_label() -> bool:
+		return tex != null
+
+	func set_big(z: int) -> void:
+		big = z
+		queue_redraw()
+
+	func _draw() -> void:
+		if tex == null:
+			return
+		if covered:
+			draw_rect(Rect2(rect.position * zoom, rect.size * zoom), fill)
+		if big > 0:
+			var c := Vector2(rect.position * zoom) + Vector2(rect.size * zoom) * 0.5
+			var s := Vector2(rect.size * big)
+			draw_texture_rect(tex, Rect2((c - s * 0.5).floor(), s), false)
+
+
 ## 5 rows: axis name + 9 cells (value 0..9).
 class TasteChart extends Control:
 	var taste: Array = [0, 0, 0, 0, 0]
@@ -230,6 +352,8 @@ class TasteChart extends Control:
 class StarRow extends Control:
 	var quality := 0
 	var harmony := 0
+	var reveal := 5  ## FEEL: earned stars lit so far (quality first, then harmony); the card counts it up
+	var popping := -1  ## star drawn 3x for a moment as it lights up
 
 	func _init() -> void:
 		custom_minimum_size = Vector2(5 * 16, 14)
@@ -241,16 +365,30 @@ class StarRow extends Control:
 		tooltip_text = "%s %d/3  %s %d/2" % [tr("UI_STARS_QUALITY"), q, tr("UI_STARS_HARMONY"), h]
 		queue_redraw()
 
+	## Lights the earned star number `order` (0-based, quality then harmony) with a short 3x pop.
+	func pop_star(order: int) -> void:
+		reveal = order + 1
+		popping = order if order < quality else 3 + order - quality
+		queue_redraw()
+		get_tree().create_timer(0.07).timeout.connect(_unpop)
+
+	func _unpop() -> void:
+		popping = -1
+		queue_redraw()
+
 	func _draw() -> void:
 		for i in 5:
 			var on := (i < quality) if i < 3 else ((i - 3) < harmony)
+			on = on and (i if i < 3 else quality + i - 3) < reveal
 			var c: Color = EMPTY
 			if on:
 				c = GOLD if i < 3 else RED
+			var px := 3 if i == popping else 2
+			var o := Vector2(-3, -4) if i == popping else Vector2.ZERO
 			for y in 7:
 				for x in 7:
 					if STAR[y][x] == "#":
-						draw_rect(Rect2(i * 16 + x * 2, y * 2, 2, 2), c)
+						draw_rect(Rect2(o.x + i * 16 + x * px, o.y + y * px, px, px), c)
 			if i == 2:
 				draw_rect(Rect2(i * 16 + 15, 2, 1, 10), FRAME)
 

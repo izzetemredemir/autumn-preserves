@@ -62,6 +62,7 @@ var near := false:  ## Granny is a few tiles away: cream outline while there is 
 			near = v
 			queue_redraw()
 var _tag: Node2D  ## fruit trees: the paper tag with the fruit icon, drawn above every canopy (z_index)
+var _sway := 0  ## FEEL: whole-px canopy offset while the trunk wiggles (0 = still)
 
 
 func setup(p_kind: String, p_info: Dictionary, p_color: Color) -> void:
@@ -159,6 +160,19 @@ func pop() -> void:
 	t.tween_property(self, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+## FEEL: a 3-frame trunk wiggle (shaken tree): the top half sways 2 px, the next quarter 1 px, the foot stays.
+func wiggle() -> void:
+	var t := create_tween()
+	for s in [2, -2, 1, 0]:
+		t.tween_callback(_set_sway.bind(s))
+		t.tween_interval(0.055)
+
+
+func _set_sway(s: int) -> void:
+	_sway = 0 if Juice.calm else s
+	queue_redraw()
+
+
 ## Whole-pixel wiggle for "can't do that".
 func nudge() -> void:
 	var x := position.x
@@ -167,11 +181,10 @@ func nudge() -> void:
 		t.tween_property(self, "position:x", x + dx, 0.04)
 
 
+## Picked up: gone at once (FEEL: the scene sends its icon popping up into the HUD bag instead).
 func vanish() -> void:
-	var y := position.y
-	var t := create_tween()
-	t.tween_property(self, "position:y", y - 6, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	t.tween_callback(queue_free)
+	visible = false
+	queue_free()
 
 
 ## Tap area and placeholder frame: the painted canopy for trees (as the garden's trees), the leaves for bushes.
@@ -211,10 +224,26 @@ func _draw() -> void:
 	if lit.a > 0.0:
 		var ring := outline_for(tex, lit)
 		if ring != null:
-			draw_texture(ring, at - Vector2.ONE)
+			_draw_swayed(ring, at - Vector2.ONE)
 		else:
 			_frame(_local_rect(), lit)
-	draw_texture(tex, at)
+	_draw_swayed(tex, at)
+
+
+## Draws `tex` at `at`; while swaying in three bands: the top half `_sway` px over, the next quarter half that,
+## the foot where it stands (whole pixels, no rotation).
+func _draw_swayed(tex: Texture2D, at: Vector2) -> void:
+	if _sway == 0:
+		draw_texture(tex, at)
+		return
+	var w := tex.get_width()
+	var h := tex.get_height()
+	var b1 := floori(h * 0.5)
+	var b2 := floori(h * 0.75)
+	var mid := int(_sway / 2.0)
+	draw_texture_rect_region(tex, Rect2(at + Vector2(_sway, 0), Vector2(w, b1)), Rect2(0, 0, w, b1))
+	draw_texture_rect_region(tex, Rect2(at + Vector2(mid, b1), Vector2(w, b2 - b1)), Rect2(0, b1, w, b2 - b1))
+	draw_texture_rect_region(tex, Rect2(at + Vector2(0, b2), Vector2(w, h - b2)), Rect2(0, b2, w, h - b2))
 
 
 ## Gold while faced, cream while near with something to take, else none (alpha 0).
