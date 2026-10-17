@@ -1,6 +1,8 @@
 <p align="center">
-  <img src="shots/banner.png" alt="Autumn Preserves: a cottage in an autumn valley" width="960">
+  <img src="key_art.png" alt="Granny Tonty at her garden gate at golden hour, jars glowing on the fence post, her cat at her feet and the autumn forest beyond" width="960">
 </p>
+
+<h1 align="center">Autumn Preserves</h1>
 
 <p align="center">
   <b>A cozy pixel-art game about a grandma who puts an endless autumn in jars.</b><br>
@@ -8,35 +10,58 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/izzetemredemir/autumn-preserves/releases"><img src="https://img.shields.io/badge/download-macOS%20%7C%20Windows%20%7C%20Web-c94d2e?style=flat-square" alt="Download"></a>
   <img src="https://img.shields.io/badge/Godot-4.7-478cbf?style=flat-square&logo=godotengine&logoColor=white" alt="Godot 4.7">
-  <img src="https://img.shields.io/badge/KODT%C3%9C%207-game%20jam-a22512?style=flat-square" alt="KODTÜ 7 game jam">
-  <img src="https://img.shields.io/badge/palette-Vintage%20Autumn%2C%2031%20colours-b66813?style=flat-square" alt="Vintage Autumn palette">
-  <img src="https://img.shields.io/badge/language-English%20%7C%20T%C3%BCrk%C3%A7e-9b8039?style=flat-square" alt="English and Turkish">
-  <img src="https://img.shields.io/badge/code-MIT-53612e?style=flat-square" alt="Code: MIT">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-53612e?style=flat-square" alt="Code: MIT"></a>
+  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest"><img src="https://img.shields.io/github/v/release/izzetemredemir/autumn-preserves?style=flat-square&color=c94d2e&label=release" alt="Latest release"></a>
 </p>
 
 <p align="center">
-  <img src="shots/trailer.gif" alt="Trailer: a forest grows from a seed, Granny shakes a tree, cooks a jam and sells it at the market" width="960">
+  <b>Download:</b>
+  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/AutumnPreserves.zip">macOS (zip)</a> ·
+  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/AutumnPreserves.exe">Windows (exe)</a> ·
+  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest">Web build</a>
 </p>
 
-Outside the valley of **Everfall** it is winter. Inside, autumn never ends. **Granny Tonty** forages in a forest that did not exist yesterday, cooks what she finds into jams, juices, pickles and pies, arranges the jars on her pantry shelves and shares them with her neighbours, the weekly market and her grandchildren in the city.
+<table align="center">
+  <tr>
+    <td align="center" width="33%"><img src="shots/forest_regrow.gif" alt="The same seed grows the same forest twice, a new seed grows a new one" width="300"><br><sub>Same seed, same forest. New seed, new forest.</sub></td>
+    <td align="center" width="33%"><img src="shots/jar_wall.gif" alt="A wall filling up with generated jars and their names" width="300"><br><sub>Every jar is generated: name, label, taste, value.</sub></td>
+    <td align="center" width="33%"><img src="shots/species.gif" alt="Generated forest species, each with its name and icon" width="300"><br><sub>New wild species, named and drawn from the seed.</sub></td>
+  </tr>
+</table>
 
-Made by **İzzet Emre Demir** for the **KODTÜ 7** game jam (16–18 October 2026).
+## The story
 
-## Try it in ten minutes
+Outside the valley of **Everfall** it is winter. Inside, autumn never ends. For fifty years **Granny Tonty** and **Teo** filled their pantry together: he knew the forest, which tree would fruit on which morning and where the mushrooms hid, and she knew the kitchen. Every autumn they sent parcels of jars over the mountain road to their daughter **Nora** and her children, **Mia** and **Leo**, in the city.
 
-Open the game and press **Harvest Festival** on the title screen. Mia and Leo are visiting, the market is open and everything is unlocked: six small jobs show every system in about ten minutes, and your own save is never touched. The festival ends with a card that tells you which seed your world grew from.
+This summer Teo died. The shelves are empty and the garden gate has been shut ever since. Then a letter comes from Nora: it snowed in the city this morning, the children keep asking when Granny's jars will come, and *"Send us a little autumn. One jar is enough to start."*
 
-## Highlights
+So Tonty opens the gate. The forest grows anew every morning; Teo always said it never gives the same day twice. She cooks what she finds into jams, juices, pickles and pies, arranges the jars on her shelves and shares them with her neighbours, the weekly market and the grandchildren, who write back with crayon drawings. The neighbours remember Teo a little more each time she visits, and somewhere in the old recipe book he left her a letter.
 
-- 🌲 **A new forest every morning.** Value noise, a random-walk stream, Poisson-disk trees, A* paths and weighted pickups, checked by a flood fill so every tree and mushroom can be reached. The same seed always grows the same forest.
-- 🫙 **Every jar is generated.** Name, label, jar art, five-axis taste, harmony stars and value come from the recipe, the ingredient variety and the add-in. *Cinnamon Ember Crabapple Jam* is sweet and sour, scores five stars and is worth 233 coins; nobody wrote that by hand.
-- 🍳 **Short kitchen mini-games.** Stir the pot, pack the jar, press the juice, knead the dough: about twenty seconds each.
-- 🧺 **A pantry puzzle.** The right shelf keeps food fresh, kinds belong together and a pretty shelf earns a third star.
-- 🏡 **A living village.** Five neighbours with orders and gifts, a weekly market with five vendors and a crowd of villagers assembled from hand-drawn parts and recoloured from the seed, and letters from the grandchildren with their crayon drawings.
-- 🍂 **No death, no penalties, no clock.** A day ends when Granny goes to bed. Stay long enough and the valley has one quiet surprise.
-- 🇹🇷 **English or Turkish.** Turkish jar names follow vowel harmony: *Tarçınlı*, *Cevizli*, *Elma Reçeli*.
+<p align="center">
+  <img src="shots/story_strip.png" alt="Nora's letter, a drawing from Leo on the kitchen wall, Teo's letter inside the recipe book, and a perfect pantry" width="960"><br>
+  <sub>Nora's letter · a drawing from Leo on the kitchen wall · Teo's letter in the recipe book · a full pantry</sub>
+</p>
+
+## How it is generated
+
+<p align="center">
+  <img src="how_generated.png" alt="Diagram: hash(save seed, day, stream) feeds the forest, the species, jar names and tastes, the weather and the orders" width="960">
+</p>
+
+Every system draws from its own random stream, seeded with `hash(save seed, day, stream)`. Changing one system never shifts another, the same seed always grows the same day, and the seed is always on screen.
+
+- **Forest:** value noise, a random-walk stream, Poisson-disk trees, A* paths and weighted pickups, checked by a flood fill so every tree and mushroom can be reached. Three biomes: the forest, a vineyard and a creek.
+- **Species and varieties:** each save has its own ingredient varieties, and new wild species (fruits, mushrooms and vegetables) appear in the forest with their own names, colours and tastes.
+- **Jars:** name, label, jar art, five-axis taste, harmony stars and value come from the recipe, the variety and the add-in. *Cinnamon Ember Crabapple Jam* is sweet and sour, scores five stars and is worth 233 coins; nobody wrote that by hand. Turkish names follow vowel harmony.
+- **Weather, orders and the village:** sunny, windy, foggy or rainy days, neighbours' orders, the market crowd assembled from hand-drawn parts, and the children's drawings.
+
+<details>
+<summary><b>Watch it happen: the Forest Lab</b></summary>
+
+Press **L** on the title screen to open the Forest Lab. Type any number or word as a seed, pick a biome and press **G** to watch the forest being built step by step: noise, stream, Poisson-disk trees (with their rejection circles), A* paths, pickups and the flood-fill check. **C** compares two seeds side by side.
+
+</details>
 
 ## Screenshots
 
@@ -47,15 +72,15 @@ Open the game and press **Harvest Festival** on the title screen. Mia and Leo ar
 | ![A new jam: name, taste and value](shots/jam.png) | ![The pantry shelves](shots/pantry.png) |
 | ![The weekly market](shots/market.png) | ![A letter from Mia](shots/letters.png) |
 
-## Jam constraints
+## How to play
 
-| Constraint | In the game |
-|---|---|
-| Pixelated art style | Everything is pixel art at 480×270, scaled by whole numbers only |
-| Autumn colour palette | One 31-colour palette, [Vintage Autumn](https://lospec.com/palette-list/vintage-autumn) by Goopy25; every sprite is checked against it automatically |
-| Procedural generation | Daily forests in three biomes, ingredient varieties per save, preserves (name, jar art, taste, value, Turkish grammar), orders, weather, critters, market villagers and their routes, children's drawings. The seed is always on screen |
+- **Try it in ten minutes:** press **Harvest Festival** on the title screen. Mia and Leo are visiting, the market is open and everything is unlocked: six small jobs show every system, and your own save is never touched.
+- **Forage** in the forest, **cook** in short kitchen mini-games (stir, pack, press, knead), **arrange** the pantry so every jar is on the right shelf, and **share** with neighbours, the market and the grandchildren.
+- No death, no penalties, no clock. A day ends when Granny goes to bed.
+- Everything is playable with the mouse alone. English or Turkish.
 
-## Controls
+<details>
+<summary><b>Controls</b></summary>
 
 | Action | Mouse / touch | Keyboard |
 |---|---|---|
@@ -67,14 +92,12 @@ Open the game and press **Harvest Festival** on the title screen. Mia and Leo ar
 | Menu: settings, back to title, quit | The gear in the top bar | Esc |
 | Sound on / off | | M |
 
-Everything is playable with the mouse alone.
-
-## Run it
-
-**Builds** for macOS, Windows and the web are on the [Releases](https://github.com/izzetemredemir/autumn-preserves/releases) page. The macOS build is unsigned: right-click the app and choose Open the first time. The game saves locally and needs no network.
+</details>
 
 <details>
-<summary><b>From source</b></summary>
+<summary><b>Run it from source</b></summary>
+
+The macOS build is unsigned: right-click the app and choose Open the first time. The game saves locally and needs no network.
 
 1. Install [Godot 4.7](https://godotengine.org/).
 2. Open `game/project.godot` and press Play, or run `godot --path game`.
@@ -82,12 +105,15 @@ Everything is playable with the mouse alone.
 
 </details>
 
-<details>
-<summary><b>Behind the scenes: the Forest Lab</b></summary>
+## Made in 48 hours for KODTÜ 7
 
-Press **L** on the title screen to open the Forest Lab. Type any number or word as a seed, pick a biome and press **G** to watch the forest being built step by step: noise, stream, Poisson-disk trees (with their rejection circles), A* paths, pickups and the flood-fill check. **C** compares two seeds side by side.
+Made by one person, **İzzet Emre Demir**, in 48 hours for the **KODTÜ 7** game jam (16–18 October 2026).
 
-</details>
+| Jam constraint | In the game |
+|---|---|
+| Pixelated art style | Everything is pixel art at 480×270, scaled by whole numbers only |
+| Autumn colour palette | One 31-colour palette, [Vintage Autumn](https://lospec.com/palette-list/vintage-autumn) by Goopy25; every sprite is checked against it automatically |
+| Procedural generation | Daily forests in three biomes, ingredient varieties per save, wild species, preserves (name, jar art, taste, value, Turkish grammar), orders, weather, critters, market villagers and their routes, children's drawings |
 
 ## Credits and license
 
