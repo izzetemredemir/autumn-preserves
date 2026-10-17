@@ -70,6 +70,10 @@ func _end_time() -> float:
 
 
 func _process(delta: float) -> void:
+	# Movie Maker on macOS: a covered or unfocused window is not drawn, so the writer would repeat one frame for the
+	# rest of the recording. Draw it ourselves whenever the window cannot (same trick as the smoke scripts).
+	if Engine.get_write_movie_path() != "" and not DisplayServer.window_can_draw():
+		RenderingServer.force_draw(false)
 	_time += delta / maxf(Engine.time_scale, 0.001)
 	while not _events.is_empty() and float(_events[0]["t"]) <= _time:
 		_run(_events.pop_front())
