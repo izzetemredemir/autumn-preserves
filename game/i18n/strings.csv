@@ -677,6 +677,33 @@ MARKET_HELLO_3,Jam or pickles?
 MARKET_HELLO_4,"Nice day, isn't it?"
 TITLE_MARKET_DAY,Market day
 TITLE_MARKET_DAY_TIP,"The demo day moved to its first weekly market, straight to Granny's stall. Your own save stays untouched."
+TITLE_FESTIVAL,Harvest Festival
+FESTIVAL_NOTE_TITLE,Festival
+TUT_F_SHAKE,Shake the rare tree
+TUT_F_JAM,Cook a new jam
+TUT_F_JUICE,Press a juice
+TUT_F_PANTRY,Pantry to 3 stars
+TUT_F_MARKET,Sell at the market
+TUT_F_LETTER,Read Mia's letter
+FESTIVAL_START_TITLE,Harvest Festival!
+FESTIVAL_START_1,Everfall's Harvest Festival! Mia and Leo came to visit and the market is in town today.
+FESTIVAL_START_2,"Six little jobs today, a minute or two each. Granny's note shows the way."
+FESTIVAL_GO,Let's go!
+FESTIVAL_END_TITLE,What a festival!
+FESTIVAL_END_SEED,Your Everfall was grown from seed %s:
+FESTIVAL_END_MAP,%s tiles and %d trees in today's forest.
+FESTIVAL_END_FOUND,%d varieties found. New recipes today: %d.
+FESTIVAL_END_COINS,The market paid %d coins.
+FESTIVAL_END_BYE,Mia and Leo can't wait for next autumn!
+FESTIVAL_KEEP,Keep playing
+FESTIVAL_TO_TITLE,Back to title
+FESTIVAL_THOUSANDS,","
+FESTIVAL_MIA_1,Granny! Look at all the leaves!
+FESTIVAL_MIA_2,Can we make jam together?
+FESTIVAL_MIA_3,Did you get my drawing?
+FESTIVAL_LEO_1,Race you to the gate!
+FESTIVAL_LEO_2,I almost caught a bird!
+FESTIVAL_LEO_3,Is it market day? Can I come?
 GARDEN_TRUCK_1,Walter's old truck. It hasn't\nstarted in years but it still\ncarries the pumpkins.
 GARDEN_TRUCK_2,Walter drove us to market\nin this every Saturday.\nHe sang the whole way.
 GARDEN_TRUCK_3,He always said she just\nneeded a little rest.\nShe's having a long one.
@@ -734,3 +761,4 @@ TOWN_CHAT_HELLO_3,Lovely day!
 GARDEN_CLOTHESLINE_1,"Mia's old quilt, out for the breeze.\nIt still smells of apples."
 GARDEN_CLOTHESLINE_2,Nothing dries like an autumn wind.
 GARDEN_CLOTHESLINE_3,"Walter's apron. I wear it\nfor jam days."
+FESTIVAL_RARE_TREE,Rare tree

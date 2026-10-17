@@ -11,7 +11,7 @@ const EDGE := 2.0
 const SIZES := [18, 36]
 ## Path fragments (scene file or script) whose findings must be zero; others are only listed.
 const OWNED := ["scenes/garden/", "scenes/pantry/", "scenes/title/", "scenes/seed_lab/", "ui/book/", "ui/letters/", "ui/hud/", "ui/result_card/",
-	"scenes/farewell/"]
+	"scenes/farewell/", "ui/festival/"]
 
 var _gs: Node
 var _findings: Array = []  ## {state, kind, path, origin, owned, detail}
@@ -68,6 +68,7 @@ func _run() -> void:
 		s.queue_free()
 		await _frames(2)
 	await _farewell()
+	await _festival_cards()
 	# Overlays on top of a quiet backdrop
 	_fresh()
 	var bg := ColorRect.new()
@@ -153,6 +154,26 @@ func _farewell() -> void:
 	fw.queue_free()
 	root.get_node("Router").params = {}
 	await _frames(2)
+
+
+## FESTIVAL: the Harvest Festival's start card and end card (facts from the festival save).
+func _festival_cards() -> void:
+	var d := FestivalFacts.load_save()
+	if d.is_empty():
+		return
+	_gs.data = d
+	_gs.notify(PackedStringArray(["*"]))
+	for which in ["start", "end"]:
+		var c := FestivalCard.new()
+		root.add_child(c)
+		if which == "start":
+			c.show_start()
+		else:
+			c.show_end(FestivalFacts.summary(d))
+		await create_timer(0.5).timeout  # after the pop-in
+		await _audit("festival/" + which, c)
+		c.queue_free()
+		await _frames(2)
 
 
 func _overlays(tag: String) -> void:

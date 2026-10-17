@@ -1,5 +1,6 @@
 extends Control
-## Title (GD-META): name, slogan, New Game (with a seed field), Continue, Seed Lab, Settings.
+## Title (GD-META): name, slogan, Harvest Festival, New Game (with a seed field), Continue, Seed Lab, Settings.
+## Harvest Festival (FESTIVAL, every build): the crafted showcase day as a temporary game (Festival.start).
 ## New Game -> premise (ui/premise) -> garden (kitchen until the garden exists). Continue loads the save; a save the
 ## farewell closed (spec §7.12) shows a "Completed" card and Continue becomes Memory (scenes/farewell, Memory mode).
 ## Also applies saved settings and adds the debug panel (F1) in debug builds. A language change in Settings reloads
@@ -30,6 +31,8 @@ func _ready() -> void:
 	_settings.closed.connect(_show_menu)
 	_settings.language_changed.connect(_on_language_changed)
 	_center(_settings)
+	%Festival.pressed.connect(_on_festival)
+	%Festival.disabled = not FileAccess.file_exists(FestivalFacts.SAVE)
 	%NewGame.pressed.connect(_on_new_game)
 	%Continue.pressed.connect(_on_continue)
 	%SeedLab.pressed.connect(_on_seed_lab)
@@ -157,6 +160,17 @@ func _on_language_changed() -> void:
 	get_tree().reload_current_scene.call_deferred()
 
 
+## The Harvest Festival: never touches the player's save (a temporary game, see Festival).
+func _on_festival() -> void:
+	if _starting:
+		return
+	_starting = true
+	Audio.play_ui("ui_confirm")
+	if not Festival.start():
+		_starting = false
+		Audio.play_ui("ui_error")
+
+
 func _on_seed_lab() -> void:
 	Audio.play_ui("ui_click")
 	Transition.go("seed_lab")
@@ -188,8 +202,8 @@ func _show_completed(days: int) -> void:
 	var row := CenterContainer.new()
 	row.anchor_left = 0.0
 	row.anchor_right = 1.0
-	row.offset_top = 208
-	row.offset_bottom = 238
+	row.offset_top = 224
+	row.offset_bottom = 254
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(row)
 	row.add_child(card)

@@ -4,6 +4,7 @@ extends CanvasLayer
 ## Lives under the tree root so it survives scene changes; `GrannyTodo.ensure()` creates it once.
 ## Steps tick from GameState.changed (rules in TodoRules); progress is written to state.flags.tutorial.
 ## Scenes can read `GrannyTodo.current_step()` + TodoRules.SCENE_OF to make the step's object glow.
+## FESTIVAL: a festival save shows its six-step checklist under the festival title, even with the tutorial setting off.
 
 signal step_changed(step: String)
 
@@ -29,6 +30,7 @@ var _collapsed := false
 var _celebrating := false
 var _earned := 0
 var _orders := 0
+var _auto_pinned := false  ## pin_open() holds the note open until the next scene change
 
 
 static func ensure() -> GrannyTodo:
@@ -59,7 +61,11 @@ func _ready() -> void:
 	add_to_group("granny_todo")
 	_build()
 	GameState.changed.connect(_on_changed)
-	Router.scene_changed.connect(func(_id: String) -> void: _evaluate(false))
+	Router.scene_changed.connect(func(_id: String) -> void:
+		if _auto_pinned:
+			_auto_pinned = false
+			_collapsed = true
+		_evaluate(false))
 	_sync_money()
 	_evaluate(false)
 
@@ -85,7 +91,7 @@ func _build() -> void:
 	_panel.add_child(box)
 	var head := HBoxContainer.new()
 	box.add_child(head)
-	_header = _label(tr("TUT_TITLE"), FRAME)
+	_header = _label(_title(), FRAME)
 	_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_header.clip_text = true
 	_header.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -114,6 +120,11 @@ func _on_changed(keys: PackedStringArray) -> void:
 		_sync_money()
 		_bits = -1
 	_evaluate(true)
+
+
+## "Granny's To-Do", or the festival's title on a festival save.
+func _title() -> String:
+	return tr("FESTIVAL_NOTE_TITLE") if TodoRules.is_festival(GameState.data) else tr("TUT_TITLE")
 
 
 func _sync_money() -> void:
@@ -155,11 +166,11 @@ func _evaluate(feedback: bool) -> void:
 
 
 func _visible_for(d: Dictionary, bits: int) -> bool:
-	if not GameSettings.tutorial_enabled() or TodoRules.is_closed(bits):
+	if TodoRules.is_closed(bits) or not (GameSettings.tutorial_enabled() or TodoRules.is_festival(d)):
 		return false
 	if Router.current in HIDDEN_IN:
 		return false
-	if TodoRules.steps_for_day(int(d.get("day", 1))).is_empty():
+	if TodoRules.steps_for(d).is_empty():
 		return false
 	return _celebrating or not TodoRules.day_finished(d, bits)
 
@@ -183,7 +194,7 @@ func _refresh(pop_new: bool) -> void:
 	_apply_fold()
 	if not visible:
 		return
-	for s in TodoRules.steps_for_day(int(d.day)):
+	for s in TodoRules.steps_for(d):
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 3)
 		var box := TickBox.new()
@@ -203,7 +214,7 @@ func _refresh(pop_new: bool) -> void:
 ## The most recently finished step of today's list (the last done one in list order).
 func _last_done(d: Dictionary) -> String:
 	var last := ""
-	for s in TodoRules.steps_for_day(int(d.day)):
+	for s in TodoRules.steps_for(d):
 		if TodoRules.is_done(_bits, s):
 			last = s
 	return last
@@ -216,13 +227,13 @@ func _apply_fold() -> void:
 	var total := 0
 	var done := 0
 	if not d.is_empty():
-		for s in TodoRules.steps_for_day(int(d.get("day", 1))):
+		for s in TodoRules.steps_for(d):
 			total += 1
 			if TodoRules.is_done(_bits, s):
 				done += 1
 	var count := "%d/%d" % [done, total]
 	if open:
-		_header.text = "%s %s" % [tr("TUT_TITLE"), count]
+		_header.text = "%s %s" % [_title(), count]
 	elif _step != "":
 		_header.text = "%s %s" % [count, tr(TodoRules.key_of(_step))]
 	else:
@@ -263,9 +274,22 @@ func _popup_open() -> bool:
 	return false
 
 
+## Opens the note (after the festival's start card: the six steps show at once) until a click folds it or the
+## scene changes.
+func pin_open() -> void:
+	_collapsed = false
+	_auto_pinned = true
+	_apply_fold()
+
+
+func is_open() -> bool:
+	return _rows != null and _rows.visible
+
+
 func _on_header_input(event: InputEvent) -> void:
 	var tap: bool = event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
 	if tap:
+		_auto_pinned = false
 		_collapsed = not _collapsed
 		Audio.play_ui("ui_click")
 		_apply_fold()

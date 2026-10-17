@@ -677,6 +677,33 @@ MARKET_HELLO_3,Reçel mi turşu mu?
 MARKET_HELLO_4,"Güzel gün, değil mi?"
 TITLE_MARKET_DAY,Pazar günü
 TITLE_MARKET_DAY_TIP,"Demo gününün ilk haftalık pazarı, doğrudan ninenin tezgâhına. Kendi kaydına dokunmaz."
+TITLE_FESTIVAL,Hasat Şenliği
+FESTIVAL_NOTE_TITLE,Şenlik
+TUT_F_SHAKE,Nadir ağacı silkele
+TUT_F_JAM,Yeni bir reçel yap
+TUT_F_JUICE,Meyve suyu sık
+TUT_F_PANTRY,Kiler 3 yıldız olsun
+TUT_F_MARKET,Pazarda sat
+TUT_F_LETTER,Mia'nın mektubu
+FESTIVAL_START_TITLE,Hasat Şenliği!
+FESTIVAL_START_1,Everfall'da Hasat Şenliği! Mia ile Leo ziyarete geldi ve bugün kasabada pazar var.
+FESTIVAL_START_2,"Bugün altı küçük iş var, her biri bir iki dakika. Ninenin notu yolu gösterir."
+FESTIVAL_GO,Hadi başlayalım!
+FESTIVAL_END_TITLE,Ne güzel bir şenlik!
+FESTIVAL_END_SEED,Senin Everfall'un %s tohumundan büyüdü:
+FESTIVAL_END_MAP,Bugünkü ormanda %s kare ve %d ağaç.
+FESTIVAL_END_FOUND,%d çeşit bulundu. Bugün yeni tarif: %d.
+FESTIVAL_END_COINS,Pazardan %d altın geldi.
+FESTIVAL_END_BYE,Mia ile Leo gelecek sonbaharı iple çekiyor!
+FESTIVAL_KEEP,Oynamaya devam
+FESTIVAL_TO_TITLE,Ana menüye dön
+FESTIVAL_THOUSANDS,.
+FESTIVAL_MIA_1,Nine! Şu yapraklara bak!
+FESTIVAL_MIA_2,Birlikte reçel yapalım mı?
+FESTIVAL_MIA_3,Resmimi aldın mı?
+FESTIVAL_LEO_1,Kapıya kadar yarışalım!
+FESTIVAL_LEO_2,Az kalsın bir kuş yakalıyordum!
+FESTIVAL_LEO_3,Bugün pazar mı? Ben de gelebilir miyim?
 GARDEN_TRUCK_1,Walter'ın eski kamyoneti.\nYıllardır çalışmıyor ama\nbalkabaklarını hâlâ taşıyor.
 GARDEN_TRUCK_2,Walter bizi her cumartesi\nbununla pazara götürürdü.\nYol boyu şarkı söylerdi.
 GARDEN_TRUCK_3,Biraz dinlenmesi gerek\nderdi hep. Epey dinlendi.
@@ -734,3 +761,4 @@ TOWN_CHAT_HELLO_3,Ne güzel bir gün!
 GARDEN_CLOTHESLINE_1,"Mia'nın eski yorganı, rüzgârda.\nHâlâ elma kokuyor."
 GARDEN_CLOTHESLINE_2,Sonbahar rüzgârı gibi kurutan yok.
 GARDEN_CLOTHESLINE_3,"Walter'ın önlüğü. Reçel\ngünleri ben takıyorum."
+FESTIVAL_RARE_TREE,Nadir ağaç

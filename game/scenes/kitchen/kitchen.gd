@@ -29,7 +29,7 @@ const BLINK_SEC := 0.14
 const PANEL_POS := Vector2(8, 30)
 const STICKY_MS := 4000
 ## Granny's To-Do steps that happen at a kitchen object; steps elsewhere light the door that leads there.
-const STEP_SPOT := {"d1_jam": "stove", "d1_bed": "bed", "d2_brine": "counter"}
+const STEP_SPOT := {"d1_jam": "stove", "d1_bed": "bed", "d2_brine": "counter", "f_jam": "stove", "f_juice": "press"}
 const NAV := [["move_left", SIDE_LEFT], ["move_right", SIDE_RIGHT], ["move_up", SIDE_TOP], ["move_down", SIDE_BOTTOM]]
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const Hotspot := preload("res://scenes/kitchen/hotspot.gd")

@@ -73,6 +73,8 @@ func _ready() -> void:
 	_build_cat()
 	_build_critters()
 	_build_life()
+	if TodoRules.festival_today(GameState.data):
+		Grandkids.attach(self)  # FESTIVAL: Mia and Leo visit
 	camera.target = granny
 	camera.bounds = Rect2i(0, 0, Layout.W * Layout.TILE, Layout.VIEW_H)
 	camera.snap()
@@ -867,6 +869,8 @@ func _todo_spot() -> GardenSpot:
 				for s in spots:
 					if s.kind == "tree" and s.tree_type == "apple":
 						return s
+			if step == "f_letter":
+				return find_spot("mailbox")
 		"kitchen", "pantry":
 			return find_spot("door")
 		"wild":
