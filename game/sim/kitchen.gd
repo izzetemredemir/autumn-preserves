@@ -384,3 +384,150 @@ static func _consume(state: Dictionary, plan: Dictionary) -> void:
 		State.take(state, {"where": t.where, "index": int(t.index)}, int(t.count))
 	for id in plan.cupboard:
 		state.cupboard[id] = int(state.cupboard.get(id, 0)) - int(plan.cupboard[id])
+
+
+# --- inventions (FORMULA-KITCHEN) ---------------------------------------------------------------------------------
+## A formula = a method + 2-4 components + 0-2 add-ins (FormulaGen, res://data/formula.json). Components: fresh
+## varieties (formula.json use.fresh units each), nut types (use.nut) and matured products by key (use.product);
+## inbox first, then pantry, like a recipe. Add-ins: nuts from nut stacks, the rest from the cupboard. Same energy as
+## a recipe of that method; no jar or other base. The product goes to the inbox; state.formulas[key] counts it
+## (never book.variants: those are recipe variants). Reasons: UI_KITCHEN_WRONG (method not here, unknown part),
+## UI_FORMULA_COUNT (2-4 components, at most 2 add-ins), UI_FORMULA_TOO_DEEP, UI_KITCHEN_MISSING, UI_TIRED.
+
+const R_FX_COUNT := "UI_FORMULA_COUNT"
+const R_FX_DEEP := "UI_FORMULA_TOO_DEEP"
+
+
+## Methods this save can invent with: the stove and jar counter always, the press and board once unlocked.
+static func formula_methods(state: Dictionary) -> Array:
+	return FormulaGen.methods().filter(func(m: String) -> bool: return formula_method_ok(state, m))
+
+
+static func formula_method_ok(state: Dictionary, method: String) -> bool:
+	if not FormulaGen.methods().has(method):
+		return false
+	var gate := String(STATION_UNLOCK.get(method, ""))
+	return gate == "" or Economy.unlocked(state, gate)
+
+
+## {"ok", "reason", "missing": {id: count}, "key": the formula key ("" when the parts do not make one)}
+static func check_formula(state: Dictionary, method: String, components: Array, addins: Array) -> Dictionary:
+	var plan := _plan_formula(state, method, components, addins)
+	return {"ok": plan.ok, "reason": plan.reason, "missing": plan.missing, "key": plan.key}
+
+
+## Consumes the parts and energy, puts the invention in the inbox, counts it in state.formulas.
+## {"ok", "item", "items", "desc", "is_new", "quality", "mastered": false, "formula": true, "key"} like cook_n().
+static func cook_formula(state: Dictionary, method: String, components: Array, addins: Array, quality: int) -> Dictionary:
+	var plan := _plan_formula(state, method, components, addins)
+	if not plan.ok:
+		return {"ok": false, "reason": plan.reason, "missing": plan.missing}
+	if not _spend_energy(state, plan.action):
+		return {"ok": false, "reason": R_TIRED, "missing": {}}
+	_consume(state, plan)
+	var key: String = plan.key
+	var q := clampi(quality, 1, 3)
+	var item := State.product(key, q, FormulaGen.wait_days(key), FormulaGen.shelf_days(key))
+	state.inbox.append(item)
+	var desc := ProductGen.describe(key, state.varieties)
+	var stars := ProductGen.total_stars(q, int(desc.harmony))
+	var made := State.formulas(state)
+	var is_new := not made.has(key)
+	if is_new:
+		made[key] = {"made": 1, "best": stars, "day": int(state.day)}
+	else:
+		var e: Dictionary = made[key]
+		e.made = int(e.get("made", 0)) + 1
+		e.best = maxi(int(e.get("best", 0)), stars)
+	state.stats.jars_made = int(state.stats.get("jars_made", 0)) + 1
+	return {"ok": true, "item": item, "items": [item], "desc": desc, "is_new": is_new, "quality": q, "mastered": false,
+		"formula": true, "key": key}
+
+
+## _plan() for a formula: the same {"ok","reason","missing","takes","cupboard","action","mult"} plus "key".
+static func _plan_formula(state: Dictionary, method: String, components: Array, addins: Array) -> Dictionary:
+	var out := {"ok": false, "reason": "", "missing": {}, "takes": [], "cupboard": {}, "action": method, "mult": 1, "key": ""}
+	var cfg := FormulaGen.cfg()
+	var comps := FormulaGen.unique(components.map(func(c: Variant) -> String: return FormulaGen.token(String(c))))
+	var ads := FormulaGen.unique(addins)
+	if not formula_method_ok(state, method):
+		out.reason = R_WRONG
+		return out
+	if comps.size() < int(cfg.components_min) or comps.size() > int(cfg.components_max) or ads.size() > int(cfg.addins_max):
+		out.reason = R_FX_COUNT
+		return out
+	var use: Dictionary = cfg.use
+	var fresh := {}
+	var nuts := {}
+	var products := {}
+	for c: String in comps:
+		var id := c.substr(1, c.length() - 2) if c.begins_with("[") else c
+		match FormulaGen.component_kind(c):
+			"product":
+				var known: bool = FormulaGen.parse(id).ok if FormulaGen.is_formula(id) else Data.recipes().has(ProductGen.parse_key(id).recipe)
+				if not known:
+					out.reason = R_WRONG
+					return out
+				products[id] = int(use.product)
+			"nut":
+				nuts[id] = int(nuts.get(id, 0)) + int(use.nut)
+			_:
+				if not state.varieties.has(id):
+					out.reason = R_WRONG
+					return out
+				fresh[id] = int(use.fresh)
+	for a: String in ads:
+		if not Data.addins().has(a):
+			out.reason = R_WRONG
+			return out
+		if String(Data.addins()[a].kind) == "nut":
+			nuts[a] = int(nuts.get(a, 0)) + 1
+		else:
+			out.cupboard[a] = int(out.cupboard.get(a, 0)) + 1
+	out.key = FormulaGen.make_key(method, comps, ads)
+	if FormulaGen.depth(out.key) > int(cfg.max_depth):
+		out.reason = R_FX_DEEP
+		return out
+	for vid: String in fresh:
+		_gather_into(out, _gather(state, {}, vid, int(fresh[vid])), vid, int(fresh[vid]))
+	for t: String in nuts:
+		_gather_into(out, _gather(state, {"nut": t}, t, int(nuts[t])), t, int(nuts[t]))
+	for k: String in products:
+		_gather_into(out, _gather_key(state, k, int(products[k])), k, int(products[k]))
+	var missing: Dictionary = out.missing
+	for id: String in out.cupboard:
+		var have := int(state.cupboard.get(id, 0))
+		if have < int(out.cupboard[id]):
+			missing[id] = int(out.cupboard[id]) - have
+	if not missing.is_empty():
+		out.reason = R_MISSING
+		return out
+	if int(state.energy) < energy_cost(method):
+		out.reason = R_TIRED
+		return out
+	out.ok = true
+	return out
+
+
+static func _gather_into(plan: Dictionary, got: Dictionary, id: String, need: int) -> void:
+	plan.takes.append_array(got.takes)
+	if int(got.have) < need:
+		plan.missing[id] = need - int(got.have)
+
+
+## Up to `need` matured products with exactly this key, inbox first, then pantry. Same shape as _gather().
+static func _gather_key(state: Dictionary, key: String, need: int) -> Dictionary:
+	var takes: Array = []
+	var have := 0
+	for src: Array in [["inbox", state.inbox], ["pantry", state.pantry.items]]:
+		var list: Array = src[1]
+		for i in list.size():
+			if have >= need:
+				break
+			var item: Dictionary = list[i].item if src[0] == "pantry" else list[i]
+			if String(item.get("kind", "")) != "product" or String(item.get("key", "")) != key or int(item.get("wait_left", 0)) > 0:
+				continue
+			var n := mini(int(item.get("count", 1)), need - have)
+			takes.append({"where": src[0], "index": i, "count": n})
+			have += n
+	return {"have": have, "takes": takes}

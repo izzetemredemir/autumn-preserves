@@ -38,6 +38,7 @@ const CookPanel := preload("res://scenes/kitchen/cook_panel.gd")
 const Shelf := preload("res://scenes/kitchen/waiting_shelf.gd")
 const Wall := preload("res://scenes/kitchen/wall_drawings.gd")
 const Doze := preload("res://scenes/kitchen/doze.gd")
+const FormulaPanel := preload("res://scenes/kitchen/formula_panel.gd")  ## FORMULA-KITCHEN: the Invent panel
 ## Idle seconds before Granny dozes off on a hint day, and where her chair stands (by the stove, where she waits;
 ## rockers on the floor at y 186, same scale as her).
 const DOZE_AFTER := 10.0
@@ -53,6 +54,7 @@ var _bar: PanelContainer
 var _message: Label
 var _blocker: Control
 var _panel: Panel
+var _fx_panel: Panel  ## FORMULA-KITCHEN: Invent panel (in place of the cook panel while it is open)
 var _dialog: PanelContainer
 var _sleep_btn: Button
 var _overlay: CanvasLayer
@@ -208,6 +210,14 @@ func _build_panel() -> void:
 	_panel.cook_requested.connect(_on_cook_requested)
 	_panel.batch_requested.connect(_on_batch_requested)
 	_panel.close_requested.connect(_close_panel)
+	_panel.invent_requested.connect(_open_formula)
+	_fx_panel = FormulaPanel.new()
+	_fx_panel.visible = false
+	_overlay.add_child(_fx_panel)
+	_fx_panel.position = PANEL_POS
+	_fx_panel.home = PANEL_POS
+	_fx_panel.cook_requested.connect(_on_formula_cook)
+	_fx_panel.close_requested.connect(_close_formula)
 
 
 func _build_dialog() -> void:
@@ -257,6 +267,8 @@ func _refresh() -> void:
 	_wall.show_letters(d)
 	if _panel.visible and _mg == null:
 		_panel.refresh()
+	if _fx_panel.visible and _mg == null:
+		_fx_panel.refresh()
 	_update_glow()
 
 
@@ -460,6 +472,8 @@ func _on_blocker_input(event: InputEvent) -> void:
 			_close_dialog()
 		elif _panel.visible:
 			_close_panel()
+		elif _fx_panel.visible:
+			_close_formula()
 
 
 # ---------------------------------------------------------------- cook panel and mini-game
@@ -496,13 +510,18 @@ func _on_cook_requested(recipe_id: String, main_v: String, second_v: String, add
 		types.append(State.type_of_variety(v))
 	var ctx := {"seed": Seeds.seed_for(int(d.save_seed), "appearance", int(d.day), key), "recipe": recipe_id,
 		"varieties": varieties, "addin": addin_id, "desc": ProductGen.describe(key, d.varieties), "ingredient_types": types}
+	_play_minigame(String(Data.recipes()[recipe_id].method), ctx)
+
+
+## Starts `method`'s mini-game with `ctx` (+ debug_ctx) over the hidden room; its result comes to _on_minigame_done.
+func _play_minigame(method: String, ctx: Dictionary) -> void:
 	ctx.merge(debug_ctx, true)
 	Audio.play_ui("ui_confirm")
 	_panel.visible = false
+	_fx_panel.visible = false
 	_blocker.visible = false
 	_set_room_active(false)
 	_set_world_visible(false)
-	var method := String(Data.recipes()[recipe_id].method)
 	var path := MINIGAME % [method, method]
 	if not ResourceLoader.exists(path):
 		_on_minigame_done.call_deferred({"stars": 2})
@@ -539,8 +558,51 @@ func _on_minigame_done(result: Dictionary) -> void:
 	var stars := clampi(int(result.get("stars", 1)), 1, 3)
 	var c := _cooking
 	_cooking = {}
-	var res := Kitchen.cook_n(GameState.data, c.recipe, c.main, c.second, c.addin, stars, int(c.get("mult", 1)))
+	var res := {}
+	if c.has("formula"):
+		res = Kitchen.cook_formula(GameState.data, c.method, c.components, c.addins, stars)
+	else:
+		res = Kitchen.cook_n(GameState.data, c.recipe, c.main, c.second, c.addin, stars, int(c.get("mult", 1)))
 	_show_result(res)
+
+
+# --- inventions (FORMULA-KITCHEN) ---
+
+## The cook panel's Invent button: the Invent panel takes its place on the same station.
+func _open_formula(station: String) -> void:
+	Audio.play_ui("ui_click")
+	_panel.visible = false
+	_blocker.visible = true
+	_fx_panel.open(station)
+
+
+## Back from the Invent panel: the station's cook panel again.
+func _close_formula() -> void:
+	if not _fx_panel.visible:
+		return
+	_fx_panel.visible = false
+	Audio.play_ui("ui_back")
+	_panel.open(_panel.station)
+
+
+func _on_formula_cook(method: String, components: Array, addins: Array) -> void:
+	if _mg != null or _card != null:
+		return
+	var d := GameState.data
+	var chk := Kitchen.check_formula(d, method, components, addins)
+	if not chk.ok:
+		return
+	var key := String(chk.key)
+	_cooking = {"formula": true, "method": method, "components": components.duplicate(), "addins": addins.duplicate()}
+	var desc := ProductGen.describe(key, d.varieties)
+	var types: Array = []
+	for comp: Dictionary in FormulaGen.parse(key).components:
+		if comp.kind != "product":
+			types.append(State.type_of_variety(String(comp.id)) if comp.kind == "fresh" else String(comp.id))
+	var ctx := {"seed": Seeds.seed_for(int(d.save_seed), "appearance", int(d.day), key),
+		"recipe": "bread" if String(desc.vessel) == "bread" else FormulaGen.RECIPE, "varieties": ProductGen.parse_key(key).varieties,
+		"addin": String(addins[0]) if not addins.is_empty() else "", "desc": desc, "ingredient_types": types}
+	_play_minigame(method, ctx)
 
 
 ## Batch cook (a Mastered variant): no mini-game, straight to the result card.
@@ -584,8 +646,12 @@ func _show_result(res: Dictionary) -> void:
 	_card_up = true
 	card.closed.connect(_on_card_closed.bind(card), CONNECT_ONE_SHOT)
 	_overlay.add_child(card)
-	# the card's "New recipe!" line announces mastery instead (set before the play-in lays the card out)
-	card.show_result(desc, stars, bool(res.is_new), tr("UI_MASTERY_BANNER") if mastered else "")
+	# the card's "New recipe!" line announces mastery instead (set before the play-in lays the card out), and a first
+	# invention "New creation!" (FORMULA-KITCHEN)
+	var banner := tr("UI_MASTERY_BANNER") if mastered else ""
+	if res.get("formula", false) and bool(res.is_new):
+		banner = tr("UI_FORMULA_NEW")
+	card.show_result(desc, stars, bool(res.is_new), banner)
 
 
 ## Continue on `card`. A stale card (one that was replaced) just goes; the current one gives the room back.

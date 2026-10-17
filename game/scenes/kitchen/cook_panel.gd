@@ -9,10 +9,12 @@ extends Panel
 ## and "Batch cook" once the recipe has a Mastered variant (ready only when the picked variant is Mastered).
 ## KITCHEN-P1C: once a family recipe of this station is unlocked, a gold "Family recipes" button by Back swaps the tabs
 ## between the base recipes and the family ones (`family`); a family recipe's add-in row holds only its fixed add-in.
+## FORMULA-KITCHEN: an "Invent" button left of them asks the kitchen for the invent panel (invent_requested).
 
 signal cook_requested(recipe_id: String, main_variety: String, second_variety: String, addin_id: String)
 signal batch_requested(recipe_id: String, main_variety: String, second_variety: String, addin_id: String)
 signal close_requested
+signal invent_requested(station_id: String)
 
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const W := 464
@@ -197,6 +199,13 @@ func _build() -> void:
 	_family_btn.visible = false
 	_family_btn.pressed.connect(_toggle_family)
 	add_child(_family_btn)
+	var invent := Button.new()  # FORMULA-KITCHEN
+	invent.text = tr("UI_FORMULA_INVENT")
+	invent.tooltip_text = tr("UI_FORMULA_INVENT_TIP")
+	invent.position = Vector2(W - 58 - 6 - FAMILY_W - 6 - 80, 3)
+	invent.size = Vector2(80, 26)
+	invent.pressed.connect(func() -> void: invent_requested.emit(station))
+	add_child(invent)
 
 	_tab_box = Control.new()
 	_tab_box.position = Vector2(8, 32)

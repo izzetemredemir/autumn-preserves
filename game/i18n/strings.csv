@@ -763,6 +763,30 @@ GARDEN_CLOTHESLINE_2,Nothing dries like an autumn wind.
 GARDEN_CLOTHESLINE_3,"Walter's apron. I wear it\nfor jam days."
 FESTIVAL_RARE_TREE,Rare tree
 TITLE_SEED_LAB_HINT,Watch a forest grow from any seed.
+UI_FORMULA_INVENT,Invent
+UI_FORMULA_INVENT_TIP,Mix anything you have into a new dish.
+UI_FORMULA_TITLE,Invent
+UI_FORMULA_NEW,New creation!
+UI_FORMULA_TAB,Creations
+UI_FORMULA_COUNT,Pick 2 to 4 things to mix.
+UI_FORMULA_TOO_DEEP,A mix of mixes is the limit.
+UI_FORMULA_NEW_TAG,New!
+UI_FORMULA_VALUE,Value %d-%d
+UI_FORMULA_SLOT,+ mix in
+UI_FORMULA_ADDIN_SLOT,+ add-in
+UI_FORMULA_STOCK,What Granny has
+UI_FORMULA_EMPTY,Nothing to mix yet.
+UI_FORMULA_PICK_HINT,Click to mix in.
+UI_FORMULA_BOOK_EMPTY,No creations yet. Press Invent at any station.
+UI_FORMULA_BOOK_COUNT,Creations: %d
+UI_FORMULA_M_STIR_POT,Simmer
+UI_FORMULA_M_PACK_JAR,Pack
+UI_FORMULA_M_PRESS,Press
+UI_FORMULA_M_KNEAD,Knead
+FX_NOTE_BRIGHT,Bright
+FX_NOTE_WARMING,Warming
+FX_NOTE_SAVOURY,Savoury
+FX_NOTE_MUDDY,Muddy
 SPECIES_NEW_TITLE,New species!
 SPECIES_NEW_NOTE,Granny notes it in her book.
 SPECIES_OK,Lovely

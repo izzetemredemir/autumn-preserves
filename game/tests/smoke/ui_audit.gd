@@ -65,6 +65,8 @@ func _run() -> void:
 				await _audit("town/" + tab, s)
 		elif n == "garden":
 			await _overlays("garden")
+		elif n == "kitchen":
+			await _invent_panel(s)
 		s.queue_free()
 		await _frames(2)
 	await _farewell()
@@ -202,6 +204,46 @@ func _festival_cards() -> void:
 		await _frames(2)
 
 
+## FORMULA-KITCHEN: the kitchen's Invent panel with a live preview (three things Granny has, an add-in when owned).
+func _invent_panel(k: Node) -> void:
+	k._open_panel("stir_pot")
+	await _frames(3)
+	k._open_formula("stir_pot")
+	await _frames(3)
+	var fx: Node = k._fx_panel
+	var comps: Array = []
+	var adds: Array = []
+	for e: Dictionary in fx.owned(_gs.data):
+		if not bool(e.usable):
+			continue
+		if e.kind == "addin":
+			if adds.is_empty():
+				adds.append(e.id)
+		elif comps.size() < 3:
+			comps.append(e.id)
+	fx.components = comps
+	fx.addins = adds
+	fx.refresh()
+	await _frames(4)
+	await _audit("kitchen/invent", k)
+	k._close_formula()
+	await _frames(2)
+	k._close_panel()
+	await _frames(2)
+
+
+## FORMULA-KITCHEN: three inventions in the save, so the book's Creations tab shows a full spread.
+func _seed_formulas(s: Dictionary) -> void:
+	var vids: Array = s.varieties.keys()
+	vids.sort()
+	var made := State.formulas(s)
+	made[FormulaGen.make_key("stir_pot", [vids[0], vids[vids.size() - 1]], ["honey"])] = {"made": 2, "best": 4, "day": 1}
+	made[FormulaGen.make_key("knead", [vids[1], "walnut", ProductGen.make_key("jam", [vids[0]], "")], ["cinnamon"])] = \
+		{"made": 1, "best": 3, "day": 2}
+	made[FormulaGen.make_key("pack_jar", [vids[2], vids[int(vids.size() / 2.0)], vids[vids.size() - 2], "hazelnut"], [])] = \
+		{"made": 5, "best": 5, "day": 3}
+
+
 ## SPECIES-GEN: the "New species!" card (the species with the longest names) and the book's forest species page with
 ## every species met today (all rows tagged New), the demo save moved on to day 40.
 func _species() -> void:
@@ -237,6 +279,7 @@ func _species() -> void:
 
 
 func _overlays(tag: String) -> void:
+	_seed_formulas(_gs.data)
 	var b := Book.open()
 	await _frames(10)
 	for tab in 3:
@@ -268,6 +311,17 @@ func _overlays(tag: String) -> void:
 		await _frames(30)
 		await _audit(tag + "/result_card", rc)
 		rc.queue_free()
+		await _frames(2)
+	var fk: Array = State.formulas(s).keys()  # FORMULA-KITCHEN: an invention's card with its "New creation!" banner
+	if not fk.is_empty():
+		var fdesc := ProductGen.describe(String(fk[0]), s.varieties)
+		fdesc["value"] = 120
+		var fc := (load("res://ui/result_card/result_card.tscn") as PackedScene).instantiate()
+		root.add_child(fc)
+		fc.show_result(fdesc, 3, true, tr("UI_FORMULA_NEW"))
+		await _frames(30)
+		await _audit(tag + "/result_card_formula", fc)
+		fc.queue_free()
 		await _frames(2)
 
 

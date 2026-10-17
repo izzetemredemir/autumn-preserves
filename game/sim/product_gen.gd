@@ -3,6 +3,8 @@ extends RefCounted
 ## SIM-01 · Procedural preserves (spec §6.4, §7.3). Pure: same key -> same name, taste, look.
 ## key = "<recipe>|<variety>[|<variety2>]|<addin or ->", e.g. "jam|crabapple_3|cinnamon", "chutney|pear_1|pepper_2|-".
 ## The first variety is the main one (chutney: the fruit); the last one gives the chunk pattern (chutney: the vegetable).
+## FORMULA-KITCHEN: invented dishes have "fx|" keys (FormulaGen); every public key function below hands them over, so
+## callers treat an invention like any product. Every other key behaves exactly as before.
 
 const AXES := ["sweet", "sour", "spicy", "salty", "earthy"]
 const RARITY_RANK := {"common": 0, "uncommon": 1, "rare": 2}
@@ -29,6 +31,8 @@ static func make_key(recipe_id: String, variety_ids: Array, addin_id: String) ->
 
 ## {"recipe": String, "varieties": Array[String], "addin": String ("" when none)}
 static func parse_key(key: String) -> Dictionary:
+	if FormulaGen.is_formula(key):
+		return _parse_formula(key)
 	var p := key.split("|")
 	var addin := p[p.size() - 1]
 	return {"recipe": p[0], "varieties": Array(p.slice(1, p.size() - 1)), "addin": "" if addin == "-" else addin}
@@ -36,6 +40,8 @@ static func parse_key(key: String) -> Dictionary:
 
 ## Main variety taste (chutney: fruit and vegetable averaged, halves up) + method effect + add-in effect, clamped.
 static func taste(key: String, varieties: Dictionary) -> Array:
+	if FormulaGen.is_formula(key):
+		return FormulaGen.taste(key, varieties)
 	var p := parse_key(key)
 	var vs: Array = p.varieties
 	var out := [0, 0, 0, 0, 0]
@@ -123,6 +129,8 @@ static func product_name(key: String, varieties: Dictionary, lang_code: String =
 ## {"name", "adjective", "adjective_kind": "family"|"addin"|"profile"|"mild", "feature", "type", "short",
 ##  "repeat": feature dropped for the same root, "feature_long": dropped for length, "adjective_long": dropped too}.
 static func name_parts(key: String, varieties: Dictionary, lang_code: String = "") -> Dictionary:
+	if FormulaGen.is_formula(key):
+		return FormulaGen.name_parts(key, varieties, lang_code)
 	var p := parse_key(key)
 	var recipe: Dictionary = Data.recipes().get(p.recipe, {})
 	var short := String(recipe.get("short", String(p.recipe).capitalize()))
@@ -271,6 +279,8 @@ static func compose_name(adjective: String, feature: String, type_part: String, 
 
 ## Rarest variety in the key; "common" without varieties.
 static func rarity(key: String, varieties: Dictionary) -> String:
+	if FormulaGen.is_formula(key):
+		return FormulaGen.rarity(key, varieties)
 	var best := "common"
 	for id in parse_key(key).varieties:
 		var r := String(varieties.get(id, {}).get("rarity", "common"))
@@ -281,6 +291,8 @@ static func rarity(key: String, varieties: Dictionary) -> String:
 
 ## floor(base * rarity_mult * star_mult[quality + harmony]) + addin_bonus
 static func value(key: String, varieties: Dictionary, quality: int) -> int:
+	if FormulaGen.is_formula(key):
+		return FormulaGen.value(key, varieties, quality)
 	var p := parse_key(key)
 	var recipe: Dictionary = Data.recipes().get(p.recipe, {})
 	var cfg: Dictionary = Data.rules().value
@@ -309,6 +321,8 @@ static func base_value(recipe: Dictionary) -> int:
 ##  "label_color": hex,"motif": "leaf"|"star"|"stripe","lid": "metal"|"cloth","lid_colors": [2 hex]}}
 ## appearance also carries "tint": the add-in's palette hex ("" without add-in).
 static func describe(key: String, varieties: Dictionary) -> Dictionary:
+	if FormulaGen.is_formula(key):
+		return FormulaGen.describe(key, varieties)
 	var p := parse_key(key)
 	var recipe: Dictionary = Data.recipes().get(p.recipe, {})
 	var t := taste(key, varieties)
@@ -324,6 +338,32 @@ static func describe(key: String, varieties: Dictionary) -> Dictionary:
 
 static func vessel_size(vessel: String) -> Vector2i:
 	return VESSEL_SIZE.get(vessel, Vector2i.ONE)
+
+
+## FORMULA-KITCHEN · Vessel of a product key (the pantry asks with the item alone): the recipe's, or the invention's.
+static func vessel(key: String) -> String:
+	if FormulaGen.is_formula(key):
+		return FormulaGen.vessel(key)
+	return String(Data.recipes().get(parse_key(key).recipe, {}).get("vessel", ""))
+
+
+## FORMULA-KITCHEN · Pantry zone of a product key: the recipe's, or the invention's (FormulaGen.zone).
+static func zone(key: String) -> String:
+	if FormulaGen.is_formula(key):
+		return FormulaGen.zone(key)
+	return String(Data.recipes().get(parse_key(key).recipe, {}).get("zone", "room"))
+
+
+## FORMULA-KITCHEN · parse_key() of an invention: recipe "fx" (no recipe order or recipe slot takes it), its fresh
+## component varieties (letters' dislikes) and its first add-in.
+static func _parse_formula(key: String) -> Dictionary:
+	var f := FormulaGen.parse(key)
+	var vs: Array = []
+	for c: Dictionary in f.components:
+		if c.kind == "fresh":
+			vs.append(String(c.id))
+	return {"recipe": FormulaGen.RECIPE, "varieties": vs, "addin": String(f.addins[0]) if not f.addins.is_empty() else "",
+		"formula": true}
 
 
 ## Appearance seed (spec §6.4): fnv1a32(key) & 0x7FFFFFFF. Same key -> same look in every save.

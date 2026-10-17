@@ -87,6 +87,8 @@ static func can_rotate(item: Dictionary) -> bool:
 static func vessel_of(item: Dictionary) -> String:
 	if String(item.get("kind", "")) != "product":
 		return ""
+	if FormulaGen.is_formula(String(item.get("key", ""))):  # FORMULA-KITCHEN: an invention's vessel
+		return ProductGen.vessel(String(item.key))
 	var recipe: Dictionary = Data.recipes().get(State.item_type(item), {})
 	return String(recipe.get("vessel", ""))
 
@@ -110,6 +112,8 @@ static func zone_for(item: Dictionary) -> String:
 	var gz: Dictionary = p.group_zone
 	match String(item.get("kind", "")):
 		"product":
+			if FormulaGen.is_formula(String(item.get("key", ""))):  # FORMULA-KITCHEN: an invention's zone
+				return ProductGen.zone(String(item.key))
 			var recipe: Dictionary = Data.recipes().get(State.item_type(item), {})
 			return String(recipe.get("zone", "room"))
 		"nut":

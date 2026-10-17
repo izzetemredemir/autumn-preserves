@@ -763,6 +763,30 @@ GARDEN_CLOTHESLINE_2,Sonbahar rüzgârı gibi kurutan yok.
 GARDEN_CLOTHESLINE_3,"Walter'ın önlüğü. Reçel\ngünleri ben takıyorum."
 FESTIVAL_RARE_TREE,Nadir ağaç
 TITLE_SEED_LAB_HINT,Her tohumdan bir ormanın büyüyüşünü izle.
+UI_FORMULA_INVENT,Buluş yap
+UI_FORMULA_INVENT_TIP,Elindeki her şeyi karıştırıp yeni bir yemek yap.
+UI_FORMULA_TITLE,Buluş
+UI_FORMULA_NEW,Yeni buluş!
+UI_FORMULA_TAB,Buluşlar
+UI_FORMULA_COUNT,Karıştırmak için 2-4 şey seç.
+UI_FORMULA_TOO_DEEP,Karışımın karışımı yeter.
+UI_FORMULA_NEW_TAG,Yeni!
+UI_FORMULA_VALUE,Değer %d-%d
+UI_FORMULA_SLOT,+ karıştır
+UI_FORMULA_ADDIN_SLOT,+ katkı
+UI_FORMULA_STOCK,Ninenin elindekiler
+UI_FORMULA_EMPTY,Karıştıracak bir şey yok.
+UI_FORMULA_PICK_HINT,Eklemek için tıkla.
+UI_FORMULA_BOOK_EMPTY,Henüz buluş yok. Bir tezgâhta Buluş yap'a bas.
+UI_FORMULA_BOOK_COUNT,Buluşlar: %d
+UI_FORMULA_M_STIR_POT,Kaynat
+UI_FORMULA_M_PACK_JAR,Kavanoz
+UI_FORMULA_M_PRESS,Sık
+UI_FORMULA_M_KNEAD,Yoğur
+FX_NOTE_BRIGHT,Canlı
+FX_NOTE_WARMING,Isıtan
+FX_NOTE_SAVOURY,Doyurucu
+FX_NOTE_MUDDY,Bulanık
 SPECIES_NEW_TITLE,Yeni tür!
 SPECIES_NEW_NOTE,Nine onu defterine yazıyor.
 SPECIES_OK,Ne güzel

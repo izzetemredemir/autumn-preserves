@@ -1,0 +1,62 @@
+{
+  "_doc": "FORMULA-KITCHEN: invented dishes (FormulaGen). A formula = a method + 2-4 components (fresh variety, nut type, or a finished product key, bracketed) + 0-2 add-ins; key fx|<method>|<components sorted, +>|<add-ins sorted, + or ->. use = units one component takes. weights = its share of the taste mean (fresh: its variety taste; product: its own taste; nut: its add-in effect as its taste). method: taste = round(mean * mult) + add, then pairs (checked on that taste, all at once: when = axis minimums; axes_at_least + count = that many axes at or above; harmony = stars added), then add-ins, then clamp to rules.taste. Value = floor(sum of component bases * value_mult * star_mult) + add-in bonuses, capped at cap_mult * the method's best base recipe value + add-in bonuses, never under the grocer price of what went in. vessel: one id, or by dominant group. zone: the method's, bread 'dry', then zone_rules (first match). nouns/adjectives: [English, Turkish] pairs picked by the key hash; tr_compound_exceptions add to grammar.json's.",
+  "methods": ["stir_pot", "pack_jar", "press", "knead"],
+  "components_min": 2,
+  "components_max": 4,
+  "addins_max": 2,
+  "max_depth": 2,
+  "use": {"fresh": 2, "product": 1, "nut": 1},
+  "weights": {"fresh": 1.0, "product": 1.5, "nut": 0.5},
+  "groups": ["fruit", "vegetable", "mushroom", "nut"],
+  "group_alias": {"grain": "nut"},
+  "cap_mult": 1.5,
+  "method": {
+    "stir_pot": {"mult": [1.25, 1, 1, 1, 1], "add": [1, 0, 0, 0, 0], "vessel": "jam_jar", "zone": "room", "wait_days": 0, "shelf_days": -1, "value_mult": 2.5},
+    "pack_jar": {"mult": [1, 1, 1, 1, 1], "add": [0, 2, 0, 2, 0], "vessel": "pickle_jar", "zone": "cool", "wait_days": 1, "shelf_days": -1, "value_mult": 2.5},
+    "press":    {"mult": [1, 1.25, 1, 1, 0.75], "add": [0, 1, 0, 0, 0], "vessel": "bottle", "zone": "room", "wait_days": 0, "shelf_days": -1, "value_mult": 2.0},
+    "knead":    {"mult": [1, 1, 1, 1, 1], "add": [1, 0, 0, 0, 2], "vessel": {"fruit": "pie", "vegetable": "pie", "mushroom": "bread", "nut": "bread"}, "zone": "room", "wait_days": 0, "shelf_days": 3, "value_mult": 3.0}
+  },
+  "pairs": [
+    {"id": "bright",  "when": {"sweet": 4, "sour": 3},  "add": [1, 0, 0, 0, 0]},
+    {"id": "warming", "when": {"sweet": 3, "spicy": 2}, "add": [0, 0, 1, 0, 0]},
+    {"id": "savoury", "when": {"salty": 2, "earthy": 3}, "add": [0, 0, 0, 0, 1]},
+    {"id": "muddy",   "axes_at_least": 3, "count": 4, "add": [0, 0, 0, 0, 0], "harmony": -1}
+  ],
+  "zone_rules": [{"axis": "salty", "min": 5, "zone": "cool"}, {"axis": "sour", "min": 6, "zone": "cool"}],
+  "note_adjectives": {"bright": ["Bright", "Canlı"], "warming": ["Warming", "Kışlık"], "savoury": ["Savoury", "Doyurucu"], "muddy": ["Rustic", "Rustik"]},
+  "adjectives": {
+    "sweet":  [["Golden", "Altın"], ["Sunny", "Güneşli"]],
+    "sour":   [["Tangy", "Mayhoş"], ["Zesty", "Ekşimsi"]],
+    "spicy":  [["Warm", "Sıcacık"], ["Fiery", "Ateşli"]],
+    "salty":  [["Salted", "Tuzlu"], ["Briny", "Tuzlanmış"]],
+    "earthy": [["Smoky", "Füme"], ["Woodland", "Topraksı"]],
+    "mild":   [["Mellow", "Hafif"], ["Gentle", "Yumuşak"]]
+  },
+  "nouns": {
+    "stir_pot": {
+      "fruit":     [["Conserve", "Konserve"], ["Compote", "Komposto"], ["Marmalade", "Marmelat"]],
+      "vegetable": [["Relish", "Çeşni"], ["Ragout", "Yahni"]],
+      "mushroom":  [["Ragout", "Yahni"], ["Relish", "Çeşni"]],
+      "nut":       [["Conserve", "Konserve"], ["Butter", "Ezme"]]
+    },
+    "press": {
+      "fruit":     [["Cordial", "Şerbet"], ["Nectar", "Nektar"], ["Shrub", "Şıra"]],
+      "vegetable": [["Tonic", "Tonik"], ["Shrub", "Şıra"]],
+      "mushroom":  [["Tonic", "Tonik"], ["Brew", "Demleme"]],
+      "nut":       [["Milk", "Süt"], ["Cordial", "Şerbet"]]
+    },
+    "knead": {
+      "fruit":     [["Tart", "Tart"], ["Galette", "Gözleme"], ["Strudel", "Rulo"], ["Crumble", "Tatlı"]],
+      "vegetable": [["Galette", "Gözleme"], ["Pasty", "Börek"], ["Tart", "Tart"]],
+      "mushroom":  [["Loaf", "Somun"], ["Pasty", "Börek"]],
+      "nut":       [["Loaf", "Somun"], ["Bun", "Çörek"]]
+    },
+    "pack_jar": {
+      "fruit":     [["Pickle", "Turşu"], ["Ferment", "Ekşitme"], ["Relish", "Çeşni"]],
+      "vegetable": [["Pickle", "Turşu"], ["Ferment", "Ekşitme"], ["Brine", "Salamura"]],
+      "mushroom":  [["Brine", "Salamura"], ["Pickle", "Turşu"]],
+      "nut":       [["Brine", "Salamura"], ["Ferment", "Ekşitme"]]
+    }
+  },
+  "tr_compound_exceptions": {"Şerbet": "Şerbeti"}
+}

@@ -29,6 +29,7 @@ static func new_game(save_seed: int) -> Dictionary:
 		"pantry": {"rows_extra": 0, "items": []},
 		"cupboard": {},
 		"book": {"variants": {}},
+		"formulas": {},
 		"orders": [],
 		"next_order_id": 1,
 		"friendship": {},
@@ -80,6 +81,14 @@ static func nut(type: String, count: int) -> Dictionary:
 
 static func product(key: String, quality: int, wait_left: int, days_left: int = -1) -> Dictionary:
 	return {"kind": "product", "key": key, "q": quality, "wait_left": wait_left, "days_left": days_left}
+
+
+## FORMULA-KITCHEN: the inventions made in this save, {formula key: {"made": cooks, "best": best total stars, "day":
+## first day}}. Old saves lack it: it is created here on first use.
+static func formulas(state: Dictionary) -> Dictionary:
+	if typeof(state.get("formulas")) != TYPE_DICTIONARY:
+		state["formulas"] = {}
+	return state.formulas
 
 
 ## "crabapple_3" -> "crabapple"

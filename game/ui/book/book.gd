@@ -32,6 +32,10 @@ const RECIPE_ORDER := ["jam", "fruit_butter", "chutney", "pickle", "brined_mushr
 	"fruit_vinegar", "syrup", "pie", "bread"]
 const RECIPES_PER_PAGE := 5  ## base recipes on the left page; P1 ones join once their station is unlocked
 const FAMILY_PER_PAGE := 3  ## family recipes per left page (three lines each, under the heading)
+## Tabs: Recipes, Varieties, and FORMULA-KITCHEN's Creations (CreationsPage fills it).
+const TAB_KEYS := ["BOOK_TAB_RECIPES", "BOOK_TAB_VARIETIES", "UI_FORMULA_TAB"]
+const CREATIONS := 2
+const CreationsPage := preload("res://ui/book/creations_page.gd")
 
 var _tab := 0
 var _page := 0
@@ -153,8 +157,8 @@ func _build() -> void:
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 4)
 	vb.add_child(top)
-	for i in 2:
-		var b := _button(tr("BOOK_TAB_RECIPES") if i == 0 else tr("BOOK_TAB_VARIETIES"))
+	for i in TAB_KEYS.size():
+		var b := _button(tr(TAB_KEYS[i]))
 		b.toggle_mode = true
 		b.pressed.connect(_set_tab.bind(i))
 		top.add_child(b)
@@ -306,6 +310,8 @@ func _page_count() -> int:
 		var variant_pages := ceili(_variant_keys().size() / float(VARIANTS_PER_PAGE))
 		var recipe_pages := _base_pages() + ceili(_family_ids().size() / float(FAMILY_PER_PAGE))
 		return maxi(maxi(variant_pages, recipe_pages), 1)
+	if _tab == CREATIONS:
+		return CreationsPage.page_count(_data())
 	return _type_pages() + SpeciesPage.pages(_data())  # SPECIES-GEN: the forest species follow the types
 
 
@@ -314,7 +320,7 @@ func _type_pages() -> int:
 
 
 func _refresh() -> void:
-	for i in 2:
+	for i in _tab_btns.size():
 		_tab_btns[i].set_pressed_no_signal(i == _tab)
 	for pg in [_left, _right]:
 		for c in pg.get_children():
@@ -322,6 +328,8 @@ func _refresh() -> void:
 			c.queue_free()
 	if _tab == 0:
 		_fill_recipes()
+	elif _tab == CREATIONS:
+		CreationsPage.fill(self, _left, _right, _page)
 	else:
 		_fill_varieties()
 	var n := _page_count()
@@ -336,6 +344,9 @@ func _refresh() -> void:
 
 
 func _update_milestone() -> void:
+	if _tab == CREATIONS:
+		_milestone.text = CreationsPage.milestone(_data())
+		return
 	if _tab == 1:
 		_milestone.text = tr("BOOK_FOUND") % [_found_count(), _total_count()]
 		return
