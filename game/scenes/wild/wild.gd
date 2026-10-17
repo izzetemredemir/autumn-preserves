@@ -48,6 +48,7 @@ func _ready() -> void:
 	CritterLayer.attach(view.objects, CritterRules.wild(map, int(s.save_seed), int(s.day), String(s.weather)), granny,
 		String(s.weather), map)  # WILD-LIFE: ambient critters
 	seed_label.text = "%s %d" % [tr("UI_SEED"), int(map.seed)]
+	(seed_label.get_parent() as Control).visible = GameSettings.show_seed()  # off by default: the grow overlay names it
 	var grow := WorldGrow.open_if_due(self, map, biome)  # FIRST-60: today's map grows from the seed first
 	if grow != null:
 		granny.input_enabled = false

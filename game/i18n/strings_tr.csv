@@ -2,7 +2,7 @@ keys,tr
 TITLE_GAME,Autumn Preserves
 TITLE_NEW_GAME,Yeni Oyun
 TITLE_CONTINUE,Devam Et
-TITLE_SEED_LAB,Tohum Atölyesi
+TITLE_SEED_LAB,Orman Laboratuvarı
 UI_BACK,Geri
 UI_OK,Tamam
 UI_CANCEL,Vazgeç
@@ -762,3 +762,4 @@ GARDEN_CLOTHESLINE_1,"Mia'nın eski yorganı, rüzgârda.\nHâlâ elma kokuyor."
 GARDEN_CLOTHESLINE_2,Sonbahar rüzgârı gibi kurutan yok.
 GARDEN_CLOTHESLINE_3,"Walter'ın önlüğü. Reçel\ngünleri ben takıyorum."
 FESTIVAL_RARE_TREE,Nadir ağaç
+TITLE_SEED_LAB_HINT,Her tohumdan bir ormanın büyüyüşünü izle.

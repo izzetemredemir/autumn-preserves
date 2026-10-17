@@ -8,7 +8,7 @@ const PATH := "user://settings.cfg"
 const DEFAULTS := {
 	"audio": {"music": 0.8, "sfx": 0.8, "ambient": 0.8},
 	"display": {"fullscreen": false},
-	"game": {"show_seed": true, "tutorial": true, "language": "en", "show_grow": true, "intro_seen": false},
+	"game": {"show_seed_corner": false, "tutorial": true, "language": "en", "show_grow": true, "intro_seen": false},
 }
 ## L10N-TR · Languages of the settings picker: locale -> its own name (shown untranslated). English stays the default,
 ## whatever the OS locale is.
@@ -41,8 +41,9 @@ static func set_value(section: String, key: String, value: Variant) -> void:
 	_file().save(PATH)
 
 
+## The seed box in the wild's corner (off by default: the seed shows on the gate sign and in the forest-grow overlay).
 static func show_seed() -> bool:
-	return bool(get_value("game", "show_seed"))
+	return bool(get_value("game", "show_seed_corner"))
 
 
 ## FIRST-60: replay the map's generation the first time a wild opens each day (the first visit of a save always does).

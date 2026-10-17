@@ -2,7 +2,7 @@ keys,en
 TITLE_GAME,Autumn Preserves
 TITLE_NEW_GAME,New Game
 TITLE_CONTINUE,Continue
-TITLE_SEED_LAB,Seed Lab
+TITLE_SEED_LAB,Forest Lab
 UI_BACK,Back
 UI_OK,OK
 UI_CANCEL,Cancel
@@ -762,3 +762,4 @@ GARDEN_CLOTHESLINE_1,"Mia's old quilt, out for the breeze.\nIt still smells of a
 GARDEN_CLOTHESLINE_2,Nothing dries like an autumn wind.
 GARDEN_CLOTHESLINE_3,"Walter's apron. I wear it\nfor jam days."
 FESTIVAL_RARE_TREE,Rare tree
+TITLE_SEED_LAB_HINT,Watch a forest grow from any seed.

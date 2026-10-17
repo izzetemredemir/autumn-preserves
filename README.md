@@ -11,7 +11,7 @@ Made by **İzzet Emre Demir** for the **KODTÜ 7** game jam (16–18 October 202
 | ![Title](shots/title.png) | ![Garden](shots/garden.png) |
 | ![Vineyard](shots/wild.png) | ![Stove](shots/kitchen.png) |
 | ![Pantry](shots/pantry.png) | ![Weekly market](shots/market.png) |
-| ![A letter from Mia](shots/letters.png) | ![Seed Lab](shots/seedlab.png) |
+| ![A letter from Mia](shots/letters.png) | ![Forest Lab](shots/seedlab.png) |
 
 ## How it plays
 
@@ -21,7 +21,7 @@ Made by **İzzet Emre Demir** for the **KODTÜ 7** game jam (16–18 October 202
 - **Keep a tidy pantry.** Arrange your jars on the shelves like a little puzzle. The right shelf keeps food fresh, and a beautiful pantry gives Granny more energy the next morning.
 - **Share it.** Fill the orders of **five neighbours** by taste ("something sweet and spicy"), sell at the grocer, set up the **weekly market** stall (every seventh day), where five vendors and a crowd of villagers, each assembled from hand-drawn parts and recoloured from a seed, walk their routes around your stall, and fill your recipe book.
 - **Write to the grandchildren.** Mia and Leo send **letters** with a crayon drawing and a wish. Pack a **parcel** with care and they write back.
-- **Peek into the Seed Lab.** Type any seed, pick a biome and watch the wild being built step by step: value noise, random-walk stream, Poisson-disk trees, A* paths, weighted pickups, flood-fill check.
+- **Peek into the Forest Lab.** Type any seed, pick a biome and watch the wild being built step by step: value noise, random-walk stream, Poisson-disk trees, A* paths, weighted pickups, flood-fill check.
 
 No death, no penalties, no clock. Days end when you go to bed. If you stay long enough, the valley has one quiet surprise.
 
@@ -47,7 +47,7 @@ Everything is playable with the mouse alone.
 |---|---|
 | Pixelated art style | Everything is pixel art at 480×270 with integer scaling |
 | Autumn colour palette | One 31-colour palette: [Vintage Autumn](https://lospec.com/palette-list/vintage-autumn) by Goopy25 |
-| Procedural generation | Daily forest maps, per-save ingredient varieties, generated preserves (name, jar art, taste, value, Turkish names), orders, weather, wild critters, market villagers and crowd routes, and children's drawings. The seed is always visible and can be explored in the **Seed Lab** |
+| Procedural generation | Daily forest maps, per-save ingredient varieties, generated preserves (name, jar art, taste, value, Turkish names), orders, weather, wild critters, market villagers and crowd routes, and children's drawings. The seed is always visible and can be explored in the **Forest Lab** |
 
 ## Run it
 
@@ -59,7 +59,7 @@ Everything is playable with the mouse alone.
 2. Open `game/project.godot` in the editor and press Play, or run `godot --path game`.
 3. Development builds start muted: press **M** to turn sound on, or run `godot --path game -- --sound`. Exported builds play sound.
 
-In the **Seed Lab** (title screen) a seed can be a number or a word; the same seed always gives the same map.
+In the **Forest Lab** (title screen) a seed can be a number or a word; the same seed always gives the same map.
 
 ## License
 

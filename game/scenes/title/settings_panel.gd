@@ -10,7 +10,7 @@ signal language_changed
 const SLIDERS := [["TITLE_SET_MUSIC", "music"], ["TITLE_SET_SFX", "sfx"], ["TITLE_SET_AMBIENT", "ambient"]]
 const TOGGLES := [
 	["TITLE_SET_FULLSCREEN", "display", "fullscreen"],
-	["TITLE_SET_SHOW_SEED", "game", "show_seed"],
+	["TITLE_SET_SHOW_SEED", "game", "show_seed_corner"],
 	["TITLE_SET_TUTORIAL", "game", "tutorial"],
 	["WORLD_GROW_SETTING", "game", "show_grow"],
 ]

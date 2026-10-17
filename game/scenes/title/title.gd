@@ -32,6 +32,7 @@ func _ready() -> void:
 	_settings.language_changed.connect(_on_language_changed)
 	_center(_settings)
 	%Festival.pressed.connect(_on_festival)
+	_build_lab_hint()
 	%Festival.disabled = not FileAccess.file_exists(FestivalFacts.SAVE)
 	%NewGame.pressed.connect(_on_new_game)
 	%Continue.pressed.connect(_on_continue)
@@ -240,3 +241,30 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		Audio.play_ui("ui_back")
 		_show_menu()
+
+
+## "Watch a forest grow from any seed." under the menu while the Forest Lab button is hovered or focused.
+func _build_lab_hint() -> void:
+	var box := PanelContainer.new()
+	box.name = "LabHint"
+	box.theme_type_variation = &"DarkPanel"
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.visible = false
+	var hint := Label.new()
+	hint.text = tr("TITLE_SEED_LAB_HINT")
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(hint)
+	add_child(box)
+	var place := func() -> void:
+		var sz := box.get_combined_minimum_size()
+		box.size = sz
+		box.position = Vector2(floori((480 - sz.x) / 2.0), 236)
+	place.call()
+	var lab: Button = %SeedLab
+	lab.tooltip_text = tr("TITLE_SEED_LAB_HINT")
+	var show := func() -> void:
+		box.visible = %Menu.visible and (lab.is_hovered() or lab.has_focus())
+		place.call()
+	for sig: Signal in [lab.mouse_entered, lab.mouse_exited, lab.focus_entered, lab.focus_exited]:
+		sig.connect(show)
