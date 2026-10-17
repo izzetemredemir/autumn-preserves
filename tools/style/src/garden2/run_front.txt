@@ -1,0 +1,20 @@
+# Hen run fence, front rail (ART-GARDEN2), 68x12, y-sorted. Written by coop_gen.py.
+legend . transparent
+legend B bark_900
+legend b bark_700
+legend k ink
+legend o bark_500
+legend y gold_300
+frame
+kyk.............kyk.............kyk.............kyk.............kyk.
+yoBk...........kyoBk...........kyoBk...........kyoBk...........kyoBk
+obBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBk
+obBkoooooooooookobBkoooooooooookobBkoooooooooookobBkoooooooooookobBk
+obBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBk
+obBk...........kobBk...........kobBk...........kobBk...........kobBk
+obBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBk
+obBkbbbbbbbbbbbkobBkbbbbbbbbbbbkobBkbbbbbbbbbbbkobBkbbbbbbbbbbbkobBk
+obBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBkkkkkkkkkkkkkobBk
+kkk.............kkk.............kkk.............kkk.............kkk.
+....................................................................
+....................................................................

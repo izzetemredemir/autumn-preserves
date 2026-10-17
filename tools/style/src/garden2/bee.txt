@@ -1,0 +1,12 @@
+# Bee (ART-GARDEN2), 2x2, too small for an outline: gold body with an ink stripe, cream wings.
+# Frames: wings up, wings down (flicker them while the bee drifts).
+legend . transparent
+legend y gold_300
+legend k ink
+legend C cream_100
+frame
+C.
+yk
+frame
+..
+yk

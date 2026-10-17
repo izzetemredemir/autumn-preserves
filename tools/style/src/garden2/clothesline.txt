@@ -1,0 +1,113 @@
+# Clothesline (ART-GARDEN2), 64x32 x3 wind flutter frames (loop 0-1-2-1), posts on row 31.
+# Written by props_gen.py (outlined parts, the rope has no outline).
+legend . transparent
+legend A amber_600
+legend B bark_900
+legend C cream_100
+legend V olive_600
+legend b bark_700
+legend c cream_400
+legend k ink
+legend o bark_500
+legend p leaf_peach_300
+legend r leaf_red_500
+legend y gold_300
+frame
+................................................................
+................................................................
+................................................................
+.kkkkkk..................................................kkkkkk.
+kooooook................................................kooooook
+kbbbbbbk................................................kbbbbbbk
+.kkobBBB................................................BBBobkk.
+..kobk..BoBBBB....................................BBoBBB..kobk..
+..kobk.kccccccBBBBBBBB....................BBBBBoBBCCCCk...kobk..
+..kobk.kcrrryyccccccccBBoBBBBBBoBBBBBBBBoB...kCCCCCCCCk...kobk..
+..kobk.kcrrryyyCCCVVVAcccck...kCkCCCCCCkCk...kCCCCrrrrk...kobk..
+..kobk.kcpppAAyCCCVVVAAAck....kCkCCCCCCkCk...krrrrCCCck...kobk..
+..kobk.kcpppAAArrryyyCAAck...kCkkCCCCCCkkCk..kCCCCCCCck...kobk..
+..kobk.kcpppAAArrryyyCCCck....kkCCCCCCCCkk...kCCCCrrrrk...kobk..
+..kobk.kcCCCVVArrryyyCCCck.....kCCCrrCCCk....krrrrCCCck...kobk..
+..kobk.kcCCCVVVpppAAArCCck.....kCCCrrCCck....kCCCCcccck...kobk..
+..kobk.kcCCCVVVpppAAArrrck....kCCCCCCCCcck...kcccckkkk....kobk..
+..kobk.kcyyyrrVpppAAArrrck....kCCCCCCCCcck....kkkk........kobk..
+..kobk.kcyyyrrrCCCVVVprrck....krrrrrrrrrrk................kobk..
+..kobk.kccccccrCCCVVVpppck.....kkkkkkkkkk.................kobk..
+..kobk..kkkkkkccccccccppck................................kobk..
+..kobk........kkkkkkkkccck................................kobk..
+..kobk................kkk.................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+frame
+................................................................
+................................................................
+................................................................
+.kkkkkk..................................................kkkkkk.
+kooooook................................................kooooook
+kbbbbbbk................................................kbbbbbbk
+.kkobBBB................................................BBBobkk.
+..kobk..BoBBBB....................................BBoBBB..kobk..
+..kobk.kccccccBBBBBBBB....................BBBBBoBBCCCCk...kobk..
+..kobk.kcrrryyccccccccBBoBBBBBBoBBBBBBBBoB...kCCCCCCCCk...kobk..
+..kobk.kcrrryyyCCCVVVAcccck...kCkCCCCCCkCk...kCCCCrrrrk...kobk..
+..kobk.kcpppAAyCCCVVVAAAck....kCkCCCCCCkCk...krrrrCCCck...kobk..
+..kobk.kcpppAAArrryyyCAAck...kCkkCCCCCCkkCk..kCCCCCCCCck..kobk..
+..kobk.kcpppAAArrryyyCCCck....kkCCCCCCCCkk....kCCCrrrrrk..kobk..
+..kobk..kcCCCVArrryyyCCCck.....kCCCrrCCCk.....krrrCCCCck..kobk..
+..kobk..kcCCCVVVpppAAACCck......kCCCrrCCck....kCCCccccck..kobk..
+..kobk..kcCCCVVVpppAAArrrck....kCCCCCCCCcck...kccckkkkk...kobk..
+..kobk..kcyyyrVVpppAAArrrck....kCCCCCCCCcck....kkk........kobk..
+..kobk..kcyyyrrrCCCVVVrrrck....krrrrrrrrrrk...............kobk..
+..kobk..kcccccrrCCCVVVpppck.....kkkkkkkkkk................kobk..
+..kobk...kkkkkccccccccpppck...............................kobk..
+..kobk........kkkkkkkkcccck...............................kobk..
+..kobk................kkkk................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+frame
+................................................................
+................................................................
+................................................................
+.kkkkkk..................................................kkkkkk.
+kooooook................................................kooooook
+kbbbbbbk................................................kbbbbbbk
+.kkobBBB................................................BBBobkk.
+..kobk..BoBBBB....................................BBoBBB..kobk..
+..kobk.kccccccBBBBBBBB....................BBBBBoBBCCCCk...kobk..
+..kobk.kcrrryyccccccccBBoBBBBBBoBBBBBBBBoB...kCCCCCCCCk...kobk..
+..kobk.kcrrryyyCCCVVVAcccck...kCkCCCCCCkCk...kCCCCrrrrrk..kobk..
+..kobk..kcpppAyCCCVVVAAAck....kCkCCCCCCkCk....krrrCCCCck..kobk..
+..kobk..kcpppAAArrryyyAAck...kCkkCCCCCCkkCk...kCCCCCCCck..kobk..
+..kobk..kcpppAAArrryyyCCCck...k.kCCCCCCCCk....kCCCrrrrrk..kobk..
+..kobk..kcCCCVAArrryyyCCCck.....kCCCrrCCCkk...krrrCCCCCck.kobk..
+..kobk..kcCCCVVVpppAAACCCck.....kCCCrrCCckck...kCCcccccck.kobk..
+..kobk..kcCCCVVVpppAAArrrck.....kCCCCCCCCcck...kcckkkkkk..kobk..
+..kobk...kcyyyVVpppAAArrrck.....kCCCCCCCCcrk....kk........kobk..
+..kobk...kcyyyrrrCCCVVrrrck.....krrrrrrrrrk...............kobk..
+..kobk...kccccrrrCCCVVVpppck.....kkkkkkkkk................kobk..
+..kobk....kkkkccccccccVpppck..............................kobk..
+..kobk........kkkkkkkkccccck..............................kobk..
+..kobk................kkkkk...............................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..
+..kobk....................................................kobk..

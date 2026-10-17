@@ -1,0 +1,56 @@
+# Bee hive (ART-GARDEN2), 16x20, front view, painted cream boxes under a red tin roof, on stone legs.
+# Frames: plain, bees at the entrance. Fills only: build.sh adds the ink outline. Stands on row 19.
+legend . transparent
+legend p leaf_peach_300
+legend r leaf_red_500
+legend R leaf_red_700
+legend C cream_100
+legend c cream_400
+legend b bark_700
+legend o bark_500
+legend k ink
+legend m stone_500
+legend t stone_700
+legend y gold_300
+frame
+................
+................
+..pppppppppppp..
+.rrrrrrrrrrrrrr.
+.RRRRRRRRRRRRRR.
+..CCCCCCCCCCcc..
+..CCCCCCCCCCcc..
+..CCCCbbbCCCcc..
+..CCCCCCCCCCcc..
+..bbbbbbbbbbbb..
+..CCCCCCCCCCcc..
+..CCCCbbbCCCcc..
+..CCCCCCCCCCcc..
+..CCCCCCCCCCcc..
+..cccckkkkkccc..
+.oooooooooooooo.
+..tm........tm..
+..tm........tm..
+..tm........tm..
+..tm........tm..
+frame
+................
+................
+..pppppppppppp..
+.rrrrrrrrrrrrrr.
+.RRRRRRRRRRRRRR.
+..CCCCCCCCCCcc..
+..CCCCCCCCCCcc..
+..CCCCbbbCCCcc..
+..CCCCCCCCCCcc..
+..bbbbbbbbbbbb..
+..CCCCCCCCCCcc..
+..CCCCbbbCCCcc..
+..CCCCCCCCCCcc..
+..CCCCCCCCCCcc..
+..ccckykkykccc..
+.oooyoooookyooo.
+..tm........tm..
+..tm........tm..
+..tm........tm..
+..tm........tm..

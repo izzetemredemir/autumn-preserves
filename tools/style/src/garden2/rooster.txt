@@ -1,0 +1,89 @@
+# Rooster (ART-GARDEN2), 12x14, facing right, feet on row 13 (pivot 6,13), light from the top-left.
+# Frames: idle, crow x2 (head up, then beak open), walk x2. Fills only: build.sh adds the ink outline.
+# R body, W body shadow, A wing, Y neck hackles, e/E sickle tail; r comb and wattle, y beak, g legs, k eye.
+legend . transparent
+legend R leaf_red_700
+legend W wine_700
+legend A amber_600
+legend Y gold_300
+legend e olive_900
+legend E olive_800
+legend r leaf_red_500
+legend y gold_200
+legend g gold_700
+legend k ink
+frame
+............
+.......r.r..
+.......rrr..
+.......YkYy.
+.E.....YYr..
+EEe...YYYr..
+EeE..YYYY...
+eEe.RRYYR...
+.eERRRAARR..
+.eRRAAAARR..
+..RRRAARRW..
+...WWRRRW...
+....g..g....
+...gg.gg....
+frame
+.......r.r..
+.......rrr..
+.......YkYy.
+.......YYr..
+.E....YYYr..
+EEe...YYY...
+EeE..YYYY...
+eEe.RRYYRR..
+.eERRRAARR..
+.eRRAAAARR..
+..RRRAARRW..
+...WWRRRW...
+....g..g....
+...gg.gg....
+frame
+........r.r.
+........rrr.
+........YkYy
+.......YYr..
+.E....YYYry.
+EEe...YYY...
+EeE..YYYY...
+eEe.RRYYRR..
+.eERRRAARR..
+.eRRAAAARR..
+..RRRAARRW..
+...WWRRRW...
+....g..g....
+...gg.gg....
+frame
+............
+.......r.r..
+.......rrr..
+.......YkYy.
+.E.....YYr..
+EEe...YYYr..
+EeE..YYYY...
+eEe.RRYYR...
+.eERRRAARR..
+.eRRAAAARR..
+..RRRAARRW..
+...WWRRRW...
+...g....g...
+..gg....gg..
+frame
+............
+............
+.......r.r..
+.......rrr..
+.E.....YkYy.
+EEe....YYr..
+EeE...YYYr..
+eEe.RRYYYR..
+.eERRRAARR..
+.eRRAAAARR..
+..RRRAARRW..
+...WWRRRW...
+.....gg.....
+....gggg....

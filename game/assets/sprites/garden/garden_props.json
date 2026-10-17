@@ -1,0 +1,192 @@
+{
+ "notes": "ART-GARDEN2. 16 px cells, garden pixels (y down). cell = bottom-left cell the sprite stands on, offset = sprite top-left from that cell's top-left. z back = drawn under everything (ground); z y = y-sorted by the bottom edge of its cell row. perches and cat_spot_px are feet points (bottom-centre of the critter frame). hen_run is fenced and all blocked for Granny; the hens walk its cells except the coop's. truck_bed is the top-left of a garden_truck_bed.png frame. The cat spots on the truck hood and the bench sit above their prop's sort line: draw the cat over the prop there. The chimney point is under the HUD bar at the default view.",
+ "props": [
+  {
+   "id": "gravel",
+   "sheet": "garden_gravel.png",
+   "frame_w": 76,
+   "frame_h": 22,
+   "frames": 1,
+   "cell": [24, 8],
+   "offset": [-6, -6],
+   "blocked": [],
+   "interact": [],
+   "z": "back"
+  },
+  {
+   "id": "truck",
+   "sheet": "garden_truck.png",
+   "frame_w": 64,
+   "frame_h": 48,
+   "frames": 1,
+   "cell": [24, 8],
+   "offset": [0, -32],
+   "blocked": [[24, 7], [25, 7], [26, 7], [27, 7], [24, 8], [25, 8], [26, 8], [27, 8]],
+   "interact": [[26, 9], [27, 9], [23, 7]],
+   "z": "y"
+  },
+  {
+   "id": "run_back",
+   "sheet": "garden_run_back.png",
+   "frame_w": 68,
+   "frame_h": 74,
+   "frames": 1,
+   "cell": [19, 7],
+   "offset": [-2, -58],
+   "blocked": [[19, 4], [20, 4], [21, 4], [22, 4], [19, 5], [20, 5], [21, 5], [22, 5], [19, 6], [20, 6], [21, 6], [22, 6], [19, 7], [20, 7], [21, 7], [22, 7]],
+   "interact": [],
+   "z": "back"
+  },
+  {
+   "id": "coop",
+   "sheet": "garden_coop.png",
+   "frame_w": 32,
+   "frame_h": 35,
+   "frames": 1,
+   "cell": [19, 5],
+   "offset": [0, -19],
+   "blocked": [[19, 4], [20, 4], [19, 5], [20, 5]],
+   "interact": [[18, 5]],
+   "z": "y"
+  },
+  {
+   "id": "run_front",
+   "sheet": "garden_run_front.png",
+   "frame_w": 68,
+   "frame_h": 12,
+   "frames": 1,
+   "cell": [19, 7],
+   "offset": [-2, 6],
+   "blocked": [],
+   "interact": [[20, 8], [21, 8]],
+   "z": "y"
+  },
+  {
+   "id": "hive_1",
+   "sheet": "garden_hive.png",
+   "frame_w": 16,
+   "frame_h": 20,
+   "frames": 2,
+   "cell": [6, 4],
+   "offset": [0, -4],
+   "blocked": [[6, 4]],
+   "interact": [[6, 5]],
+   "z": "y",
+   "note": "frames: plain, bees at the entrance"
+  },
+  {
+   "id": "hive_2",
+   "sheet": "garden_hive.png",
+   "frame_w": 16,
+   "frame_h": 20,
+   "frames": 2,
+   "cell": [7, 3],
+   "offset": [0, -4],
+   "blocked": [[7, 3]],
+   "interact": [[7, 4]],
+   "z": "y",
+   "note": "frames: plain, bees at the entrance"
+  },
+  {
+   "id": "clothesline",
+   "sheet": "garden_clothesline.png",
+   "frame_w": 64,
+   "frame_h": 32,
+   "frames": 3,
+   "cell": [23, 4],
+   "offset": [0, -16],
+   "blocked": [[23, 4], [24, 4], [25, 4], [26, 4]],
+   "interact": [[24, 5], [25, 5]],
+   "z": "y",
+   "note": "frames: three wind flutter poses (loop 0-1-2-1)"
+  },
+  {
+   "id": "scarecrow",
+   "sheet": "garden_scarecrow.png",
+   "frame_w": 20,
+   "frame_h": 36,
+   "frames": 2,
+   "cell": [5, 9],
+   "offset": [-2, -20],
+   "blocked": [[5, 9]],
+   "interact": [[5, 10]],
+   "z": "y",
+   "note": "frames: two sway poses"
+  },
+  {
+   "id": "bench",
+   "sheet": "garden_bench.png",
+   "frame_w": 32,
+   "frame_h": 20,
+   "frames": 1,
+   "cell": [16, 6],
+   "offset": [0, -4],
+   "blocked": [[16, 6], [17, 6]],
+   "interact": [[16, 7], [17, 7]],
+   "z": "y"
+  }
+ ],
+ "hen_run": [19, 4, 4, 4],
+ "truck_bed": [428, 106],
+ "chimney": [265, -1],
+ "perches": {
+  "scarecrow": [[81, 138], [95, 138], [88, 125]],
+  "truck": [[419, 107]],
+  "coop": [[320, 62]]
+ },
+ "cat_spots": [[24, 7], [17, 6]],
+ "cat_spot_ids": ["truck_hood", "bench"],
+ "cat_spot_px": [[399, 118], [278, 104]],
+ "sheets": {
+  "truck_bed": {
+   "sheet": "garden_truck_bed.png",
+   "frame_w": 18,
+   "frame_h": 12,
+   "frames": ["hay_pumpkins", "grape_crates", "apple_baskets", "pumpkins_blanket"]
+  },
+  "hen": {
+   "sheet": "garden_hen.png",
+   "frame_w": 12,
+   "frame_h": 12,
+   "feet": [6, 11],
+   "faces": "right",
+   "frames": ["idle", "walk_1", "walk_2", "peck_1", "peck_2", "flap_1", "flap_2"],
+   "variants": ["rust", "cream"],
+   "note": "frames 0-6 rust, 7-13 cream (same order)"
+  },
+  "rooster": {
+   "sheet": "garden_rooster.png",
+   "frame_w": 12,
+   "frame_h": 14,
+   "feet": [6, 13],
+   "faces": "right",
+   "frames": ["idle", "crow_1", "crow_2", "walk_1", "walk_2"]
+  },
+  "bee": {
+   "sheet": "garden_bee.png",
+   "frame_w": 2,
+   "frame_h": 2,
+   "frames": ["wings_up", "wings_down"]
+  },
+  "crow": {
+   "sheet": "garden_crow.png",
+   "frame_w": 10,
+   "frame_h": 8,
+   "feet": [5, 7],
+   "faces": "right",
+   "frames": ["sit", "caw", "flap_1", "flap_2"]
+  },
+  "smoke": {
+   "sheet": "garden_smoke.png",
+   "frame_w": 6,
+   "frame_h": 6,
+   "frames": ["small", "puff", "thin"]
+  },
+  "leafburst": {
+   "sheet": "garden_leafburst.png",
+   "frame_w": 4,
+   "frame_h": 4,
+   "frames": ["red", "gold", "amber", "deep_red"]
+  }
+ }
+}

@@ -1,0 +1,32 @@
+# Garden bench with a teacup and a folded blanket (ART-GARDEN2), 32x20, legs on row 18.
+# Written by props_gen.py (outlined parts).
+legend . transparent
+legend C cream_100
+legend O olive_800
+legend R leaf_red_700
+legend V olive_600
+legend c cream_400
+legend k ink
+legend l olive_300
+legend r leaf_red_500
+frame
+................................
+.kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk.
+kllllllllllllllllllllllllllllllk
+kVVVVVVVVVVVVVVVVVVVVVVVVVVVVVOk
+.kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk.
+klVVVVVVVVVVVVVVVVVVVVVVVVVVVVOk
+kVVVVkkkkVVVVVVVVVkkkkkkkkVVVOOk
+.kkkkCCCckkkkkkkkkCrCCrCCrkkkkk.
+.kkkkCrrCckkkkkkkCrCCrCCrCckkkk.
+kllllkCCkkllllllkrRrrRrrRrrklllk
+klVVkccccckVVVVVkCrCCrCCrCckVVVk
+kVVVVkkkkkVVVVVVkcRccRccRcckVVOk
+kOOOOOOOOOOOOOOOOkkkCrCckkkOOOOk
+.klOkkkkkkkkkkkkkkkkkRckkklOkkk.
+.kVOk................kk..kVOk...
+.kVOk....................kVOk...
+.kVOk....................kVOk...
+.kVOk....................kVOk...
+..kk......................kk....
+................................

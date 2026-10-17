@@ -1,0 +1,27 @@
+# Chimney smoke (ART-GARDEN2), 6x6, no outline (a soft puff in stone and cream, no partial alpha).
+# Frames: small, puff, thin (spawn small at the chimney, grow to puff, fade through thin while rising).
+legend . transparent
+legend C cream_100
+legend c cream_400
+legend s stone_300
+frame
+......
+......
+..cs..
+.cCs..
+..ss..
+......
+frame
+..cc..
+.cCCs.
+cCCCcs
+cCCcss
+.csss.
+......
+frame
+.c..c.
+cs.cs.
+.s..s.
+...s..
+......
+......

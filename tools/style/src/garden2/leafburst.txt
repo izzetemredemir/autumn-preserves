@@ -1,0 +1,10 @@
+# Leaf burst (ART-GARDEN2), 4x4, too small for an outline: light half top-left, dark half and stem.
+# One source, build.sh renders 4 tints with --variant: red, gold, amber, deep red.
+legend . transparent
+legend L leaf_red_500
+legend D leaf_red_700
+frame
+L.L.
+LLL.
+.LDD
+..D.

@@ -1,0 +1,51 @@
+# Hen house (ART-GARDEN2), 32x35, front view, light from the top-left. Written by coop_gen.py.
+legend . transparent
+legend A amber_600
+legend B bark_900
+legend C cream_100
+legend G gold_200
+legend R leaf_red_700
+legend W wine_700
+legend b bark_700
+legend g gold_700
+legend k ink
+legend o bark_500
+legend p leaf_peach_300
+legend r leaf_red_500
+legend y gold_300
+frame
+......kkkkkkkkkkkkkkkkkkkk......
+.....kppppppppppppppppppppk.....
+.....krrrrprrrrprrrrrrrrrrk.....
+....kprrrrprrrrprrrrrrrrrrrk....
+....kRRRRRRRRRRRRRRRRRRRRRRk....
+...krrrrprAArprrrrrrrrrrrrrrk...
+...krrrrprrgrprrrrrrrrrrrrrrk...
+..kRRRRRRRRRRRRRRRRRRRRRRRRRRk..
+..krrrprrrrprrrrrrrryArrrrrrrk..
+.krrrrprrrrprrrrrrrrrrrrrrrrrrk.
+.kRRRRRRRRRRRRRRRRRRRRRRRRRRRRk.
+krrrprrrrprrrrprrrrrrrrrArrrrrrk
+krrrprrrrprrrrprrrrrrrrrrrrrrrrk
+WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+kkkBBBBBBBBBBBBBBBBBBBBBBBBBBkkk
+..kyoobooobooobBBobooobooobook..
+..kyooboooboooBBBBbooobooobook..
+kkkkkobooobooobBBobooobooobook..
+bbbbbkbooobooobooobooobooobook..
+GyyyGkbooobooobooobooobooobook..
+oobookbooobooCCCCCCooobooobook..
+obbookboooboCBBBBBBCoobooobook..
+oobookboooboCBBBBBBCoobooobook..
+bbbbbkboooboCBBBBBBCoobooobook..
+kkkkkoboooboCBBBBBBCoobooobook..
+..kyooboooboCByByBBCoobooobook..
+..kyooboooboCyyGyyyCoobooobook..
+..kyooboooboCyGyyGyCoobooobook..
+..kbbbbbbbbbbbbbbbbbbbbbbbbbbk..
+...kbBkkkkkkkyoooookkkkkkkbBk...
+...kbBk.....kybbbbbk.....kbBk...
+...kbBk.....kyoooook.....kbBk...
+...kbBk.....kybbbbbk.....kbBk...
+...kbBk.....kyoooook.....kbBk...
+...kbBk.....kybbbbbk.....kbBk...

@@ -1,0 +1,71 @@
+# Seasonal load in the truck bed (ART-GARDEN2), 18x12 x4: hay_pumpkins, grape_crates,
+# apple_baskets, pumpkins_blanket. Written by truck_bed_gen.py (outlined parts); drawn at truck (44, 10).
+legend . transparent
+legend A amber_600
+legend B bark_900
+legend C cream_100
+legend D plum_900
+legend G gold_200
+legend R leaf_red_700
+legend V olive_600
+legend W wine_700
+legend b bark_700
+legend c cream_400
+legend g gold_700
+legend k ink
+legend o bark_500
+legend p leaf_peach_300
+legend r leaf_red_500
+legend y gold_300
+frame
+..................
+..................
+..................
+..................
+.........kkkkkkkkk
+........kGGbGGGbGG
+...kk...kGyBGyGBGy
+.kkBVk.kkyybyyybyg
+kAyAyAkBVkgbyygbgy
+AyyAAkyAAkybyyybyg
+AyAAkyyAAgkBgyyBgg
+kAAgkAAAggkbgggbgg
+frame
+..................
+..................
+...kkkk...........
+.kkWcVVk...kk.....
+kWWDWWck..kcWkkk..
+WcWWDWcWkkWWDWcWkk
+kkkkkkkkkWkkkkkkkk
+ooooooookkoooooooo
+bBbbbbBbkkbBbbbbBb
+ooooooookkoooooooo
+bBbbbbBbkkbBbbbbBb
+ooooooookkoooooooo
+frame
+..................
+..................
+..................
+..kk..k...........
+.krpkkrk....k.....
+krprRrpRk.kkpkkk..
+rprRrprRkkrprRrpkk
+kkkkkkkkkrkkkkkkkk
+gogogogokkgogogogo
+ogogogogkkogogogog
+gogogogokkgogogogo
+kogogogk..kogogogk
+frame
+..................
+..................
+..................
+..................
+........kkkkkkkkkk
+.......kCrCCCrCCCr
+...kk..kCrCCCrCCCr
+.kkBVk.kkRRRRRRRRR
+kAyACAkBVkCCCrCCCr
+AyyAAkyACkcccrcccr
+AyAAkyyAAgkCCrCCCr
+kAAgkAAAggkccrcccr
