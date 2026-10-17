@@ -9,6 +9,7 @@ extends RefCounted
 
 const MAX_QUALITY := 3
 const GUARANTEE_TRIES := 12
+const DISTINCT_TRIES := 12
 
 
 ## Drops expired orders and fills empty slots (rules.orders.slots), keeping the "one satisfiable order" guarantee.
@@ -31,7 +32,7 @@ static func refill_with(state: Dictionary, taste_fn: Callable) -> Array:
 	var cands := candidates(state, taste_fn)
 	var added: Array = []
 	while state.orders.size() < int(ro.slots):
-		var o := _generate(state, _pick_npc(state, r), r, cands)
+		var o := _generate_distinct(state, _pick_npc(state, r), r, cands)
 		_commit(state, o)
 		state.orders.append(o)
 		added.append(o)
@@ -195,7 +196,7 @@ static func _guaranteed(state: Dictionary, r: RandomNumberGenerator, cands: Arra
 	var pool := npc_pool(state)
 	for t in GUARANTEE_TRIES:
 		var o := _generate(state, pool[r.randi_range(0, pool.size() - 1)], r, cands)
-		if satisfiable_in(o, cands):
+		if satisfiable_in(o, cands) and not _duplicate(o, state.orders):
 			return o
 	var ro: Dictionary = Data.rules().orders
 	var day := int(state.day)
@@ -204,11 +205,44 @@ static func _guaranteed(state: Dictionary, r: RandomNumberGenerator, cands: Arra
 		for axis in Data.npcs()[npc_id].likes:
 			var o := {"id": -1, "npc": npc_id, "recipe": "", "axes": [axis], "min_stars": int(ro.min_stars[0]),
 				"made_day": day, "expires_day": day + int(ro.expire_days)}
-			if satisfiable_in(o, cands):
+			if satisfiable_in(o, cands) and not _duplicate(o, state.orders):
 				pairs.append(o)
 	if pairs.is_empty():
 		return {}
 	return pairs[r.randi_range(0, pairs.size() - 1)]
+
+
+## TOWN-NAV: _generate, drawn again (same stream) while the same neighbour already asks for the same thing on the board.
+## After DISTINCT_TRIES draws the last one is changed by one star (or its recipe dropped) so two orders never read alike.
+static func _generate_distinct(state: Dictionary, npc_id: String, r: RandomNumberGenerator, cands: Array) -> Dictionary:
+	var o := _generate(state, npc_id, r, cands)
+	for t in DISTINCT_TRIES:
+		if not _duplicate(o, state.orders):
+			return o
+		o = _generate(state, npc_id, r, cands)
+	if _duplicate(o, state.orders):
+		var ro: Dictionary = Data.rules().orders
+		var lo := int(ro.min_stars[0])
+		var hi := int(ro.min_stars[1])
+		for stars in range(lo, hi + 1):
+			o.min_stars = stars
+			if not _duplicate(o, state.orders):
+				break
+		if _duplicate(o, state.orders) and String(o.recipe) != "":
+			o.recipe = ""
+	return o
+
+
+## The same neighbour asks for the same wish (recipe, tastes, stars) as an order of `orders`.
+static func _duplicate(order: Dictionary, orders: Array) -> bool:
+	var axes: Array = (order.axes as Array).duplicate()
+	axes.sort()
+	for o in orders:
+		var other: Array = (o.axes as Array).duplicate()
+		other.sort()
+		if o.npc == order.npc and String(o.recipe) == String(order.recipe) and int(o.min_stars) == int(order.min_stars) and other == axes:
+			return true
+	return false
 
 
 static func _commit(state: Dictionary, order: Dictionary) -> void:

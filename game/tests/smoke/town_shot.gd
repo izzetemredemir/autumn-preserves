@@ -33,8 +33,55 @@ func _run(scene: Node) -> void:
 			await process_frame
 		RenderingServer.force_draw(false)
 		root.get_texture().get_image().save_png("%s/town_npc_%s.png" % [dir, id])
+	await _nav_checks(scene, gs, dir)
 	await _square_shots(scene, gs, dir)
 	quit()
+
+
+## TOWN-NAV: nothing clickable in the To-Do note's zone, the four tabs and the signpost are on screen, a bubble stays
+## in the picture band -> user://shots/town_nav_<tab>.png and "town_nav:" lines.
+func _nav_checks(scene: Node, gs: Node, dir: String) -> void:
+	var problems := 0
+	var note := Rect2(326, 0, 154, 62)
+	for b in scene.find_children("*", "Button", true, false):
+		if (b as Button).is_visible_in_tree() and (b as Button).get_global_rect().intersects(note):
+			problems += 1
+			print("town_nav: PROBLEM button in the note zone: ", (b as Button).text, " ", (b as Button).get_global_rect())
+	for id in ["grocer", "orders", "neighbours"]:
+		var tr_: Rect2 = scene._tab_buttons[id].get_global_rect()
+		if tr_.position.x < 8.0 or tr_.end.x > 322.0:
+			problems += 1
+			print("town_nav: PROBLEM tab outside x 8..322 ", id, " ", tr_)
+	var back: Control = scene._back_btn
+	var br := back.get_global_rect()
+	if not Rect2(0, 58, 480, scene.PANEL_Y - 58).encloses(br) or not back.is_visible_in_tree():
+		problems += 1
+		print("town_nav: PROBLEM signpost ", br)
+	var orders: Array = gs.data.orders
+	for i in orders.size():
+		for j in range(i + 1, orders.size()):
+			if Orders._duplicate(orders[i], [orders[j]]):
+				problems += 1
+				print("town_nav: PROBLEM duplicate orders ", orders[i])
+	scene._on_tab("orders")
+	var square: Node = scene.get_node("Square")
+	square._say("n" + "grocer", "TOWN_CHAT_HELLO_1", 9, 6.0)
+	for i in 30:
+		await process_frame
+	for b in square.bubbles():
+		var r: Rect2 = b.rect
+		if r.position.y < 58.0 or r.end.y > scene.PANEL_Y - 2 or r.intersects(note) or r.intersects(br):
+			problems += 1
+			print("town_nav: PROBLEM bubble ", b.key, " ", r)
+	print("town_nav: bubbles=", square.bubbles().size(), " back=", br, " orders=", orders.size())
+	RenderingServer.force_draw(false)
+	root.get_texture().get_image().save_png("%s/town_nav_orders.png" % dir)
+	scene._on_tab("grocer")
+	for i in 12:
+		await process_frame
+	RenderingServer.force_draw(false)
+	root.get_texture().get_image().save_png("%s/town_nav_grocer.png" % dir)
+	print("town_nav: %d problems" % problems)
 
 
 func _square_shots(old: Node, gs: Node, dir: String) -> void:

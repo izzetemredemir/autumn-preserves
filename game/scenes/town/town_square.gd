@@ -19,6 +19,8 @@ const RAIN := "res://ui/hud/rain.tscn"
 const HELLOS := 3
 const TALK := 1.3
 const BLOCKED: Array[Rect2] = [Rect2(0, 0, 480, 60), Rect2(0, 144, 480, 126)]
+## Bubbles stay in the picture band (y 58..PANEL_Y-2) and off the To-Do note (x >= 326, down to y 60) and the signpost.
+const KEEP_CLEAR: Array[Rect2] = [Rect2(326, 0, 154, 62), Rect2(4, 118, 78, 28)]
 
 var layout: Dictionary = {}
 var crowd: Dictionary = {}
@@ -67,7 +69,10 @@ func _ready() -> void:
 	var blocked: Array[Rect2] = []
 	for b in layout.get("bubble_blocked", []):
 		blocked.append(Rect2(ML.rect(b)))
-	_bubbles.set("blocked", blocked if not blocked.is_empty() else BLOCKED)
+	if blocked.is_empty():
+		blocked.assign(BLOCKED)
+	blocked.append_array(KEEP_CLEAR)  # TOWN-NAV: the To-Do note's zone and the garden signpost
+	_bubbles.set("blocked", blocked)
 	if not layout.is_empty():
 		_life.call("setup", _world, layout, Seeds.seed_for(save_seed, "town", day, "life"))
 		if not Market.can_open(d):

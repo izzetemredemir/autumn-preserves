@@ -6,12 +6,15 @@ extends Control
 const ICONS_JSON := "res://assets/sprites/icons/icons.json"
 const ICONS_PNG := "res://assets/sprites/icons/icons.png"
 const PANEL_Y := 146  # the panel covers the lower ~44%; the painted shopfront stays visible above it
+const TAB_Y := 38
+const TAB_START := 8
+const TAB_END := 322  # the To-Do note covers x >= 326 at the top
 const NPC_PANEL_H := 80  # UI-COMPACT: the neighbours tab's panel (names, portrait, two lines, Gift), under a third
 const ROWS := 3
 const GROUPS := ["supplies", "seeds", "upgrades"]
 const NPC_IDS := ["grocer", "baker", "postman", "vintner", "librarian"]
 const RV := preload("res://scenes/market/react_view.gd")
-const REACT_AT := Vector2(10, 72)  # FUN-REACT delivery card: over the square, between the tab row and the panel
+const REACT_AT := Vector2(10, 64)  # FUN-REACT delivery card: over the square, between the tab row and the panel
 
 var _tab := "grocer"
 var _react_card: Control
@@ -142,29 +145,47 @@ func _add_square() -> void:
 # ------------------------------------------------------------------ frame
 
 func _build() -> void:
-	var x := 52
-	for t in [["grocer", tr("TOWN_TAB_GROCER")], ["orders", tr("TOWN_TAB_ORDERS")], ["neighbours", tr("TOWN_TAB_NEIGHBOURS")]]:
+	# TOWN-NAV: four tabs share x 8..322 (the To-Do note owns the top right), sized by their labels
+	var tabs := [["grocer", tr("TOWN_TAB_GROCER")], ["orders", tr("TOWN_TAB_ORDERS")],
+			["neighbours", tr("TOWN_TAB_NEIGHBOURS")], ["post", tr("LET_POST_OFFICE")]]
+	var btns: Array[Button] = []
+	var need := 0
+	for t in tabs:
 		var b := Button.new()
 		b.text = t[1]
-		b.position = Vector2(x, 38)
-		b.size = Vector2(88, 20)
-		_style_toggle(b)
-		b.pressed.connect(_on_tab.bind(t[0]))
 		add_child(b)
-		_tab_buttons[t[0]] = b
-		x += 92
-	var post := Button.new()
-	post.text = tr("LET_POST_OFFICE")
-	post.position = Vector2(326, 38)
-	post.size = Vector2(80, 20)
-	post.pressed.connect(_on_post_office)
-	add_child(post)
-	var back := Button.new()
+		if t[0] == "post":
+			b.pressed.connect(_on_post_office)
+		else:
+			_style_toggle(b)
+			b.pressed.connect(_on_tab.bind(t[0]))
+			_tab_buttons[t[0]] = b
+		btns.append(b)
+		need += ceili(b.get_minimum_size().x)
+	var gap := 2
+	var room := TAB_END - TAB_START - gap * (tabs.size() - 1)
+	var extra := maxi(0, room - need) / tabs.size()
+	var shrink := maxi(0, need - room)  # labels wider than the room: padding gives way
+	var x := TAB_START
+	for i in btns.size():
+		var w := ceili(btns[i].get_minimum_size().x) + extra
+		if shrink > 0:
+			w -= ceili(float(shrink) / tabs.size())
+			var pad := maxi(0, 4 - ceili(float(shrink) / tabs.size() / 2.0))
+			for k in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
+				var sb := btns[i].get_theme_stylebox(k).duplicate() as StyleBox
+				sb.content_margin_left = pad
+				sb.content_margin_right = pad
+				btns[i].add_theme_stylebox_override(k, sb)
+		btns[i].position = Vector2(x, TAB_Y)
+		btns[i].size = Vector2(w, 20)
+		x += w + gap
+	var back: Button = load("res://scenes/town/town_sign.gd").new()
 	back.text = tr("TOWN_BACK_GARDEN")
-	back.position = Vector2(410, 38)
-	back.size = Vector2(62, 20)
-	back.pressed.connect(_on_back)
 	add_child(back)
+	back.fit()
+	back.position = Vector2(8, PANEL_Y - 24)
+	back.pressed.connect(_on_back)
 	_back_btn = back
 	if Market.can_open(GameState.data):  # MARKET: "Market today!" banner on market days, until the stall opens
 		_banner = load("res://scenes/market/market_banner.gd").new()
@@ -752,6 +773,9 @@ func show_reaction(npc: String, item: Dictionary) -> void:
 	add_child(card)
 	var loved := Reactions.liked(desc, npc) != ""
 	card.setup(face, line, loved)
+	# TOWN-NAV: inside the picture band, clear of the tab row, the To-Do note and the garden signpost
+	card.position = Vector2(clampf(card.position.x, 4.0, TAB_END - card.size.x),
+			clampf(card.position.y, 60.0, maxf(60.0, PANEL_Y - 26 - card.size.y)))
 	card.gone.connect(_end_reaction)
 	_react_card = card
 	if loved:
