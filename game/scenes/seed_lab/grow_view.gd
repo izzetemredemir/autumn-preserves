@@ -32,6 +32,9 @@ const C_INK := Color("111010")
 const C_WATER_HEAD := Color("567c7d")
 const C_FRUIT_TREE := [Color("b7b768"), Color("747c37")]
 const C_BUSH := Color("53612e")
+const C_TAG_TEXT := Color("50361e")
+const TAG_FONT := preload("res://assets/fonts/m5x7.ttf")  ## species name tags (body font, 16 px)
+const TAG_SIZE := 16
 
 static var _masks := {}  # tile px -> [null, tex 25%, tex 50%, tex 75%]
 static var _rings := {}  # radius px -> ring texture
@@ -255,7 +258,24 @@ func _setup_pickups(st: Dictionary, map: Dictionary, varieties: Dictionary) -> v
 			d.gone = fruit_at.get(d.c.y * w + d.c.x, s4 + 0.05)
 		elif d.gone == -2.0:
 			d.gone = _t_special
-	_notes[4] = tr("WILD_STEP_NOTE_PICKUPS") % _items.size()
+	# FIX-JURY-B: the day's generated species come after every recorded step (SpeciesGen.add_pickups): they pop in
+	# last, framed in gold, and the note counts them
+	# (the forest's P1 points of step 8 come in the same way)
+	var extra: Array = (map.get("pickups", []) as Array).slice((pre.get("pickups", []) as Array).size())
+	var sp := 0
+	for k in extra.size():
+		var it := _item(extra[k], extra[k], String(extra[k].get("kind", "ground")), varieties)
+		it.pop = s4 + float(PHASES[4]) * (0.6 + 0.3 * k / maxf(extra.size(), 1.0))
+		_items.append(it)
+		if it.species:
+			sp += 1
+			var row: Dictionary = Data.ingredients().get(it.type, {})
+			it.today = int(row.get("day", -1)) == int(map.get("lab_day", -2))
+			it.tag = SpeciesGen.display_name(row) if not row.is_empty() else ""
+	if sp > 0:
+		_notes[4] = tr("WILD_STEP_NOTE_SPECIES") % [_items.size(), sp]
+	else:
+		_notes[4] = tr("WILD_STEP_NOTE_PICKUPS") % _items.size()
 
 
 ## Items in pop order: fruit trees, bushes and ground points, then the special place's own.
@@ -278,7 +298,8 @@ func _add_items(fruit_a: Array, fruit_b: Array, pick_a: Array, pick_b: Array, va
 func _item(a: Dictionary, b: Dictionary, kind: String, varieties: Dictionary) -> Dictionary:
 	return {"a": Vector2i(int(a.x), int(a.y)), "b": Vector2i(int(b.x), int(b.y)), "kind": kind,
 		"color": WildMapView.fruit_color(String(a.get("type", "")), String(a.get("variety", "")), varieties),
-		"special": bool(a.get("special", false)), "pop": 0.0}
+		"special": bool(a.get("special", false)), "species": bool(a.get("species", false)), "pop": 0.0,
+		"type": String(a.get("type", "")), "today": false, "tag": ""}
 
 
 func _setup_flood(st: Dictionary, n: int) -> void:
@@ -334,6 +355,29 @@ func _draw() -> void:
 		if not plain and t >= d.pop and t - d.pop < RING_T:
 			draw_texture(ring, Vector2(d.c * ts + Vector2i(half, half) - Vector2i(_ring_r * ts, _ring_r * ts)), C_CREAM)
 	_draw_items()
+	_draw_tags()
+
+
+## FIX-JURY-B: a paper name tag over the first pickup of each species born on the map's day (map.lab_day, the
+## Seed Lab's maps), once it has popped in; kept inside the map, below the pickup when there is no room above.
+func _draw_tags() -> void:
+	var shown := {}
+	for it in _items:
+		if not it.today or shown.has(it.type) or t < float(it.pop) + POP:
+			continue
+		shown[it.type] = true
+		var text := String(it.tag)
+		var tw := ceili(TAG_FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, TAG_SIZE).x)
+		var bw := tw + 4
+		var bh := 12
+		var p: Vector2i = it.b * ts
+		var x := clampi(p.x + floori(ts * 0.5) - floori(bw * 0.5), 0, maxi(w * ts - bw, 0))
+		var y := p.y - bh - 2
+		if y < 0:
+			y = p.y + ts + 2
+		draw_rect(Rect2(x, y, bw, bh), C_INK)
+		draw_rect(Rect2(x + 1, y + 1, bw - 2, bh - 2), C_CREAM)
+		draw_string(TAG_FONT, Vector2(x + 2, y + 9), text, HORIZONTAL_ALIGNMENT_LEFT, -1, TAG_SIZE, C_TAG_TEXT)
 
 
 func _draw_ground(masks: Array) -> void:
@@ -412,6 +456,9 @@ func _draw_items() -> void:
 				var o := floori(ts * 0.5) - 2
 				draw_rect(Rect2(p.x + o, p.y + o, 4, 4), C_INK)
 				draw_rect(Rect2(p.x + o + 1, p.y + o + 1, 2, 2), C_CREAM if flash else it.color)
+		if it.species:  # a generated species: cream and ink frames around its tile (clearings have one gold frame)
+			_frame(Rect2i(p.x - 1, p.y - 1, ts + 2, ts + 2), C_CREAM)
+			_frame(Rect2i(p.x - 2, p.y - 2, ts + 4, ts + 4), C_CREAM if flash else C_INK)
 		if moved and t >= s5 and t < s5 + float(PHASES[5]):
 			if t < slide0:
 				if int((t - s5) / 0.12) % 2 == 0:

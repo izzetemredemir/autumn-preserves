@@ -1,20 +1,23 @@
 extends SceneTree
 ## Smoke shot (FESTIVAL): plays the whole Harvest Festival from the title menu, the way a juror would, through the
-## scenes' own handlers (what a click calls): the start card, Mia and Leo in the garden, then the six steps:
-##   1. the forest: the marker over the rare tree, Granny walks up and shakes it,
+## scenes' own handlers (what a click calls): the start card, Mia and Leo in the garden, then the seven steps:
+##   1. the forest: the marker over the rare tree, Granny walks up and shakes it (FIX-JURY-B: then picks the new
+##      species growing beside it, flags.festival.species: "New species!"),
 ##   2. the stove: opening it already picks a new jam of the rare fruit (JURY-STOVE), so only Cook is pressed (stir
 ##      mini-game, ended with 3 stars) -> "New recipe!",
-##   3. the press: a juice of the inbox apples,
-##   4. the pantry: the new jam dragged into the room shelf's gap -> 3 stars,
-##   5. the market: fill the stall, open it, the parade, the end card,
-##   6. the garden mailbox: Mia's thank-you letter with her drawing,
+##   3. FIX-JURY-B: invent a dish: the stove again, the arrow on the Invent button, the Invent panel opens with the
+##      new species and a second stack picked, Cook (stir mini-game, 3 stars) -> the invention's card,
+##   4. the press: a juice of the inbox apples,
+##   5. the pantry: the new jam dragged into the room shelf's gap -> 3 stars,
+##   6. the market: fill the stall, open it, the parade, the end card,
+##   7. the garden mailbox: Mia's thank-you letter with her drawing,
 ## then the end card (Keep playing hides it; Back to title returns to the title). ONBOARD-GUIDE: Granny's guide arrow
 ## points at each step's target on the way (the gate and her hint in the garden, the rare tree in the forest in place
 ## of the festival marker, stove, press, the new jam in the pantry inbox, Fill then Open stall, the mailbox).
 ## The player's own save
 ## (user://save.json) must be byte for byte the same afterwards.
-## Shots: user://shots/festival_00_title.png, _01_start, _02_wave, _02_garden, _03_grow, _03_wild, _04_shake, _05_stove, _05_stir, _06_jam,
-## _06_hint, _07_juice, _08_pantry, _09_market, _10_market_end, _11_letter, _12_end (+ "_tr" with -- --locale=tr).
+## Shots: user://shots/festival_00_title.png, _01_start, _02_wave, _02_garden, _03_grow, _03_wild, _04_shake,
+## _04_species, _05_stove, _05_stir, _06_jam, _06_invent, _06_invent_panel, _06_invented, _06_hint, _07_juice, _08_pantry, _09_market, _10_market_end, _11_letter, _12_end (+ "_tr" with -- --locale=tr).
 ##   godot --path game --audio-driver Dummy -s res://tests/smoke/festival_shot.gd   (about 60 s; exit 1 on a failed check)
 
 const TRANSITION := "res://ui/transition/transition.gd"
@@ -63,7 +66,7 @@ func _run() -> void:
 	await _frames(4)
 	_check(_festival_card() == null, "Let's go closes the start card")
 	var note := get_first_node_in_group("granny_todo")
-	_check(note != null and note.is_open(), "the festival note opens with all six steps")
+	_check(note != null and note.is_open(), "the festival note opens with all seven steps")
 	var garden := current_scene
 	var kids := garden.get_node_or_null("Objects/Grandkids")
 	_check(kids != null and kids.kids.size() == 2, "Mia and Leo are in the garden")
@@ -109,6 +112,21 @@ func _run() -> void:
 	_check(_done("f_shake"), "step 1: the rare tree shaken")
 	await _seconds(0.6)
 	_shot("festival_04_shake")
+	# FIX-JURY-B: the festival's new species, a bush beside the rare tree
+	var want: Array = f.get("species", [])
+	var sp_type := String(want[0].get("type", "")) if not want.is_empty() else ""
+	var sp_obj: Node2D = null
+	for pk: Dictionary in w.map.pickups:
+		if bool(pk.get("species", false)) and String(pk.type) == sp_type:
+			sp_obj = w.view.find(String(pk.kind), int(pk.id))
+	_check(sp_obj != null and tree_obj != null and Vector2(sp_obj.cell - tree_obj.cell).length() <= 4.0,
+		"a new species grows beside the rare tree (%s)" % SpeciesGen.display_name(SpeciesGen.row(sp_type)))
+	if sp_obj != null:
+		w.granny.approach(sp_obj.cell, w._use.bind(sp_obj))
+		await _until(func() -> bool: return SpeciesGen.seen(_gs.data, sp_type), 10000)
+	_check(SpeciesGen.seen(_gs.data, sp_type), "Granny meets the new species")
+	await _seconds(0.8)
+	_shot("festival_04_species")
 	w._exit()
 	await _until(func() -> bool: return _scene_id() == "garden", 6000)
 	await _frames(10)
@@ -144,7 +162,38 @@ func _run() -> void:
 	k._card._on_close()
 	await _frames(10)
 
-	# --- 3. juice at the press
+	# --- 3. invent a dish (FIX-JURY-B)
+	_check(String(k.get("_glow")) == "stove", "the stove glows for the Invent step (%s)" % k.get("_glow"))
+	await _until(func() -> bool: return guide.showing() and guide.hint_text() != "", 3000)
+	_check(String(guide.hint_text()) == tr("TODO_HINT_F_INVENT"), "Granny says: let's invent a dish")
+	_check(_todo_step() == "f_invent", "the note points at: Invent a dish (%s)" % _todo_step())
+	await _seconds(0.4)
+	_shot("festival_06_invent_hint")
+	k._on_spot("stove")
+	await _frames(8)
+	_check(panel.invent_pointed(), "the arrow points at the Invent button")
+	_shot("festival_06_invent")
+	panel.invent_button().pressed.emit()
+	await _frames(8)
+	var fx: Node = k._fx_panel
+	var sp_vid := SpeciesGen.variety_id(sp_type)
+	_check(fx.visible and fx.components.size() == 2 and bool(fx._ok),
+		"the Invent panel opens ready with two stacks (%s)" % [fx.components])
+	_check(fx.components.has(sp_vid), "the new species is one of them")
+	_shot("festival_06_invent_panel")
+	fx._on_cook()
+	await _until(func() -> bool: return k._mg != null, 3000)
+	await _seconds(1.0)
+	if k._mg != null:
+		k._mg.finished.emit({"stars": 3})
+	await _until(func() -> bool: return k._card != null, 3000)
+	await _seconds(1.2)
+	_check(_done("f_invent"), "step 3: a dish invented (%s)" % [State.formulas(_gs.data).keys()])
+	_shot("festival_06_invented")
+	k._card._on_close()
+	await _frames(10)
+
+	# --- 4. juice at the press
 	_check(String(k.get("_glow")) == "press", "the press glows for the juice step (%s)" % k.get("_glow"))
 	await _until(func() -> bool: return guide.showing(), 3000)
 	_check_aim(guide, k._guide_top(k.get("_spots").press), "the arrow sits over the press (and its caption)")
@@ -172,12 +221,12 @@ func _run() -> void:
 		k._mg.finished.emit({"stars": 2})
 	await _until(func() -> bool: return k._card != null, 3000)
 	await _seconds(0.8)
-	_check(_done("f_juice"), "step 3: a juice pressed")
+	_check(_done("f_juice"), "step 4: a juice pressed")
 	_shot("festival_07_juice")
 	k._card._on_close()
 	await _frames(10)
 
-	# --- 4. the pantry: the new jam into the gap
+	# --- 5. the pantry: the new jam into the gap
 	load(TRANSITION).go("pantry")
 	await _until(func() -> bool: return _scene_id() == "pantry" and _ready_scene(), 6000)
 	await _frames(20)
@@ -203,10 +252,10 @@ func _run() -> void:
 		await _frames(4)
 		board.drop_held()
 	await _seconds(1.0)
-	_check(_done("f_pantry"), "step 4: the pantry at 3 stars (%s)" % [PantryRules.state_stars(_gs.data).rules])
+	_check(_done("f_pantry"), "step 5: the pantry at 3 stars (%s)" % [PantryRules.state_stars(_gs.data).rules])
 	_shot("festival_08_pantry")
 
-	# --- 5. the market
+	# --- 6. the market
 	load(TRANSITION).go("market")
 	await _until(func() -> bool: return _scene_id() == "market" and _ready_scene(), 6000)
 	await _frames(20)
@@ -218,7 +267,7 @@ func _run() -> void:
 	_check_aim(guide, _over(m.get("_open_btn"), -1), "then at Open stall")
 	m._on_open()
 	await _frames(4)
-	_check(_done("f_market"), "step 5: sold at the market")
+	_check(_done("f_market"), "step 6: sold at the market")
 	await _seconds(4.0)
 	_shot("festival_09_market")
 	m._finish()
@@ -228,7 +277,7 @@ func _run() -> void:
 	await _until(func() -> bool: return _scene_id() == "garden" and _ready_scene(), 6000)
 	await _frames(30)
 
-	# --- 6. Mia's letter
+	# --- 7. Mia's letter
 	garden = current_scene
 	_check(_todo_step() == "f_letter", "the note points at Mia's letter (%s)" % _todo_step())
 	var mailbox: Variant = garden.call("find_spot", "mailbox")
@@ -246,13 +295,13 @@ func _run() -> void:
 	if ui != null:
 		ui.close()
 	await _frames(4)
-	_check(_done("f_letter"), "step 6: Mia's letter read")
+	_check(_done("f_letter"), "step 7: Mia's letter read")
 
 	# --- the end card
 	await _until(func() -> bool: return _festival_card() != null, 6000)
 	await _seconds(0.8)
 	var card := _festival_card()
-	_check(card != null and String(card.mode) == "end", "the end card after the six steps")
+	_check(card != null and String(card.mode) == "end", "the end card after the seven steps")
 	_shot("festival_12_end")
 	if card != null:
 		card._choose("keep")

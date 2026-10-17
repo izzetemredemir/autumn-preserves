@@ -1,12 +1,17 @@
 extends "res://tests/_runner/test_case.gd"
 ## FESTIVAL: res://dev/festival_save.json is the Harvest Festival day (a market day inside the harvest calendar, sunny,
 ## a rare tree near the forest entrance and a special place, everything unlocked, Mia's letter waiting, the pantry one
-## jar short of 3 stars) and the six checklist steps tick when each system is used once.
+## jar short of 3 stars) and the seven checklist steps tick when each system is used once. FIX-JURY-B: a generated
+## species (flags.festival.species) grows as a bush beside the rare tree, and "Invent a dish" follows the jam.
 ## Rebuild the save: godot --headless --path game -s <absolute path>/tools/scripts/make_festival.gd
 
 const MAX_DIST := 14.0
 const UNLOCKS := ["press", "knead", "vineyard", "boots", "big_pot"]
 const GAP := Vector2i(2, 3)
+
+
+func after_each() -> void:
+	Data.clear_generated()
 
 
 func _load() -> Dictionary:
@@ -55,6 +60,56 @@ func test_forest_has_the_rare_tree_near_the_entrance_and_a_special_place() -> vo
 	assert_eq(String(s.varieties[String(f.rare)].rarity), "rare")
 	assert_true(Vector2(int(tree.x) - map.entrance.x, int(tree.y) - map.entrance.y).length() <= MAX_DIST, "near the entrance")
 	assert_false(s.found_varieties.has(String(f.rare)), "the rare variety is still to be found")
+
+
+## Today's forest as the wild scene grows it: species synced, today's species pickups, then the festival's own.
+func _forest(s: Dictionary) -> Dictionary:
+	SpeciesGen.sync(s)
+	var map := WildGen.generate(int(s.save_seed), int(s.day), "forest", String(s.weather), s.varieties)
+	SpeciesGen.add_pickups(map, int(s.save_seed), int(s.day))
+	SpeciesGen.add_fixed(map, TodoRules.festival(s).get("species", []))
+	return map
+
+
+func _festival_pickup(s: Dictionary, map: Dictionary) -> Dictionary:
+	var want: Array = TodoRules.festival(s).get("species", [])
+	for p in map.pickups:
+		if not want.is_empty() and bool(p.get("species", false)) and String(p.type) == String(want[0].type):
+			return p
+	return {}
+
+
+func test_a_new_species_grows_beside_the_rare_tree() -> void:
+	# FIX-JURY-B: data in the save, no RNG draw changes: the generated map is the same with or without it
+	var s := _load()
+	if s.is_empty():
+		return
+	var f: Dictionary = s.flags.festival
+	var want: Array = f.get("species", [])
+	assert_eq(want.size(), 1, "one species named by the save")
+	if want.is_empty():
+		return
+	var map := _forest(s)
+	var sp := SpeciesGen.row(String(want[0].type))
+	assert_false(sp.is_empty(), "a species the save knows by its day")
+	assert_eq(String(sp.get("group", "")), "fruit", "a fruit: a bush that gives two, enough to invent with")
+	assert_true(int(sp.get("day", 99)) <= int(s.day), "born before the festival")
+	var p := _festival_pickup(s, map)
+	assert_false(p.is_empty(), "on today's map")
+	if p.is_empty():
+		return
+	assert_eq(Vector2i(int(p.x), int(p.y)), Vector2i(int(want[0].x), int(want[0].y)), "at the cell the save names")
+	var tree := {}
+	for t in map.fruit_trees:
+		if int(t.id) == int(f.tree):
+			tree = t
+	assert_true(Vector2(int(p.x) - int(tree.x), int(p.y) - int(tree.y)).length() <= 4.0, "beside the rare tree")
+	assert_true(SpeciesGen.all_reachable(map, SpeciesGen.reach_map(map)), "everything still reachable")
+	var plain := WildGen.generate(int(s.save_seed), int(s.day), "forest", String(s.weather), s.varieties)
+	SpeciesGen.add_pickups(plain, int(s.save_seed), int(s.day))
+	assert_eq(map.pickups.size(), plain.pickups.size() + 1, "one pickup more, nothing else moved")
+	assert_eq(map.fruit_trees, plain.fruit_trees)
+	assert_eq(SpeciesGen.add_fixed(plain, [{"type": "no_such_species", "x": 1, "y": 1}]), 0, "unknown types are skipped")
 
 
 func test_everything_is_unlocked_and_lived_in() -> void:
@@ -116,7 +171,7 @@ func test_pantry_is_one_jar_short_of_three_stars() -> void:
 	assert_eq(int(PantryRules.state_stars(s).stars), 3)
 
 
-func test_the_six_steps_tick_one_by_one() -> void:
+func test_the_seven_steps_tick_one_by_one() -> void:
 	var s := _load()
 	if s.is_empty():
 		return
@@ -124,7 +179,7 @@ func test_the_six_steps_tick_one_by_one() -> void:
 	var bits := TodoRules.evaluate(s, TodoRules.bits_of(s))
 	assert_eq(TodoRules.current_step(s, bits), "f_shake", "nothing done at the start")
 	# 1. the rare tree in today's forest
-	var map := WildGen.generate(int(s.save_seed), int(s.day), "forest", String(s.weather), s.varieties)
+	var map := _forest(s)
 	var shake := Forage.shake_tree(s, map, int(f.tree))
 	assert_true(bool(shake.ok), "shake the rare tree")
 	assert_true(Forage.bag_count(s) >= 3, "three fruit for a jam")
@@ -136,8 +191,21 @@ func test_the_six_steps_tick_one_by_one() -> void:
 	assert_true(bool(jam.ok) and bool(jam.is_new), "new jam of the rare fruit")
 	bits = TodoRules.evaluate(s, bits)
 	assert_true(TodoRules.is_done(bits, "f_jam"))
+	assert_false(TodoRules.is_done(bits, "f_invent"))
+	assert_eq(TodoRules.current_step(s, bits), "f_invent", "Invent a dish comes after the jam")
+	# 3. invent a dish: the new species beside the rare tree, then the Invent panel's own suggestion
+	var sp := _festival_pickup(s, map)
+	var pick := Forage.pick(s, map, int(sp.get("id", -1)))
+	assert_true(bool(pick.get("ok", false)), "pick the new species (%s)" % pick.get("reason", ""))
+	Forage.empty_bag_to_inbox(s)
+	var comps := Kitchen.invent_suggestion(s)
+	assert_true(comps.has(SpeciesGen.variety_id(String(sp.get("type", "")))), "the suggestion starts with the species")
+	var fx := Kitchen.cook_formula(s, "stir_pot", comps, [], 3)
+	assert_true(bool(fx.get("ok", false)), "invent with %s (%s)" % [comps, fx.get("reason", "")])
+	bits = TodoRules.evaluate(s, bits)
+	assert_true(TodoRules.is_done(bits, "f_invent"))
 	assert_false(TodoRules.is_done(bits, "f_juice"))
-	# 3. a juice from the inbox apples
+	# 4. a juice from the inbox apples
 	var apple := ""
 	for it in s.inbox:
 		if String(it.kind) == "fresh" and State.type_of_variety(String(it.variety)) == "apple" and int(it.count) >= 4:
@@ -146,13 +214,13 @@ func test_the_six_steps_tick_one_by_one() -> void:
 	assert_true(bool(juice.ok), "press a juice (%s)" % juice.get("reason", ""))
 	bits = TodoRules.evaluate(s, bits)
 	assert_true(TodoRules.is_done(bits, "f_juice"))
-	# 4. the new jam into the room shelf's gap
+	# 5. the new jam into the room shelf's gap
 	var idx: int = s.inbox.find(jam.item)
 	var item := State.take(s, {"where": "inbox", "index": idx})
 	assert_true(PantryRules.place(s.pantry, item, GAP, 0), "jam into the gap")
 	bits = TodoRules.evaluate(s, bits)
 	assert_true(TodoRules.is_done(bits, "f_pantry"))
-	# 5. the market
+	# 6. the market
 	var items: Array = []
 	for src in Market.sources(s):
 		items.append(src.item)
@@ -160,11 +228,11 @@ func test_the_six_steps_tick_one_by_one() -> void:
 	assert_false(sales.is_empty(), "something sold")
 	bits = TodoRules.evaluate(s, bits)
 	assert_true(TodoRules.is_done(bits, "f_market"))
-	# 6. Mia's letter
+	# 7. Mia's letter
 	assert_eq(TodoRules.current_step(s, bits), "f_letter")
 	Letters.mark_read(s, int(f.letter))
 	bits = TodoRules.evaluate(s, bits)
-	assert_true(TodoRules.day_finished(s, bits), "all six done")
+	assert_true(TodoRules.day_finished(s, bits), "all seven done")
 	var facts := FestivalFacts.summary(s)
 	assert_eq(int(facts.tiles), int(map.w) * int(map.h))
 	assert_true(int(facts.trees) > 10, "trees counted")

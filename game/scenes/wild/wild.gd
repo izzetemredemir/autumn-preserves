@@ -31,6 +31,9 @@ func _ready() -> void:
 		GameState.notify(PackedStringArray(["varieties"]))
 	map = WildGen.generate(int(s.save_seed), int(s.day), biome, String(s.weather), s.varieties)
 	SpeciesGen.add_pickups(map, int(s.save_seed), int(s.day))  # SPECIES-GEN: today's species, after every other item
+	var fest := TodoRules.festival(s)
+	if TodoRules.festival_today(s) and biome == String(fest.get("biome", "forest")):
+		SpeciesGen.add_fixed(map, fest.get("species", []))  # FIX-JURY-B: the festival's new species by the rare tree
 	if map.is_empty():
 		push_warning("Wild: no map for biome '%s'" % biome)
 		_exit.call_deferred()

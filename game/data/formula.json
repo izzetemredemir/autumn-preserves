@@ -46,8 +46,8 @@
       "nut":       [["Milk", "Süt"], ["Cordial", "Şerbet"]]
     },
     "knead": {
-      "fruit":     [["Tart", "Tart"], ["Galette", "Gözleme"], ["Strudel", "Rulo"], ["Crumble", "Tatlı"]],
-      "vegetable": [["Galette", "Gözleme"], ["Pasty", "Börek"], ["Tart", "Tart"]],
+      "fruit":     [["Tart", "Turta"], ["Galette", "Gözleme"], ["Strudel", "Rulo"], ["Crumble", "Tatlı"]],
+      "vegetable": [["Galette", "Gözleme"], ["Pasty", "Börek"], ["Tart", "Turta"]],
       "mushroom":  [["Loaf", "Somun"], ["Pasty", "Börek"]],
       "nut":       [["Loaf", "Somun"], ["Bun", "Çörek"]]
     },

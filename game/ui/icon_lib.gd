@@ -81,7 +81,11 @@ static func recolor(tpl: Image, ramp: Array) -> Image:
 ## Fruit species bushes: the ripe blackberry bush with species-coloured berries; bare: the plain bare bush.
 static func bush(type: String, bare: bool) -> Texture2D:
 	if bare:
-		return load(BUSH % "bare") as Texture2D if ResourceLoader.exists(BUSH % "bare") else null
+		# FIX-JURY-B: held here, as WildObject.sprite() holds its own: a texture nobody keeps is freed right after
+		# the draw call that uses it, and a picked species bush showed as a white square
+		if not _bushes.has("") and ResourceLoader.exists(BUSH % "bare"):
+			_bushes[""] = load(BUSH % "bare")
+		return _bushes.get("")
 	if _bushes.has(type):
 		return _bushes[type]
 	var ramp: Array = Data.ingredients().get(type, {}).get("ramp", [])

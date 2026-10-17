@@ -4,7 +4,7 @@ extends CanvasLayer
 ## save (res://dev/festival_save.json, made by tools/scripts/make_festival.gd) as a temporary game that is never
 ## written to disk, opens Granny's note with the six-step checklist and walks into the garden.
 ## This director lives under the tree root while a festival save is loaded: the start card when the garden first
-## shows, a bobbing marker over the rare tree in today's forest, and the end card once all six steps are ticked and
+## shows, a bobbing marker over the rare tree in today's forest, and the end card once all seven steps are ticked and
 ## nothing else is on screen (Keep playing / Back to title). It frees itself when the festival ends or another game
 ## is loaded. Progress marks live in the temporary state: flags.festival.started / ended.
 
@@ -134,7 +134,7 @@ func _on_chosen(id: String) -> void:
 	elif id == "go":
 		var todo := get_tree().get_first_node_in_group("granny_todo")
 		if todo != null and todo.has_method("pin_open"):
-			todo.pin_open()  # the six steps at a glance; a click folds the note
+			todo.pin_open()  # the seven steps at a glance; a click folds the note
 
 
 ## Granny stands still while a card is up (arrow keys move the focus, not her).

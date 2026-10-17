@@ -111,6 +111,17 @@ func test_turkish_names_take_the_compound_suffix() -> void:
 	assert_eq(SpeciesGen.compose(["Velvet", "Kadife", false], nouns.mushroom[0]).tr, "Kadife Şapka")
 	assert_eq(SpeciesGen.compose(["Moss", "Yosun", true], nouns.vegetable[2]).tr, "Yosun Yaprağı")
 	assert_eq(SpeciesGen.compose(["Velvet", "Kadife", false], nouns.mushroom[0]).en, "Velvet Cap")
+	# FIX-JURY-B: "Alıç" never softens to "Alıcı" (reads "buyer"); Ember is "Kor" in species and varieties alike
+	assert_eq(SpeciesGen.compose(["Fire", "Ateş", true], nouns.fruit[3]).tr, "Ateş Alıç")
+	assert_eq(VarietyGen.feature_word("Ember", "tr"), "Kor")
+
+
+func test_no_turkish_name_reads_as_another_word() -> void:
+	# FIX-JURY-B: the jury read "Alıcı" (buyer) and "Tartı" (scale) in generated names
+	for sd in SEEDS:
+		for sp: Dictionary in SpeciesGen.known(sd, 301):
+			var t := String(sp.display_name_tr)
+			assert_false(t.contains("Alıcı") or t.contains("Tartı") or t.contains("Kızıl"), "seed %d: %s" % [sd, t])
 
 
 func test_product_names_with_a_species_fit_28_chars() -> void:

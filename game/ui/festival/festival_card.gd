@@ -1,6 +1,6 @@
 class_name FestivalCard
 extends Control
-## FESTIVAL · The Harvest Festival's start card (Mia and Leo came to visit, six jobs today) and end card (what this
+## FESTIVAL · The Harvest Festival's start card (Mia and Leo came to visit, seven jobs today) and end card (what this
 ## Everfall was grown from: seed, tiles, trees, varieties, new recipes, coins), on a dithered dim. Paper card,
 ## pops in. Emits `chosen` with "go" (start), "keep" or "title" (end).
 ## UI-COMPACT: the card is sized to its content (text column WIDTH, under 60 % of the screen), its lines use the body
@@ -30,7 +30,7 @@ func _init() -> void:
 	theme = load("res://ui/theme/theme.tres")
 
 
-## "Everfall's Harvest Festival!": the two grandchildren, why they came, the six jobs, "Let's go!".
+## "Everfall's Harvest Festival!": the two grandchildren, why they came, the seven jobs, "Let's go!".
 func show_start() -> void:
 	_build("start")
 	_title(tr("FESTIVAL_START_TITLE"))

@@ -178,6 +178,11 @@ func lab_compare(on: bool) -> void:
 	_scene().compare_btn.button_pressed = on
 
 
+## FIX-JURY-B · Day - / + in the Forest Lab: the same seed's forest `delta` days on (A moves to B).
+func lab_day(delta: int = 1) -> void:
+	_scene().step_day(delta)
+
+
 # ---------------------------------------------------------------- forest
 
 ## Granny walks up to the rare fruit tree (the demo's Sharp Crabapple) and shakes it.
@@ -215,6 +220,29 @@ func wild_pick_near(kind: String = "") -> void:
 		if o == null or not o.has_take():
 			continue
 		var d := Vector2(o.cell - at).length()
+		if d < best_d:
+			best_d = d
+			best = o
+	_approach(w, best)
+
+
+## FIX-JURY-B · Granny picks the festival's new species beside the rare tree (else the nearest species pickup).
+func wild_pick_species() -> void:
+	var w := _scene()
+	var want: Array = TodoRules.festival(_gs().data).get("species", [])
+	var at: Vector2i = w.granny.current_cell()
+	var best: Node = null
+	var best_d := INF
+	for p: Dictionary in w.map.pickups:
+		if not bool(p.get("species", false)):
+			continue
+		var o: Node = w.view.find(String(p.kind), int(p.id))
+		if o == null or not o.has_take():
+			continue
+		var d := Vector2(o.cell - at).length()
+		for e: Dictionary in want:
+			if String(e.get("type", "")) == String(p.type):
+				d -= 1000.0  # the festival's own first
 		if d < best_d:
 			best_d = d
 			best = o
@@ -259,13 +287,41 @@ func kitchen_addin(id: String) -> void:
 	_scene()._panel._select_addin(id)
 
 
+## FIX-JURY-B · The cook panel's Invent button: the Invent panel opens (on the festival's Invent step with two stacks
+## already picked); `ids` (variety ids or ingredient types: the first stack of that type) replace the picks when given.
+func kitchen_invent(ids: Array = []) -> void:
+	var k := _scene()
+	k._panel.invent_button().pressed.emit()
+	if ids.is_empty():
+		return
+	var fx: Node = k._fx_panel
+	fx.components = []
+	for want: String in ids:
+		for e: Dictionary in fx.owned(_gs().data):
+			if e.kind == "fresh" and (String(e.id) == want or State.type_of_variety(String(e.id)) == want):
+				fx._on_cell(String(e.id))
+				break
+
+
+## Cook the invention: its mini-game plays itself, as kitchen_cook does for a recipe.
+func kitchen_invent_cook(speed: float = 4.0, duration: float = 36.0, fast_all: bool = false) -> void:
+	var k := _scene()
+	k.debug_ctx = {"autoplay": true, "duration": duration}
+	k._fx_panel._on_cook()
+	await _fast_stir(k._mg, speed, fast_all)
+
+
 ## Cook: the mini-game plays itself (autoplay) for `duration` seconds, fast-forwarded `speed` times while it
 ## plays; the countdown and the result run at normal speed unless `fast_all` (then until the result card).
 func kitchen_cook(speed: float = 4.0, duration: float = 36.0, fast_all: bool = false) -> void:
 	var k := _scene()
 	k.debug_ctx = {"autoplay": true, "duration": duration}
 	k._panel._on_cook()
-	var mg: Node = k._mg
+	await _fast_stir(k._mg, speed, fast_all)
+
+
+## Fast-forwards a running stir mini-game while it plays (and, with `fast_all`, until it closes).
+func _fast_stir(mg: Node, speed: float, fast_all: bool) -> void:
 	if mg == null or not ("phase" in mg):
 		return
 	if fast_all:

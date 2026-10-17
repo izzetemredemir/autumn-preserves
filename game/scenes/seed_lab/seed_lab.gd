@@ -6,10 +6,17 @@ extends Control
 ## P1-SEEDLAB: "Watch it grow" (G) replays the generation step by step over the whole map (GrowView); tap, E or Enter
 ## jumps to the next step, Esc or the button skips to the end. "A | B" (C) puts the seed next to the previous one
 ## (same rules, different seed). Maps are generated with record_steps, so the replay works in release builds too.
+## FIX-JURY-B: Day - / + (keys - and +, days 1-30) grows the same seed's forest of another day, the way a save sees
+## it: that day's weather from the calendar (DayEnd.weather_for, night after night from a sunny day 1, icon beside the
+## day) and that day's generated species (SpeciesGen: rows registered, today's pickups added, framed and name-tagged
+## on the overview, named in the bars). A day step moves A to B like Generate, so A | B shows "Same seed, next day".
 
 const BIOMES := ["forest", "vineyard", "creek"]  ## the lab shows every biome, locked or not
 const PAN_SPEED := 240.0
-const DAY := 1
+const DAY := 1  ## the day the lab opens on
+const DAY_MAX := 30  ## the autumn's last day (FinaleRules.DAY)
+const WEATHER_ICONS := {"sunny": "icon_weather_sun", "rainy": "icon_weather_rain", "windy": "icon_weather_wind",
+	"foggy": "icon_weather_fog"}
 const LABEL_H := 18  ## step banner row above the overview (the banner overlaps the frame's top edge)
 const FRAME_PX := 5  ## width of the paper frame around the map (UI kit 9-slice margin)
 const FONT := preload("res://assets/fonts/m6x11plus.ttf")
@@ -23,6 +30,10 @@ const GAP := 8  ## between the A and B maps
 
 var save_seed := 0
 var seed_b := -1  ## the previously generated seed, B of the comparison (-1: none yet, B = seed + 1)
+var day := DAY  ## A's day (Day - / +)
+var day_b := DAY  ## B's day: the day A had before the last Generate or day step
+var weather := "sunny"  ## A's weather on its day
+var species_today: Array = []  ## A's species of its day (SpeciesGen.for_day), in roll order
 var map: Dictionary = {}
 var map_b: Dictionary = {}
 var _vars: Dictionary = {}
@@ -44,6 +55,11 @@ var _cap_b: Label
 var _step_panel: PanelContainer
 var _step_label: Label
 var _frame: Panel
+var _day_minus: Button
+var _day_plus: Button
+var _day_label: Label
+var _weather_icon: TextureRect
+var _shown_day := -1  ## the day the current A map was grown for
 
 @onready var seed_edit: LineEdit = %SeedEdit
 @onready var biome_pick: OptionButton = %Biome
@@ -66,6 +82,7 @@ func _ready() -> void:
 		sb.content_margin_bottom = 3
 		bar.add_theme_stylebox_override("panel", sb)
 	_style_title()
+	_build_day_row()
 	%Bg.texture = dithered_bg()
 	_build_overview()
 	_build_frame()
@@ -81,6 +98,9 @@ func _ready() -> void:
 	view.show_marks = true
 	if Router.params.has("seed"):
 		seed_edit.text = str(int(Router.params.seed))
+	if Router.params.has("day"):
+		day = clampi(int(Router.params.day), 1, DAY_MAX)
+		day_b = day
 	_generate()
 	Audio.play_music("mus_seedlab")
 
@@ -114,6 +134,81 @@ func _style_title() -> void:
 	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	$Layout/TitleRow.add_child(pad)
 	$Layout/TitleRow.move_child(pad, 0)
+
+
+## FIX-JURY-B: "[-] Day 14 [+] (weather icon)" in the title row, before Back, packed tight (Turkish has the longest
+## title: "Orman Laboratuvarı").
+func _build_day_row() -> void:
+	var row: HBoxContainer = $Layout/TitleRow
+	var group := HBoxContainer.new()
+	group.add_theme_constant_override("separation", 2)
+	group.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	group.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(group)
+	row.move_child(group, %Back.get_index())
+	_day_minus = Button.new()
+	_day_minus.text = "-"
+	_day_plus = Button.new()
+	_day_plus.text = "+"
+	_day_label = Label.new()
+	_day_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_day_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_weather_icon = TextureRect.new()
+	_weather_icon.custom_minimum_size = Vector2(16, 16)
+	_weather_icon.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
+	_weather_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	for b: Button in [_day_minus, _day_plus]:
+		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		b.custom_minimum_size = Vector2(16, 0)
+		b.tooltip_text = tr("WILD_LAB_DAY_TIP") + " (- / +)"
+	_day_minus.pressed.connect(func() -> void: step_day(-1))
+	_day_plus.pressed.connect(func() -> void: step_day(1))
+	for n: Control in [_day_minus, _day_label, _day_plus, _weather_icon]:
+		group.add_child(n)
+
+
+## The same seed's forest on another day (1-30): A moves to B, as Generate does.
+func step_day(delta: int) -> void:
+	var d := clampi(day + delta, 1, DAY_MAX)
+	if d == day:
+		return
+	day = d
+	Audio.play_ui("ui_click")
+	_generate()
+
+
+## The weather of `d` as a save of `s` lives it: day 1 sunny, then each night's DayEnd.weather_for (fog never twice).
+static func weather_on(s: int, d: int) -> String:
+	var w := "sunny"
+	for k in range(2, d + 1):
+		w = DayEnd.weather_for(s, k, w)
+	return w
+
+
+## [map, varieties] of seed `s` on day `d`, made as the wild scene makes it: the save's varieties plus the species known
+## by that day (rows registered in Data), the day's weather, then today's species pickups after every other item.
+func _make(s: int, d: int) -> Array:
+	var vars := VarietyGen.generate_all(s, 0)
+	VarietyGen.ensure_types(vars, s)  # P1 types, exactly as a real save gets them
+	for sp: Dictionary in SpeciesGen.known(s, d):
+		SpeciesGen.register(sp)
+		vars[SpeciesGen.variety_id(String(sp.id))] = SpeciesGen.variety_of(sp)
+	var m := WildGen.generate(s, d, biome(), weather_on(s, d), vars, true)
+	SpeciesGen.add_pickups(m, s, d)
+	if not m.is_empty():
+		m["save_seed"] = s
+		m["lab_day"] = d
+	return [m, vars]
+
+
+func _update_day_row() -> void:
+	if _day_label == null:
+		return
+	_day_label.text = "%s %d" % [tr("UI_DAY"), day]
+	_day_minus.disabled = day <= 1
+	_day_plus.disabled = day >= DAY_MAX
+	_weather_icon.texture = load("res://assets/sprites/ui/%s.png" % String(WEATHER_ICONS.get(weather, "icon_weather_sun")))
+	_weather_icon.tooltip_text = tr("UI_WEATHER_" + weather.to_upper())
 
 
 ## Wooden/paper UI-kit frame (border only) around the map, on top of it; follows the overview rect or the pan area.
@@ -237,6 +332,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_grow_pressed()
 	elif key == KEY_C:
 		compare_btn.button_pressed = not compare_btn.button_pressed
+	elif key in [KEY_EQUAL, KEY_PLUS, KEY_KP_ADD, KEY_BRACKETRIGHT]:
+		step_day(1)
+	elif key in [KEY_MINUS, KEY_KP_SUBTRACT, KEY_BRACKETLEFT]:
+		step_day(-1)
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -259,11 +358,16 @@ func _generate() -> void:
 	var s := seed_from_text(seed_edit.text)
 	if not map.is_empty():
 		seed_b = save_seed  # the same seed again makes an identical twin in A | B (generation is deterministic)
+		day_b = _shown_day  # a day step: the same seed's previous day goes to B
 	save_seed = s
 	seed_edit.text = str(save_seed)
-	_vars = VarietyGen.generate_all(save_seed, 0)
-	VarietyGen.ensure_types(_vars, save_seed)  # P1 types, exactly as a real save gets them
-	map = WildGen.generate(save_seed, DAY, biome(), "sunny", _vars, true)
+	weather = weather_on(save_seed, day)
+	species_today = SpeciesGen.for_day(save_seed, day)
+	var made := _make(save_seed, day)
+	map = made[0]
+	_vars = made[1]
+	_shown_day = day
+	_update_day_row()
 	view.show_map(map, _vars)
 	_pan = Vector2.ZERO
 	_apply_pan()
@@ -285,6 +389,8 @@ func _generate() -> void:
 	var sp: Dictionary = map.get("special", {})
 	if not sp.is_empty():
 		text = tr("WILD_LAB_STATS_SPECIAL") % [map.fruit_trees.size(), bushes, tr("WILD_SPECIAL_" + String(sp.get("kind", "")).to_upper())]
+	if not species_today.is_empty():
+		text += "  " + species_line()
 	_info = text
 	_update_labels()
 
@@ -323,13 +429,22 @@ func b_seed() -> int:
 
 func _ensure_b() -> void:
 	var s := b_seed()
-	if not map_b.is_empty() and int(map_b.get("save_seed", -1)) == s:
+	if not map_b.is_empty() and int(map_b.get("save_seed", -1)) == s and int(map_b.get("lab_day", -1)) == day_b:
 		return
-	_vars_b = VarietyGen.generate_all(s, 0)
-	VarietyGen.ensure_types(_vars_b, s)
-	map_b = WildGen.generate(s, DAY, biome(), "sunny", _vars_b, true)
-	map_b["save_seed"] = s
+	var made := _make(s, day_b)
+	map_b = made[0]
+	_vars_b = made[1]
 	_built_b = ""
+
+
+## "New today: Copper Tuber, Sleepy Horn" for A's day ("" when no species was born that day).
+func species_line() -> String:
+	if species_today.is_empty():
+		return ""
+	var names: PackedStringArray = []
+	for sp: Dictionary in species_today:
+		names.append(SpeciesGen.display_name(sp))
+	return tr("WILD_LAB_SPECIES") % ", ".join(names)
 
 
 func _grow_pressed() -> void:
@@ -467,7 +582,9 @@ func _update_labels() -> void:
 	if p < n:
 		_step_label.text = (tr("WILD_STEP_COUNT") % [p + 1, n]) + "  " + tr(String(GrowView.STEP_KEYS[p]))
 	elif two:
-		_step_label.text = tr("WILD_LAB_SAME_SEED") if b_seed() == save_seed else tr("WILD_LAB_SAME_RULES")
+		_step_label.text = tr(compare_key())
+	elif not species_today.is_empty():
+		_step_label.text = tr("WILD_STEP_DONE") + "   " + species_line()
 	else:
 		_step_label.text = tr("WILD_STEP_DONE")
 	_step_panel.reset_size()
@@ -478,11 +595,21 @@ func _update_labels() -> void:
 	var note_a := _grow_a.note(p)
 	var note_b := _grow_b.note(p)
 	if two:
-		_cap_a.text = _with_note(tr("WILD_LAB_CAPTION_A") % save_seed, note_a)
-		_cap_b.text = _with_note(tr("WILD_LAB_CAPTION_B") % b_seed(), note_b)
+		_cap_a.text = _with_note(tr("WILD_LAB_CAPTION_A_DAY") % [save_seed, day], note_a)
+		_cap_b.text = _with_note(tr("WILD_LAB_CAPTION_B_DAY") % [b_seed(), day_b], note_b)
 		info.text = ""  # both seeds are under their maps
 	else:
-		info.text = _with_note(tr("WILD_LAB_CAPTION") % save_seed, note_a)
+		info.text = _with_note(tr("WILD_LAB_CAPTION_DAY") % [save_seed, day], note_a)
+
+
+## What A | B shows once grown: the same seed and day (twins), the same seed a day later (or another day), or a new
+## seed under the same rules.
+func compare_key() -> String:
+	if b_seed() != save_seed:
+		return "WILD_LAB_SAME_RULES"
+	if day_b == day:
+		return "WILD_LAB_SAME_SEED"
+	return "WILD_LAB_NEXT_DAY" if day == day_b + 1 else "WILD_LAB_OTHER_DAY"
 
 
 static func _with_note(text: String, note: String) -> String:

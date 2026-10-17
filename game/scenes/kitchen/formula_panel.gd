@@ -105,6 +105,15 @@ static func owned(d: Dictionary) -> Array:
 	return out
 
 
+## Puts `ids` in the component slots when none is picked yet (FIX-JURY-B: Kitchen.invent_suggestion on the festival's
+## "Invent a dish" step, so the panel opens ready, as the stove opens on the rare jam).
+func prefill(ids: Array) -> void:
+	if not components.is_empty() or ids.is_empty():
+		return
+	components = ids.duplicate()
+	refresh()
+
+
 ## Display name of a pick in the current language.
 static func pick_name(d: Dictionary, id: String, kind: String) -> String:
 	match kind:

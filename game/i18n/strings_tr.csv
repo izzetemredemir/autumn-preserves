@@ -688,7 +688,7 @@ TUT_F_MARKET,Pazarda sat
 TUT_F_LETTER,Mia'nın mektubu
 FESTIVAL_START_TITLE,Hasat Şenliği!
 FESTIVAL_START_1,Everfall'da Hasat Şenliği! Mia ile Leo ziyarete geldi ve bugün kasabada pazar var.
-FESTIVAL_START_2,"Bugün altı küçük iş var, her biri bir iki dakika. Ninenin notu yolu gösterir."
+FESTIVAL_START_2,"Bugün yedi küçük iş var, her biri bir iki dakika. Ninenin notu yolu gösterir."
 FESTIVAL_GO,Hadi başlayalım!
 FESTIVAL_END_TITLE,Ne güzel bir şenlik!
 FESTIVAL_END_SEED,Senin Everfall'un %s tohumundan büyüdü.
@@ -985,6 +985,16 @@ TODO_HINT_D1_PICK,"Kapıdan ormana, canım: üç şey toplayalım, böğürtlen 
 STORY_FIND_KNIFE,Teo'nun çakısı. Bir dalı silkelemek için bırakmış olmalı... Her sonbahar yapardı bunu.
 STORY_OBJ_KNIFE,"Yine şömine rafında. Sapında bir armut, oyduğu her sapta olduğu gibi."
 CAP_KNIFE,Çakı
+TUT_F_INVENT,Bir yemek icat et
+TODO_HINT_F_INVENT,Hadi kimsenin yapmadığı bir yemek icat edelim: Buluş yap'a bas!
+WILD_LAB_DAY_TIP,"Aynı tohum, başka gün: orman her gece yeniden büyür"
+WILD_LAB_NEXT_DAY,"Aynı tohum, ertesi gün"
+WILD_LAB_OTHER_DAY,"Aynı tohum, başka gün"
+WILD_LAB_CAPTION_A_DAY,A  %d  gün %d
+WILD_LAB_CAPTION_B_DAY,B  %d  gün %d
+WILD_LAB_CAPTION_DAY,Tohum %d  gün %d
+WILD_LAB_SPECIES,Bugün yeni: %s
+WILD_STEP_NOTE_SPECIES,"%d eşya, %d yeni tür"
 GROW_LINE_1,Orman her sabah yeniden büyür.
 GROW_LINE_2,Dere yolunu bulur...
 GROW_LINE_3,Ağaçlar yerlerini seçer...

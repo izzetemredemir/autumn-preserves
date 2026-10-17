@@ -63,7 +63,7 @@ func test_compound_suffix_and_softening() -> void:
 func test_turkish_names_follow_the_grammar() -> void:
 	var v := DEMO_VARIETIES
 	assert_eq(ProductGen.product_name("jam|crabapple_4|cinnamon", v, "en"), "Cinnamon Ember Crabapple Jam", "English unchanged")
-	assert_eq(ProductGen.product_name("jam|crabapple_4|cinnamon", v, "tr"), "Tarçınlı Yaban Elması Reçeli", "33 > 28: feature dropped")
+	assert_eq(ProductGen.product_name("jam|crabapple_4|cinnamon", v, "tr"), "Tarçınlı Yaban Elması Reçeli", "32 > 28: feature dropped")
 	# The card's example "Cinnamon Sharp Crabapple Jam": "Tarçınlı Ekşi Yaban Elması Reçeli" is 33, so the feature goes.
 	assert_eq(VarietyGen.tr_phrase("Ekşi", "crabapple"), "Ekşi Yaban Elması")
 	assert_eq(ProductGen.product_name("jam|crabapple_2|cinnamon", v, "tr"), "Tarçınlı Yaban Elması Reçeli")
@@ -72,12 +72,12 @@ func test_turkish_names_follow_the_grammar() -> void:
 	assert_eq(ProductGen.product_name("pickle|crabapple_2|clove", v, "tr"), "Yaban Elması Turşusu", "both dropped: 31 > 28")
 	assert_eq(ProductGen.product_name("jam|pear_2|cinnamon", v, "tr"), "Tarçınlı Köy Armudu Reçeli", "noun feature: compound type")
 	assert_eq(ProductGen.product_name("syrup|pear_2|-", v, "tr").ends_with("Armudu Şurubu"), true)
-	assert_eq(ProductGen.product_name("juice|quince_1|honey", v, "tr"), "Ballı Kızıl Ayva Suyu", "irregular Su -> Suyu")
+	assert_eq(ProductGen.product_name("juice|quince_1|honey", v, "tr"), "Ballı Kor Ayvası Suyu", "irregular Su -> Suyu; Kor is a noun feature")
 	assert_eq(ProductGen.product_name("bread|walnut", {}, "tr"), "Cevizli Ekmek", "no type: the bare recipe word")
 	var parts := ProductGen.name_parts("jam|crabapple_4|cinnamon", v, "tr")
 	assert_true(parts.feature_long, "the How it was made card can tell why")
-	assert_eq(parts.feature, "Kızıl")
-	assert_eq(VarietyGen.display_name(v.crabapple_4, "tr"), "Kızıl Yaban Elması")
+	assert_eq(parts.feature, "Kor")
+	assert_eq(VarietyGen.display_name(v.crabapple_4, "tr"), "Kor Yaban Elması")
 	assert_eq(VarietyGen.display_name(v.pear_2, "tr"), "Köy Armudu")
 	assert_eq(VarietyGen.display_name(v.pear_2, "en"), "Mill Pear")
 	assert_eq(ProductGen.profile_label([6, 4, 3, 0, 0], "tr"), "Tatlı & Ekşi")
@@ -91,7 +91,7 @@ func test_chutney_is_catni_sosu() -> void:
 	var v := {"apple_7": {"id": "apple_7", "type": "apple", "name": "Ember Apple", "rarity": "common", "tier": 0,
 		"color_shift": 1, "taste_delta": [0, 3, 0, 0, 0], "size": "medium"}}
 	assert_eq(ProductGen.recipe_name("chutney", "tr"), "Çatni Sosu")
-	assert_eq(ProductGen.product_name("chutney|apple_7|-", v, "tr"), "Mayhoş Kızıl Elma Çatni Sosu", "28: fits")
+	assert_eq(ProductGen.product_name("chutney|apple_7|-", v, "tr"), "Mayhoş Kor Elması Çatni Sosu", "28: fits")
 	assert_eq(ProductGen.product_name("chutney|apple_7|cinnamon", v, "tr"), "Tarçınlı Elma Çatni Sosu", "30 > 28: feature dropped")
 	assert_eq(ProductGen.product_name("chutney|apple_7|-", v, "en"), "Tart Ember Apple Chutney", "English unchanged")
 

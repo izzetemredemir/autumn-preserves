@@ -8,7 +8,7 @@ const NESTED := "fx|knead|[jam|crabapple_3|cinnamon]+pear_2+walnut|honey"
 const ZONES := ["dry", "room", "cool"]
 const TR_FORMS := {"Konserve": "Konservesi", "Komposto": "Kompostosu", "Marmelat": "Marmeladı", "Çeşni": "Çeşnisi",
 	"Yahni": "Yahnisi", "Ezme": "Ezmesi", "Şerbet": "Şerbeti", "Nektar": "Nektarı", "Şıra": "Şırası", "Tonik": "Toniği",
-	"Demleme": "Demlemesi", "Süt": "Sütü", "Tart": "Tartı", "Gözleme": "Gözlemesi", "Rulo": "Rulosu", "Tatlı": "Tatlısı",
+	"Demleme": "Demlemesi", "Süt": "Sütü", "Turta": "Turtası", "Gözleme": "Gözlemesi", "Rulo": "Rulosu", "Tatlı": "Tatlısı",
 	"Börek": "Böreği", "Somun": "Somunu", "Çörek": "Çöreği", "Turşu": "Turşusu", "Ekşitme": "Ekşitmesi",
 	"Salamura": "Salamurası"}
 

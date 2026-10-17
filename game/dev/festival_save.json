@@ -256,6 +256,13 @@
 			"juice0": 2,
 			"letter": 7,
 			"rare": "crabapple_4",
+			"species": [
+				{
+					"type": "sp_1b668cfa",
+					"x": 25,
+					"y": 19
+				}
+			],
 			"tree": 1
 		},
 		"reward_queue": [],

@@ -391,6 +391,94 @@ static func add_pickups(map: Dictionary, save_seed: int, day: int) -> int:
 	return added
 
 
+## FIX-JURY-B · Pickups a save asks for by name and cell (the Harvest Festival's species beside the rare tree,
+## flags.festival.species): [{"type": a registered species id, "x", "y"}]. Each goes to its cell or, when that cell is
+## taken, crowded, water, stone, path, at the entrance, in the special place or (a bush) would cut something off, to
+## the nearest usable one (ties: row, then column). No RNG: the generated map stays as it was. Same pickup shape and
+## ids as add_pickups (call it after). Returns the number added.
+static func add_fixed(map: Dictionary, entries: Array) -> int:
+	if map.is_empty() or entries.is_empty():
+		return 0
+	var taken := _taken(map)
+	var added := 0
+	for e: Variant in entries:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		var type := String(e.get("type", ""))
+		var sp := row(type)
+		if sp.is_empty():
+			continue
+		var bush := String(sp.group) == "fruit"
+		var cells := _usable_cells(map, taken)
+		var want := Vector2i(int(e.get("x", 0)), int(e.get("y", 0)))
+		cells.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+			var da := a.distance_squared_to(want)
+			var db := b.distance_squared_to(want)
+			return da < db or (da == db and (a.y < b.y or (a.y == b.y and a.x < b.x))))
+		var c := _place(map, cells, taken, reach_map(map), bush)
+		if c.x < 0:
+			continue
+		taken[c] = true
+		(map.pickups as Array).append({"id": (map.pickups as Array).size(), "x": c.x, "y": c.y,
+			"kind": "bush" if bush else "ground", "type": type, "variety": variety_id(type), "species": true})
+		added += 1
+	return added
+
+
+## The festival builder's pick (tools/scripts/make_festival.gd): the newest species known on `day` that the map does
+## not hold yet, a fruit when there is one (a bush gives two, enough for an invention), at the usable cell nearest to
+## `near` (the rare tree): {"type", "x", "y"}, or {} when there is none. `map` is left as it was.
+static func fixed_pick(map: Dictionary, save_seed: int, day: int, near: Vector2i) -> Dictionary:
+	var on_map := {}
+	for p in map.get("pickups", []):
+		on_map[String(p.get("type", ""))] = true
+	var best := {}
+	for sp: Dictionary in known(save_seed, day):
+		if on_map.has(String(sp.id)):
+			continue
+		var fruit := String(sp.group) == "fruit"
+		if best.is_empty() or fruit or String(best.group) != "fruit":
+			best = sp
+	if best.is_empty():
+		return {}
+	register(best)
+	var trial := map.duplicate(true)
+	if add_fixed(trial, [{"type": String(best.id), "x": near.x, "y": near.y}]) == 0:
+		return {}
+	var p: Dictionary = (trial.pickups as Array).back()
+	return {"type": String(best.id), "x": int(p.x), "y": int(p.y)}
+
+
+static func _taken(map: Dictionary) -> Dictionary:
+	var taken := {}
+	for key in ["decor_trees", "fruit_trees", "pickups"]:
+		for t in map.get(key, []):
+			taken[Vector2i(int(t.x), int(t.y))] = true
+	return taken
+
+
+## Cells a species pickup may take, in row order: not water, stone or path, not taken, not at the entrance or in the
+## special place (add_pickups' rules).
+static func _usable_cells(map: Dictionary, taken: Dictionary) -> Array:
+	var w := int(map.w)
+	var entrance: Vector2i = map.entrance
+	var sp_rect := Rect2i()
+	var special: Dictionary = map.get("special", {})
+	if special.has("x"):
+		sp_rect = Rect2i(int(special.x), int(special.y), int(special.get("w", 1)), int(special.get("h", 1))).grow(1)
+	var cells: Array = []
+	for y in int(map.h):
+		for x in w:
+			var c := Vector2i(x, y)
+			var t := int(map.ground[y * w + x])
+			if t == WildGen.T_WATER or t == WildGen.T_STONE or t == WildGen.T_PATH or taken.has(c):
+				continue
+			if c.distance_squared_to(entrance) <= 8 or (sp_rect.size != Vector2i.ZERO and sp_rect.has_point(c)):
+				continue
+			cells.append(c)
+	return cells
+
+
 ## The first usable cell of `cells` (removed from it), or (-1, -1).
 static func _place(map: Dictionary, cells: Array, taken: Dictionary, reach: PackedByteArray, bush: bool) -> Vector2i:
 	var w := int(map.w)

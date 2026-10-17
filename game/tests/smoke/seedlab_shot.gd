@@ -1,16 +1,23 @@
 extends SceneTree
 ## Smoke shot (P1-SEEDLAB): three moments of the Seed Lab's "Watch it grow" replay and the recipe book's
 ## "How it was made" card -> user://shots/seedlab_1.png (value noise), seedlab_2.png (Poisson-disk trees over the
-## stream), seedlab_3.png (A | B, flood-fill check), howmade.png.
+## stream), seedlab_3.png (A | B, flood-fill check), howmade.png. FIX-JURY-B: seedlab_4_day.png (seed 452, Day + on
+## A | B: "Same seed, next day", the first day a new species is born) and seedlab_5_species.png (that day alone, its
+## species framed and named); -- --locale=tr adds "_tr" to every name.
 ## godot --path game --rendering-driver opengl3 --audio-driver Dummy -s res://tests/smoke/seedlab_shot.gd
 
 const SEED := 20261016
 const HOW_KEY := "jam|crabapple_4|cinnamon"
+const DAY_SEED := 452  ## the talk's seed
 
 var _extra := OS.get_cmdline_user_args().has("--all")  ## also save the other steps (seedlab_x_*.png)
+var _suffix := ""
 
 
 func _initialize() -> void:
+	if "--locale=tr" in OS.get_cmdline_user_args():
+		GameSettings.apply_language("tr")
+		_suffix = "_tr"
 	root.get_node("Router").params = {"seed": SEED}
 	var scene := (load("res://scenes/seed_lab/seed_lab.tscn") as PackedScene).instantiate()
 	root.add_child(scene)
@@ -31,6 +38,20 @@ func _run(lab: Node) -> void:
 	await _at(lab, GrowView.start(5) + 0.7, "seedlab_3")
 	if _extra:
 		await _at(lab, GrowView.total(), "seedlab_x_compare")
+	# FIX-JURY-B: the same seed on the next day, the day a new species is born
+	var d := 2
+	while SpeciesGen.for_day(DAY_SEED, d).is_empty() and d < 30:
+		d += 1
+	lab.compare_btn.button_pressed = false
+	lab.seed_edit.text = str(DAY_SEED)
+	lab.day = d - 1
+	lab._generate()
+	lab.compare_btn.button_pressed = true
+	lab.step_day(1)
+	await _at(lab, GrowView.total(), "seedlab_4_day")
+	print("seedlab: seed %d day %d -> %d, %s, %s" % [DAY_SEED, lab.day_b, lab.day, tr(lab.compare_key()), lab.species_line()])
+	lab.compare_btn.button_pressed = false
+	await _at(lab, GrowView.total(), "seedlab_5_species")
 	lab.queue_free()
 	await _frames(2)
 
@@ -67,7 +88,7 @@ func _frames(n: int) -> void:
 
 func _save(nm: String) -> void:
 	DirAccess.make_dir_recursive_absolute("user://shots")
-	var p := "user://shots/%s.png" % nm
+	var p := "user://shots/%s%s.png" % [nm, _suffix]
 	RenderingServer.force_draw(false)
 	root.get_texture().get_image().save_png(p)
 	print("saved ", ProjectSettings.globalize_path(p))

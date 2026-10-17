@@ -99,6 +99,8 @@ var _batch_ok := false
 var _ok := false
 var _tween: Tween
 var _product_icons := {}  # product key -> 16x16 JarIcon texture
+var _invent: Button
+var _invent_arrow: InventArrow
 
 
 func _ready() -> void:
@@ -265,12 +267,15 @@ func _build() -> void:
 	_family_btn.pressed.connect(_toggle_family)
 	add_child(_family_btn)
 	var invent := Button.new()  # FORMULA-KITCHEN
+	_invent = invent
 	invent.text = tr("UI_FORMULA_INVENT")
 	invent.tooltip_text = tr("UI_FORMULA_INVENT_TIP")
 	invent.position = Vector2(W - 58 - 6 - FAMILY_W - 6 - 80, 3)
 	invent.size = Vector2(80, 26)
 	invent.pressed.connect(func() -> void: invent_requested.emit(station))
 	add_child(invent)
+	_invent_arrow = InventArrow.new()  # FIX-JURY-B
+	add_child(_invent_arrow)
 
 	_tab_box = Control.new()
 	_tab_box.position = Vector2(8, 32)
@@ -1438,3 +1443,67 @@ class TasteBars extends Control:
 			var v := clampi(int(taste[i]) if i < taste.size() else 0, 0, 9)
 			for c in 9:
 				draw_rect(Rect2(x0 + c * cell, y + 3, cell - 1, 7), ResultCard.AXIS_COLORS[i] if c < v else Art.STONE)
+
+
+# ---------------------------------------------------------------- FIX-JURY-B: the festival's "Invent a dish" step
+
+## Points Granny's arrow at the Invent button (and gives it the keyboard focus) while her To-Do step is "Invent a dish";
+## the guide layer itself hides under open panels, so the panel draws the same bobbing arrow over its own button.
+func point_invent(on: bool) -> void:
+	if _invent == null:
+		return
+	_invent_arrow.target = _invent if on else null
+	_invent_arrow.visible = on
+	if on and visible:
+		_invent.grab_focus()
+
+
+func invent_pointed() -> bool:
+	return _invent_arrow != null and _invent_arrow.visible
+
+
+## The Invent button (smokes and the demo press it).
+func invent_button() -> Button:
+	return _invent
+
+
+## GuideArrow's 11x11 pixel arrow, pointing right at `target`'s left edge (the HUD bar sits right above the panel's
+## buttons), bobbing 2 px, whole pixels only.
+class InventArrow extends Control:
+	var target: Control
+	var _t := 0.0
+	var _bob := -1
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		visible = false
+
+	func _process(delta: float) -> void:
+		if not visible or target == null:
+			return
+		_t += delta
+		var b := int(_t * GuideArrow.BOB_HZ) % 2 * 2
+		if b != _bob:
+			_bob = b
+			queue_redraw()
+
+	## The arrow tip in the panel's coordinates.
+	func tip() -> Vector2:
+		if target == null:
+			return Vector2.ZERO
+		return Vector2(target.position.x - 2 - maxi(_bob, 0), target.position.y + roundf(target.size.y / 2.0))
+
+	func _draw() -> void:
+		if target == null:
+			return
+		var art: Array = GuideArrow.ARROW
+		var at := tip()
+		var tip_y := art.size() - 1
+		for y in art.size():
+			var row: String = art[y]
+			for x in row.length():
+				var ch := row[x]
+				if ch == ".":
+					continue
+				var col := GuideArrow.C_INK if ch == "#" else (GuideArrow.C_PAPER if ch == "c" else GuideArrow.C_GOLD)
+				draw_rect(Rect2(at + Vector2(y - tip_y, x - 5), Vector2.ONE), col)  # the down arrow turned to the right

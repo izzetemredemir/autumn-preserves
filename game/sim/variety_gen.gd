@@ -121,7 +121,7 @@ static func base_name(variety: Dictionary) -> String:
 
 
 ## L10N-TR · The variety name to show: the stored (English) name, or in Turkish "<feature> <type>" with the type in
-## its compound form after a noun feature ("Köy Armudu", "Kızıl Yaban Elması"). A name off the grammar shows as is.
+## its compound form after a noun feature ("Köy Armudu", "Kor Yaban Elması"). A name off the grammar shows as is.
 static func display_name(variety: Dictionary, lang: String = "") -> String:
 	var n := String(variety.get("name", ""))
 	var type := String(variety.get("type", ""))
@@ -132,7 +132,7 @@ static func display_name(variety: Dictionary, lang: String = "") -> String:
 	return tr_phrase(feature_word(feature_of(variety), "tr"), type)
 
 
-## The feature word in a language ("Ember" -> "Kızıl"); English words pass through.
+## The feature word in a language ("Ember" -> "Kor"); English words pass through.
 static func feature_word(feature: String, lang: String = "") -> String:
 	if feature == "" or ProductGen.lang(lang) != "tr":
 		return feature

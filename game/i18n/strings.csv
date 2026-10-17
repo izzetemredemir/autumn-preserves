@@ -688,7 +688,7 @@ TUT_F_MARKET,Sell at the market
 TUT_F_LETTER,Read Mia's letter
 FESTIVAL_START_TITLE,Harvest Festival!
 FESTIVAL_START_1,Everfall's Harvest Festival! Mia and Leo came to visit and the market is in town today.
-FESTIVAL_START_2,"Six little jobs today, a minute or two each. Granny's note shows the way."
+FESTIVAL_START_2,"Seven little jobs today, a minute or two each. Granny's note shows the way."
 FESTIVAL_GO,Let's go!
 FESTIVAL_END_TITLE,What a festival!
 FESTIVAL_END_SEED,Your Everfall grew from seed %s.
@@ -985,6 +985,16 @@ TODO_HINT_D1_PICK,"Through the gate to the forest, dear: let's pick three things
 STORY_FIND_KNIFE,Teo's knife. He must have set it down to shake a branch... He did that every autumn.
 STORY_OBJ_KNIFE,"Back on the mantel. A pear on the handle, like every handle he ever carved."
 CAP_KNIFE,Knife
+TUT_F_INVENT,Invent a dish
+TODO_HINT_F_INVENT,Let's invent a dish nobody has made: press Invent!
+WILD_LAB_DAY_TIP,"Same seed, another day: the forest grows anew every night"
+WILD_LAB_NEXT_DAY,"Same seed, next day"
+WILD_LAB_OTHER_DAY,"Same seed, another day"
+WILD_LAB_CAPTION_A_DAY,A  %d  day %d
+WILD_LAB_CAPTION_B_DAY,B  %d  day %d
+WILD_LAB_CAPTION_DAY,Seed %d  day %d
+WILD_LAB_SPECIES,New today: %s
+WILD_STEP_NOTE_SPECIES,"%d items, %d new species"
 GROW_LINE_1,Every morning the forest grows back new.
 GROW_LINE_2,The stream finds its way...
 GROW_LINE_3,The trees pick their places...

@@ -416,6 +416,39 @@ static func check_formula(state: Dictionary, method: String, components: Array, 
 	return {"ok": plan.ok, "reason": plan.reason, "missing": plan.missing, "key": plan.key}
 
 
+## FIX-JURY-B · Two fresh stacks (inbox + pantry, enough for one use each) to start an invention with: a generated
+## species first (the one Granny met last first), then the biggest other stacks, ties by variety id. [] when fewer
+## than two.
+static func invent_suggestion(state: Dictionary) -> Array:
+	var have := {}
+	var items: Array = state.get("inbox", []).duplicate()
+	for e: Dictionary in state.get("pantry", {}).get("items", []):
+		items.append(e.item)
+	for item: Dictionary in items:
+		if String(item.get("kind", "")) == "fresh":
+			var vid := String(item.variety)
+			have[vid] = int(have.get(vid, 0)) + int(item.get("count", 1))
+	var need := int(FormulaGen.cfg().use.fresh)
+	var seen: Dictionary = state.get("species_seen", {})
+	var ids: Array = have.keys().filter(func(v: String) -> bool: return int(have[v]) >= need)
+	ids.sort_custom(func(a: String, b: String) -> bool:
+		var sa := _species_rank(State.type_of_variety(a), seen)
+		var sb := _species_rank(State.type_of_variety(b), seen)
+		if sa != sb:
+			return sa > sb
+		if int(have[a]) != int(have[b]):
+			return int(have[a]) > int(have[b])
+		return a < b)
+	return ids.slice(0, 2) if ids.size() >= 2 else []
+
+
+## The day Granny met a species (0 before she has), -1 for every other type.
+static func _species_rank(type: String, seen: Dictionary) -> int:
+	if not SpeciesGen.is_species(type):
+		return -1
+	return int(seen.get(type, 0))
+
+
 ## Consumes the parts and energy, puts the invention in the inbox, counts it in state.formulas.
 ## {"ok", "item", "items", "desc", "is_new", "quality", "mastered": false, "formula": true, "key"} like cook_n().
 static func cook_formula(state: Dictionary, method: String, components: Array, addins: Array, quality: int) -> Dictionary:

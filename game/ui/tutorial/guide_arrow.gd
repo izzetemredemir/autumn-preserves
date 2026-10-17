@@ -1,6 +1,6 @@
 class_name GuideArrow
 extends CanvasLayer
-## ONBOARD-GUIDE · Granny's guide for the To-Do steps (the first days and the six Harvest Festival steps):
+## ONBOARD-GUIDE · Granny's guide for the To-Do steps (the first days and the seven Harvest Festival steps):
 ##   - a 2-frame bobbing pixel arrow over the current step's target; while the target is off screen it waits at the
 ##     screen edge (under the HUD bar) and points the way,
 ##   - Granny's hint: one short line (TODO_HINT_<STEP>, TodoRules.hint_key_of) in a compact speech bubble beside her

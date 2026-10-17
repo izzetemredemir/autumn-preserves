@@ -183,7 +183,7 @@ static func _name_parts_tr(p: Dictionary, recipe: Dictionary, kind: String, prof
 			adjective = String(adjs.get("mild" if prof.is_empty() else String(prof[0]), ""))
 	var feature := VarietyGen.feature_word(feature_en, "tr")
 	if kind == "family" and VarietyGen.is_noun_feature(feature):
-		feature = ""  # "Nine'nin Kızıl Ayva Ezmesi" works; a noun would need the compound inside the fixed dish name
+		feature = ""  # "Nine'nin Kara Ayva Ezmesi" works; a noun ("Kor") would need the compound inside the fixed dish name
 	var type := String(main.get("type", ""))
 	var type_part := "" if kind == "family" or main.is_empty() else VarietyGen.type_name(type, "tr")
 	if feature != "" and Turkish.same(Turkish.stem(adjective), Turkish.stem(feature)):

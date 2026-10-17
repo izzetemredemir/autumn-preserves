@@ -4,18 +4,18 @@ extends RefCounted
 ## Progress lives in state.flags.tutorial as bits: one per step, plus CLOSED_BIT once the player closes the note.
 ## ctx (from the overlay): {"scene": Router.current, "sold": true when coins came in without an order}.
 ## FESTIVAL: a save with state.flags.festival ({"day", "tree", "rare", "jams", "juice0", "letter"}, written by
-## tools/scripts/make_festival.gd) shows the Harvest Festival checklist instead of a day list: six steps, each a
-## different system, ticked by the same bits machinery (bits 16-21).
+## tools/scripts/make_festival.gd) shows the Harvest Festival checklist instead of a day list: seven steps, each a
+## different system, ticked by the same bits machinery (bits 16-22; FIX-JURY-B: "Invent a dish" after the jam).
 
 const DAYS := {
 	1: ["d1_mail", "d1_shake", "d1_pick", "d1_jam", "d1_pantry", "d1_order", "d1_bed"],
 	2: ["d2_mushroom", "d2_brine", "d2_sell"],
 }
-const FESTIVAL := ["f_shake", "f_jam", "f_juice", "f_pantry", "f_market", "f_letter"]
+const FESTIVAL := ["f_shake", "f_jam", "f_invent", "f_juice", "f_pantry", "f_market", "f_letter"]
 const BITS := {
 	"d1_shake": 0, "d1_mail": 5, "d1_pick": 6, "d1_jam": 1, "d1_pantry": 2, "d1_order": 3, "d1_bed": 4,
 	"d2_forest": 8, "d2_mushroom": 9, "d2_brine": 10, "d2_sell": 11,
-	"f_shake": 16, "f_jam": 17, "f_juice": 18, "f_pantry": 19, "f_market": 20, "f_letter": 21,
+	"f_shake": 16, "f_jam": 17, "f_juice": 18, "f_pantry": 19, "f_market": 20, "f_letter": 21, "f_invent": 22,
 }
 const CLOSED_BIT := 15
 const PICK_GOAL := 3  ## FIRST-60B: things picked or shaken in the forest on day 1
@@ -23,7 +23,7 @@ const PICK_GOAL := 3  ## FIRST-60B: things picked or shaken in the forest on day
 const SCENE_OF := {
 	"d1_mail": "garden", "d1_shake": "garden", "d1_pick": "wild", "d1_jam": "kitchen", "d1_pantry": "pantry", "d1_order": "town", "d1_bed": "parlor",
 	"d2_forest": "wild", "d2_mushroom": "wild", "d2_brine": "kitchen", "d2_sell": "town",
-	"f_shake": "wild", "f_jam": "kitchen", "f_juice": "kitchen", "f_pantry": "pantry", "f_market": "town",
+	"f_shake": "wild", "f_jam": "kitchen", "f_invent": "kitchen", "f_juice": "kitchen", "f_pantry": "pantry", "f_market": "town",
 	"f_letter": "garden",
 }
 
@@ -133,7 +133,7 @@ static func step_done(state: Dictionary, step: String, ctx: Dictionary = {}) -> 
 			return _made(state, ["brined_mushroom", "pickle"])
 		"d2_sell":
 			return bool(ctx.get("sold", false))
-		"f_shake", "f_jam", "f_juice", "f_pantry", "f_market", "f_letter":
+		"f_shake", "f_jam", "f_invent", "f_juice", "f_pantry", "f_market", "f_letter":
 			return _festival_done(state, step)
 	return false
 
@@ -150,8 +150,9 @@ static func day_finished(state: Dictionary, bits: int) -> bool:
 	return current_step(state, bits) == ""
 
 
-## Festival steps: the rare tree shaken; a jam (or family jam) that was not in the book at the start; more juice
-## pressed than at the start; the pantry at 3 stars; the stall opened today; Mia's letter read.
+## Festival steps: the rare tree shaken; a jam (or family jam) that was not in the book at the start; an invention
+## (FormulaGen) first made on festival day; more juice pressed than at the start; the pantry at 3 stars; the stall
+## opened today; Mia's letter read.
 static func _festival_done(state: Dictionary, step: String) -> bool:
 	var f := festival(state)
 	match step:
@@ -166,6 +167,13 @@ static func _festival_done(state: Dictionary, step: String) -> bool:
 			for key in state.get("book", {}).get("variants", {}):
 				if is_jam(String(key)) and not known.has(String(key)):
 					return true
+			return false
+		"f_invent":
+			var made: Variant = state.get("formulas", {})
+			if typeof(made) == TYPE_DICTIONARY:
+				for key in made:
+					if int(made[key].get("day", 0)) >= int(f.get("day", 0)) and int(f.get("day", 0)) > 0:
+						return true
 			return false
 		"f_juice":
 			var n := 0
