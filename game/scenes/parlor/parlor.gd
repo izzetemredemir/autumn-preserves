@@ -22,8 +22,14 @@ const NAV := [["move_left", SIDE_LEFT], ["move_right", SIDE_RIGHT], ["move_up", 
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const Hotspot := preload("res://scenes/kitchen/hotspot.gd")
 const PArt := preload("res://scenes/parlor/parlor_art.gd")
+const HEART := preload("res://assets/sprites/cat/cat_heart.png")
+const STORY_SEC := 3.0  ## each memory bubble stays this long
 
 var _spots: Dictionary = {}  # kind -> Hotspot
+var _props: Dictionary = {}  # kind -> PArt.Prop (the STORY-02 drawings)
+var _story_chunks: Array = []  ## bubbles still to show for the object Granny is talking about
+var _story_kind := ""
+var _story_gen := 0
 var _room: Control
 var _bar: PanelContainer
 var _message: Label
@@ -108,10 +114,18 @@ func _build_room() -> void:
 	_room.add_child(_cat)
 	_cat.setup(int(GameState.data.get("save_seed", 1)), Vector2i.ZERO)  # home = its cell: it naps there
 	_cat.position = PArt.CAT_AT
+	for kind: String in ["teo", "nora", "hat", "toys", "jar"]:  # STORY-02 props under the hotspots
+		var p := PArt.Prop.new(kind)
+		p.position = Vector2(PArt.OBJECTS[kind].position)
+		p.size = Vector2(PArt.OBJECTS[kind].size)
+		_room.add_child(p)
+		_props[kind] = p
 	var captions := {
 		"door": tr("PARLOR_TO_KITCHEN"), "shelf": tr("PARLOR_BOOK"), "letters": tr("PARLOR_LETTERS"),
 		"cat": tr("PARLOR_CAT"), "bed": tr("KITCHEN_BED_CAPTION"),
 	}
+	for k: String in PArt.MEMORY_CAPTIONS:
+		captions[k] = tr(PArt.MEMORY_CAPTIONS[k])
 	for kind: String in PArt.OBJECTS:
 		var h: Button = Hotspot.new()
 		_room.add_child(h)
@@ -186,6 +200,8 @@ func _refresh() -> void:
 	if GameState.data.is_empty():
 		return
 	_tag.count = Letters.unread_count(GameState.data)
+	if _props.has("jar"):
+		_props.jar.filled = Story.jar_filled(GameState.data)
 	_update_glow()
 
 
@@ -280,6 +296,8 @@ func _spot_hint(kind: String) -> String:
 			return tr("PARLOR_CAT_HINT")
 		"bed":
 			return tr("KITCHEN_BED_HINT")
+	if kind in Story.OBJECTS:
+		return tr("STORY_OBJ_HINT")
 	return ""
 
 
@@ -321,6 +339,92 @@ func _on_spot(kind: String) -> void:
 			_pet_cat()
 		"bed":
 			_ask_bed()
+		_:
+			if kind in Story.OBJECTS:
+				_remember(kind)
+
+
+# ---------------------------------------------------------------- memories (STORY-02)
+
+## Granny looks at a memory object: her line in a speech bubble (long lines in two bubbles, ~3 s each, a click or the
+## same key again skips to the next), a small heart the first time, and the look recorded in flags.story.seen.
+## No rewards, no rules.
+func _remember(kind: String) -> void:
+	if _story_kind == kind and not _story_chunks.is_empty():
+		_next_chunk()  # pressed again while she talks: on to the next bubble
+		return
+	Audio.play_ui("ui_click")
+	if Story.mark_seen(GameState.data, kind):
+		_heart_pop(kind)
+	_story_gen += 1
+	_story_kind = kind
+	_story_chunks = chunks(tr(Story.object_key(GameState.data, kind)))
+	_next_chunk()
+
+
+## Splits a line at sentence ends so that each piece fits a bubble in two lines (a single long sentence stays whole).
+func chunks(text: String) -> Array:
+	var sentences: Array = []
+	var cur := ""
+	for i in text.length():
+		cur += text[i]
+		if text[i] in ".;?!" and i + 1 < text.length() and text[i + 1] == " ":
+			sentences.append(cur.strip_edges())
+			cur = ""
+	if cur.strip_edges() != "":
+		sentences.append(cur.strip_edges())
+	var out: Array = []
+	var line := ""
+	for s: String in sentences:
+		var joined := s if line == "" else line + " " + s
+		if line != "" and _bubble_lines(joined) > 2:
+			out.append(line)
+			line = s
+		else:
+			line = joined
+	if line != "":
+		out.append(line)
+	return out
+
+
+func _bubble_lines(text: String) -> int:
+	var b := SpeechBubble.new()
+	_room.add_child(b)
+	b.say(text)
+	var n := b.line_count()
+	b.free()
+	return n
+
+
+func _next_chunk() -> void:
+	_story_gen += 1
+	if _story_chunks.is_empty():
+		_story_kind = ""
+		return
+	var text: String = _story_chunks.pop_front()
+	var head := Vector2(_granny.position.x + _granny.size.x / 2.0, _granny.position.y) if _granny != null else Vector2(70, 100)
+	var avoid := Rect2(PArt.OBJECTS[_story_kind]) if PArt.OBJECTS.has(_story_kind) else Rect2()
+	SpeechBubble.pop(_room, head, text, STORY_SEC, "granny", avoid)
+	var gen := _story_gen
+	get_tree().create_timer(STORY_SEC).timeout.connect(func() -> void:
+		if gen == _story_gen and is_inside_tree():
+			_next_chunk())
+
+
+## The first look at an object: a heart (the cat's) floats up from it.
+func _heart_pop(kind: String) -> void:
+	var r := Rect2(PArt.OBJECTS[kind])
+	var h := Sprite2D.new()
+	h.texture = HEART
+	h.region_enabled = true
+	h.region_rect = Rect2(8, 0, 8, 8)
+	h.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	h.position = Vector2(roundf(r.get_center().x), roundf(r.position.y + 4))
+	h.z_index = 40
+	_room.add_child(h)
+	var tw := create_tween()
+	tw.tween_property(h, "position:y", h.position.y - 12.0, 0.7)
+	tw.tween_callback(h.queue_free)
 
 
 func _go_kitchen() -> void:
@@ -490,6 +594,14 @@ func _set_device(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _story_kind != "" and event is InputEventMouseButton and event.pressed \
+			and event.button_index == MOUSE_BUTTON_LEFT:
+		_next_chunk()  # a click on the room skips the bubble; the last one closes it
+		if _story_chunks.is_empty():
+			for b in _room.get_children():
+				if b is SpeechBubble:
+					b.queue_free()
+		return
 	if event.is_action_pressed("cancel") or event.is_action_pressed("ui_cancel"):
 		if _dialog.visible:
 			_close_dialog()

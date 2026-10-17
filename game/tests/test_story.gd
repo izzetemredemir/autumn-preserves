@@ -2,6 +2,28 @@ extends "res://tests/_runner/test_case.gd"
 ## STORY-03: story P.S. lines by letter index, the neighbours' Teo lines, Teo's letter flag (docs/story.md §4.4-4.7).
 
 
+func test_parlor_objects_seen_once() -> void:
+	var s := {"flags": {}}
+	assert_false(Story.seen(s, "teo"))
+	assert_true(Story.mark_seen(s, "teo"))
+	assert_false(Story.mark_seen(s, "teo"), "first look only")
+	assert_false(Story.mark_seen(s, "nope"), "unknown ids are ignored")
+	assert_true(Story.seen(s, "teo"))
+	assert_eq(Story.flags(s).seen, ["teo"])
+
+
+func test_parlor_jar_fills_after_first_jar() -> void:
+	var s := {"flags": {}, "pantry": {"items": []}}
+	assert_false(Story.jar_filled(s))
+	assert_eq(Story.object_key(s, "jar"), "STORY_OBJ_JAR")
+	s.pantry.items.append({"item": {}})
+	assert_true(Story.jar_filled(s))
+	assert_eq(Story.object_key(s, "jar"), "STORY_OBJ_JAR_FILLED")
+	s.pantry.items.clear()
+	assert_true(Story.jar_filled(s), "stays filled")
+	assert_eq(Story.object_key(s, "teo"), "STORY_OBJ_TEO")
+
+
 func _kid_letter(s: Dictionary, kid: String) -> Dictionary:
 	var r := Seeds.rng(int(s.save_seed), "letters", int(s.day))
 	return Letters.make_request(s, kid, r)

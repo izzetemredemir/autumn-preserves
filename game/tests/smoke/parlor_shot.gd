@@ -30,7 +30,7 @@ func _run() -> void:
 	var router: Node = root.get_node("Router")
 	gs.start_temp(1)
 	var d: Dictionary = gs.data
-	d.flags["tutorial"] = 15  # day 1: shake, jam, pantry and order done; the bed is next
+	d.flags["tutorial"] = 47  # day 1: mail, shake, jam, pantry and order done; the bed is next
 	router.current = "parlor"  # the To-Do note hides outside game scenes
 	load(TODO_GD).ensure()  # in the game the note is already there when Granny walks in
 	await _frames(2)
@@ -63,6 +63,7 @@ func _run() -> void:
 	await _frames(20)
 
 	# --- the side table: no letters yet, then one letter
+	Letters.ensure(d).inbox.clear()  # a new game starts with Nora's story letter in the inbox
 	_p._on_spot("letters")
 	await _frames(2)
 	_check(_p._message.text == tr("GARDEN_NO_MAIL") and get_first_node_in_group("letters_ui") == null, "no letters: a line")
@@ -88,6 +89,42 @@ func _run() -> void:
 	_check(_p._cat.is_purring() and _p._message.text == tr("PARLOR_CAT_PURR"), "petting: purr and a line")
 	_check(var_to_str(d) == before, "petting changes nothing in the save")
 	_shot("parlor_cat_" + _locale)
+
+	# --- STORY-02: the seven memories (heart + record on the first look, a bubble in Granny's voice)
+	for k in Story.OBJECTS:
+		var h: Control = _p._spots.get(k)
+		_check(h != null and h.size.x >= 16 and h.size.y >= 16 and h.caption != null, "memory hotspot %s (>=16 px, captioned)" % k)
+	_check(not Story.seen(d, "teo") and _p._spots.teo.caption.text == tr("STORY_OBJ_CAP_PHOTO"), "Teo's photo: captioned, not seen yet")
+	_p._on_spot("teo")
+	await _frames(14)
+	var bubbles: Array = _p._room.get_children().filter(func(n: Node) -> bool: return n is SpeechBubble)
+	_check(bubbles.size() == 1 and bubbles[0].line_count() <= 2, "one bubble of at most 2 lines")
+	_check(bubbles.size() == 1 and bubbles[0].label.text.begins_with(tr("STORY_OBJ_TEO").substr(0, 12)), "Teo's line (%s)" % _locale)
+	_check(Story.seen(d, "teo") and "teo" in Story.flags(d).seen, "the first look is recorded in flags.story.seen")
+	_shot("story02_memory_" + _locale)
+	var seen_n: int = Story.flags(d).seen.size()
+	_p._on_spot("teo")  # the same key again skips; no second heart, no second record
+	_p._story_chunks.clear()
+	await _frames(2)
+	_check(Story.flags(d).seen.size() == seen_n, "looking again records nothing new")
+	for k in Story.OBJECTS:
+		var long_ok := true
+		for c: String in _p.chunks(tr(Story.object_key(d, k))):
+			long_ok = long_ok and _p._bubble_lines(c) <= 3
+		_check(long_ok, "memory %s fits its bubbles" % k)
+	_p._on_spot("jar")
+	await _frames(2)
+	_p._story_chunks.clear()  # skip the rest of the empty jar's line
+	_check(not _p._props.jar.filled and Story.object_key(d, "jar") == "STORY_OBJ_JAR", "the sill jar is empty before a first jar")
+	d.pantry.items.append({"item": {}, "where": "shelf"})  # the first jar stands on the shelf
+	gs.notify(PackedStringArray(["pantry"]))
+	await _frames(2)
+	_check(_p._props.jar.filled and Story.object_key(d, "jar") == "STORY_OBJ_JAR_FILLED", "the sill jar is full after the first jar")
+	_p._on_spot("jar")
+	await _frames(14)
+	_check(_p._message != null and _p._room.get_children().any(func(n: Node) -> bool: return n is SpeechBubble and n.label.text == tr("STORY_OBJ_JAR_FILLED")), "the 'Filled.' line")
+	_shot("story02_jar_" + _locale)
+	d.pantry.items.clear()
 
 	# --- the bed: ask, Night, day 2
 	var day0 := int(d.day)

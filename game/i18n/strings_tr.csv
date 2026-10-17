@@ -940,3 +940,18 @@ STORY_LETTER_TEO_6,Kelimelerle aram hiç iyi olmadı. Armutla iyiydi. Gerisini b
 STORY_LETTER_TEO_7,Teo
 STORY_LETTER_TEO_TITLE,Arka kapağın içi
 FAREWELL_LETTER_TEO,Dedeniz bu vadinin sonbaharını dağıtana kaldığını söylerdi. Hepsini dağıttım. Şimdi dağıtmak size kaldı.
+STORY_OBJ_TEO,Elli sonbahar. Bunun dışında her fotoğrafta gülüyor; kedi onu yeni tırmalamıştı.
+STORY_OBJ_HAT,Şapkası hâlâ odun dumanı kokuyor. Baston ormanı benden iyi bilir.
+STORY_OBJ_CHAIR,Kedi her akşam onu burada bekliyor. Biraz da ben.
+STORY_OBJ_NORA,"Nora, altı yaşında, ilk erik reçeli kavanozuyla. Kapak kapanmadan yarısını yemişti."
+STORY_OBJ_TOYS,Leo'nun treni. Mia'nın tavşanı. Her yaz burada unutuyorlar ki geri gelmek zorunda kalsınlar.
+STORY_OBJ_WINDOW,O buradan hangi ağacın olgun olduğunu söylerdi. Ben sadece yaprak görüyorum.
+STORY_OBJ_JAR,Açtığı son kavanoz. Tek başıma doldurduğum ilki için saklıyorum.
+STORY_OBJ_JAR_FILLED,Doldu. 'Biraz daha şeker ister' derdi.
+STORY_OBJ_CAP_PHOTO,Fotoğraf
+STORY_OBJ_CAP_HAT,Şapka
+STORY_OBJ_CAP_CHAIR,Koltuk
+STORY_OBJ_CAP_TOYS,Oyuncaklar
+STORY_OBJ_CAP_WINDOW,Pencere
+STORY_OBJ_CAP_JAR,Kavanoz
+STORY_OBJ_HINT,Yakından bak.

@@ -68,3 +68,42 @@ static func teo_letter_new(state: Dictionary) -> bool:
 		return false
 	flags(state)["teo_letter_seen"] = true
 	return true
+
+
+## STORY-02 · The seven things the parlour remembers (docs/story.md §4.3). `flags.story.seen` lists those looked at
+## once (the first look gets a small heart); `jar_filled` latches once the first jar stood on the shelf.
+const OBJECTS := ["teo", "hat", "chair", "nora", "toys", "window", "jar"]
+
+
+static func seen(state: Dictionary, id: String) -> bool:
+	return id in flags(state).get("seen", [])
+
+
+## Records the first look at `id`; true only that first time.
+static func mark_seen(state: Dictionary, id: String) -> bool:
+	var s := flags(state)
+	var list: Array = s.get("seen", [])
+	if id in list or not id in OBJECTS:
+		return false
+	list.append(id)
+	s["seen"] = list
+	return true
+
+
+## True once a first jar is shelved (the pantry holds something); stays true afterwards.
+static func jar_filled(state: Dictionary) -> bool:
+	var s := flags(state)
+	if bool(s.get("jar_filled", false)):
+		return true
+	var p: Variant = state.get("pantry")
+	if typeof(p) == TYPE_DICTIONARY and not p.get("items", []).is_empty():
+		s["jar_filled"] = true
+		return true
+	return false
+
+
+## The string key of the line for `id` now.
+static func object_key(state: Dictionary, id: String) -> String:
+	if id == "jar" and jar_filled(state):
+		return "STORY_OBJ_JAR_FILLED"
+	return "STORY_OBJ_" + id.to_upper()
