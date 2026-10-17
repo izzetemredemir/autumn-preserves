@@ -55,6 +55,7 @@ var _closing := false
 
 
 func _ready() -> void:
+	add_to_group("modal_card")  # the To-Do note hides while this is open
 	_build()
 
 

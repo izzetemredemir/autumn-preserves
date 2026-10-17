@@ -19,8 +19,9 @@ const HIDDEN_IN := ["", "title", "seed_lab"]
 const CELEBRATE_SEC := 2.5
 const POPUP_LAYERS := Vector2i(12, 60)  # CanvasLayers in this range with visible content hide the note
 const NOTE_W := 150  ## collapsed width (x >= 326); a step needing a third line widens to NOTE_WIDE
-const NOTE_WIDE := 200
-const NOTE_OPEN_W := 200  ## expanded (hover or pinned): long lines wrap inside
+const NOTE_WIDE := 232
+const NOTE_OPEN_W := 232  ## expanded (hover or pinned): long lines wrap inside
+const MODAL_GROUP := &"modal_card"  ## modal cards/panels outside the popup layers join this group (visible = note hides)
 const BODY_FONT := preload("res://assets/fonts/m5x7.ttf")
 
 var _panel: PanelContainer
@@ -35,6 +36,7 @@ var _collapsed := false
 var _celebrating := false
 var _earned := 0
 var _orders := 0
+static var _suppressed := 0  ## GrannyTodo.suppress(true/false) from panels that open/close
 var _auto_pinned := false  ## pin_open() holds the note open until the next scene change
 
 
@@ -48,6 +50,11 @@ static func ensure() -> GrannyTodo:
 	var todo := GrannyTodo.new()
 	tree.root.add_child.call_deferred(todo)
 	return todo
+
+
+## A panel or card calls suppress(true) on open and suppress(false) on close: the note hides while any is open.
+static func suppress(on: bool) -> void:
+	_suppressed = maxi(0, _suppressed + (1 if on else -1))
 
 
 ## The step the player should do next, "" when the note is hidden or finished.
@@ -303,6 +310,11 @@ func _process(_delta: float) -> void:
 ## True while a popup/overlay (plant menu, cook panel, book, letters, card) shows content.
 func _popup_open() -> bool:
 	var tree := get_tree()
+	if _suppressed > 0:
+		return true
+	for m in tree.get_nodes_in_group(MODAL_GROUP):
+		if m is CanvasItem and (m as CanvasItem).is_visible_in_tree():
+			return true
 	var nodes: Array[Node] = tree.root.get_children()
 	if tree.current_scene != null:
 		nodes.append_array(tree.current_scene.get_children())

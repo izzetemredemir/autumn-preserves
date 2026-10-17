@@ -82,6 +82,7 @@ func start(ctx: Dictionary) -> void:
 	var fill: Variant = app.get("fill") if app is Dictionary else null
 	fill_tones = PressRules.fill_tones(fill, C_JUICE)
 	fill_color = fill_tones[1]
+	_l_juice.visible = true
 	grades.clear()
 	for i in BEATS:
 		grades.append("")
@@ -222,6 +223,7 @@ func _finish() -> void:
 	phase = Phase.DONE
 	stars = PressRules.stars_for(counts)
 	_l_hint.text = ""
+	_l_juice.visible = false  # the result strip sits where the meter label is
 	_l_msg.text = tr("MG_PRESS_RESULT") % [stars, counts["perfect"], counts["good"], counts["miss"]]
 	_result_t = 0.0
 	if stars >= 3:
@@ -260,6 +262,8 @@ func _draw() -> void:
 
 func _draw_track() -> void:
 	_box(Rect2(14, TRACK_Y - 24, 452, 48))
+	if grades.size() < BEATS:
+		return  # drawn once before start() filled the grades
 	var now := _now_ms() / 1000.0 if phase != Phase.IDLE else 0.0
 	# JURY-MG: a rhythm grid (a tick every half beat, scrolling with the song) so the lane never looks empty.
 	var g0 := int(floor((now - LEAD_IN) / (INTERVAL * 0.5)))

@@ -8,5 +8,9 @@ extends Node2D
 signal finished(result: Dictionary)
 
 
+func _enter_tree() -> void:
+	add_to_group("modal_card")  # the To-Do note hides while a mini game is up
+
+
 func start(_ctx: Dictionary) -> void:
 	pass

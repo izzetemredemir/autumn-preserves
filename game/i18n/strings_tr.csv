@@ -217,13 +217,13 @@ TITLE_SET_TUTORIAL,Nine'nin İşleri
 TITLE_ON,Açık
 TITLE_OFF,Kapalı
 TITLE_PREMISE_1,Everfall vadisinde sonbahar hiç bitmez. Orman her sabah yeniden büyür.
-TITLE_PREMISE_2,"Bu, Nine Tonty'nin onsuz ilk sonbaharı. Tepelerin ötesine kış çoktan geldi."
+TITLE_PREMISE_2,"Bu, Tonty Nine'nin onsuz ilk sonbaharı. Tepelerin ötesine kış çoktan geldi."
 TITLE_PREMISE_HINT,Devam etmek için tıkla ya da dokun
 TUT_TITLE,Nine'nin İşleri
 TUT_D1_SHAKE,Elma ağacını silkele
 TUT_D1_JAM,Ocakta reçel yap
 TUT_D1_PANTRY,Kavanozu kilere koy
-TUT_D1_ORDER,Fırıncının siparişini kasabaya götür
+TUT_D1_ORDER,Siparişi kasabaya götür
 TUT_D1_BED,Yatmaya git
 TUT_D2_FOREST,Kapıdan çıkıp ormana git
 TUT_D2_MUSHROOM,Bir mantar topla
@@ -678,7 +678,7 @@ MARKET_HELLO_3,Reçel mi turşu mu?
 MARKET_HELLO_4,"Güzel gün, değil mi?"
 TITLE_MARKET_DAY,Pazar günü
 TITLE_MARKET_DAY_TIP,"Demo gününün ilk haftalık pazarı, doğrudan ninenin tezgâhına. Kendi kaydına dokunmaz."
-TITLE_FESTIVAL,Hasat Şenliği
+TITLE_FESTIVAL,Hasat Şenliği (demo günü)
 FESTIVAL_NOTE_TITLE,Şenlik
 TUT_F_SHAKE,Nadir ağacı silkele
 TUT_F_JAM,Yeni bir reçel yap
@@ -705,8 +705,8 @@ FESTIVAL_MIA_3,Resmimi aldın mı?
 FESTIVAL_LEO_1,Kapıya kadar yarışalım!
 FESTIVAL_LEO_2,Az kalsın bir kuş yakalıyordum!
 FESTIVAL_LEO_3,Bugün pazar mı? Ben de gelebilir miyim?
-GARDEN_TRUCK_1,Walter'ın eski kamyoneti.\nYıllardır çalışmıyor ama\nbalkabaklarını hâlâ taşıyor.
-GARDEN_TRUCK_2,Walter bizi her cumartesi\nbununla pazara götürürdü.\nYol boyu şarkı söylerdi.
+GARDEN_TRUCK_1,Teo'nun eski kamyoneti.\nYıllardır çalışmıyor ama\nbalkabaklarını hâlâ taşıyor.
+GARDEN_TRUCK_2,Teo bizi her cumartesi\nbununla pazara götürürdü.\nYol boyu şarkı söylerdi.
 GARDEN_TRUCK_3,Biraz dinlenmesi gerek\nderdi hep. Epey dinlendi.
 GARDEN_TRUCK_4,Eldivenleri hâlâ torpidoda.\nNe olur ne olmaz.
 GARDEN_HENS_1,Merhaba hanımlar.\nYoğun bir sabah mı?
@@ -716,16 +716,16 @@ GARDEN_HIVES_DAYS,Çalışkan arılar.\n%d gün sonra bal var.
 GARDEN_HIVES_TOMORROW,Çalışkan arılar.\nYarın sabah bal var.
 GARDEN_HIVES_TODAY,Bu sabah taze bal!\nSağ olun arılar.
 GARDEN_HIVES_RAIN,Yağmurda arılar\nkovandan çıkmaz.
-GARDEN_SCARECROW_1,Walter'ın eski ceketini giyiyor.\nKargalar yine de onu seviyor.
+GARDEN_SCARECROW_1,Teo'nun eski ceketini giyiyor.\nKargalar yine de onu seviyor.
 GARDEN_SCARECROW_2,Kargalar ondan korkmuyor.\nSadece manzarayı seviyorlar.
 GARDEN_SCARECROW_3,Bu sonbahar yeni şapka aldı.\nPek yakışıklı oldu.
 GARDEN_BENCH_1,Bir fincan çay ve battaniye.\nBahçe biraz bekleyebilir.
-GARDEN_BENCH_2,Bu bankı Walter yaptı.\nHâlâ iki kişilik.
+GARDEN_BENCH_2,Bu bankı Teo yaptı.\nHâlâ iki kişilik.
 GARDEN_BENCH_3,Otur. Nefes al. Dinle.\nArılar vızıldıyor.
 UI_NIGHT_HONEY,Arılar sana bal bıraktı.
 PREMISE_1,Everfall vadisinde sonbahar hiç bitmez.
 PREMISE_2,"Orman her sabah yeniden büyür. Teo, ""aynı günü iki kez vermez,"" derdi."
-PREMISE_3,"Bu, Nine Tonty'nin onsuz ilk sonbaharı."
+PREMISE_3,"Bu, Tonty Nine'nin onsuz ilk sonbaharı."
 PREMISE_4,Tepelerin ötesine kış çoktan geldi.
 PREMISE_5,Yeni bir sabah. Posta kutusunda bir şey var.
 PREMISE_SKIP,Geçmek için tıkla ya da bir tuşa bas
@@ -761,7 +761,7 @@ TOWN_CHAT_HELLO_2,Merhaba nine!
 TOWN_CHAT_HELLO_3,Ne güzel bir gün!
 GARDEN_CLOTHESLINE_1,"Mia'nın eski yorganı, rüzgârda.\nHâlâ elma kokuyor."
 GARDEN_CLOTHESLINE_2,Sonbahar rüzgârı gibi kurutan yok.
-GARDEN_CLOTHESLINE_3,"Walter'ın önlüğü. Reçel\ngünleri ben takıyorum."
+GARDEN_CLOTHESLINE_3,"Teo'nun önlüğü. Reçel\ngünleri ben takıyorum."
 FESTIVAL_RARE_TREE,Nadir ağaç
 TITLE_SEED_LAB_HINT,Her tohumdan bir ormanın büyüyüşünü izle.
 UI_FORMULA_INVENT,Buluş yap
@@ -813,7 +813,7 @@ UI_PAUSE_QUIT_NO,Kal
 UI_COOK_GO,Pişir!
 UI_COOK_SLOT,%s ×%d
 UI_COOK_HAVE,%d tane var
-UI_COOK_SLOT_EMPTY,Uyan bir şey yok
+UI_COOK_SLOT_EMPTY,Henüz uygun bir şey yok
 UI_COOK_CHANGE_TIP,Değiştirmek için tıkla
 UI_COOK_PICK,%s: birini seç
 UI_COOK_FILL,Ne gireceğini seç: bir yuvaya tıkla.
@@ -859,15 +859,15 @@ HOWTO_CLOSE,Kapat
 HOWTO_AUTUMN,Senin sonbaharın
 HOWTO_AUTUMN_1,Tonty Nine bitmeyen sonbaharı kış için kavanozlara doldurur.
 HOWTO_AUTUMN_2,"Ölüm yok, ceza yok, saat yok."
-HOWTO_AUTUMN_3,Gün o yatağa gidince biter.
+HOWTO_AUTUMN_3,"Gün, Nine yatağa gidince biter."
 HOWTO_FORAGE,Toplama
 HOWTO_FORAGE_1,Bahçe kapısının ötesindeki orman her sabah yeniden büyür.
 HOWTO_FORAGE_2,"Yürü (WASD / tıkla), ağaçları salla ve topla (E / tıkla)."
 HOWTO_FORAGE_3,Her gün yeni türler çıkar.
 HOWTO_COOK,Pişirme
-HOWTO_COOK_1,"Ocakta tarif seç, Pişir!'e bas."
+HOWTO_COOK_1,"Ocakta tarif seç, Pişir'e bas."
 HOWTO_COOK_2,20 saniyelik bir mutfak oyunu yıldızları belirler.
-HOWTO_COOK_3,"Her kavanozun kendi adı, tadı ve değeri olur. Buluş yap, her şeyi karıştırıp yeni yemekler çıkarır."
+HOWTO_COOK_3,"Her kavanozun kendi adı, tadı ve değeri olur. 'Buluş yap' her şeyi karıştırıp yeni yemekler çıkarır."
 HOWTO_PANTRY,Kiler
 HOWTO_PANTRY_1,"Kavanozları doğru raflara koy, türleri bir arada tut."
 HOWTO_PANTRY_2,Güzel bir raf diz.
@@ -883,13 +883,13 @@ TODO_HINT_D1_ORDER,Fırıncı bir kavanoz istemiş. Yol tabelasından kasabaya g
 TODO_HINT_D1_BED,Ne gündü ama! Yatma vakti canım: yatak oturma odasında.
 TODO_HINT_D2_FOREST,Hadi toplamaya: bahçe kapısından ormana çıkalım.
 TODO_HINT_D2_MUSHROOM,Mantarlar orman zemininde saklanır. Bir tane toplayalım!
-TODO_HINT_D2_BRINE,Mantarları kavanoz tezgahında turşuya yatıralım.
+TODO_HINT_D2_BRINE,Mantarları kavanoz tezgâhında turşuya yatıralım.
 TODO_HINT_D2_SELL,Fazla bir kavanozumuz var. Kasabada bakkala satalım.
 TODO_HINT_F_SHAKE,Bugün ormanda nadir bir ağaç var! Hadi bulup silkeleyelim.
 TODO_HINT_F_JAM,Nadir meyveden hiç yapmadığımız bir reçeli ocakta pişirelim.
 TODO_HINT_F_JUICE,Şimdi meyve presinde taze bir meyve suyu!
 TODO_HINT_F_PANTRY,Yeni reçeli kilere koyup boşluğu dolduralım: üç yıldız!
-TODO_HINT_F_MARKET,"Pazar günü! Kasabaya gidip tezgahı dolduralım ve açalım."
+TODO_HINT_F_MARKET,"Pazar günü! Kasabaya gidip tezgâhı dolduralım ve açalım."
 TODO_HINT_F_LETTER,"Mia'dan bir mektup var, bahçedeki posta kutusunda."
 MG_COMBO,x%d
 WILD_SURPRISE_SQUIRREL,Bir sincap fırladı!

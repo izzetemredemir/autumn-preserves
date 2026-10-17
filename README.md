@@ -117,7 +117,8 @@ Made by one person, **İzzet Emre Demir**, in 48 hours for the **KODTÜ 7** game
 
 ## Credits and license
 
-- **Design, code, art direction:** İzzet Emre Demir.
-- **Fonts:** m5x7 and m6x11 by Daniel Linssen. **Palette:** Vintage Autumn by Goopy25. Some art and audio were generated with AI image and music models, then reduced to the palette and edited by hand; see [CREDITS.md](CREDITS.md).
+- **Design, direction, procedural systems:** İzzet Emre Demir, alone, in 48 hours.
+- **Made with:** [Godot 4.7](https://godotengine.org) · [Claude Code](https://claude.com/claude-code) (code, tooling and the asset pipeline, directed by me) · GPT Image via [fal](https://fal.ai) (paintings and sprite sources, every one reduced to the palette and cleaned by hand) · [ElevenLabs](https://elevenlabs.io) (music, sound effects, the video narration) · [Aseprite](https://www.aseprite.org) (pixel edits). AI tools and pre-made assets are allowed by the jam rules; every generated asset is listed in `tools/asset_log.csv`.
+- **Fonts:** m5x7 and m6x11 by Daniel Linssen. **Palette:** Vintage Autumn by Goopy25. See [CREDITS.md](CREDITS.md).
 - **Code** (GDScript, shaders, Python tools): MIT, see [LICENSE](LICENSE).
 - **Art and audio:** © 2026 İzzet Emre Demir, all rights reserved. They are not covered by the MIT license.

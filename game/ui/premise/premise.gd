@@ -38,8 +38,8 @@ func _ready() -> void:
 		_beats.append(b)
 	_caption_box = CenterContainer.new()
 	_caption_box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	_caption_box.offset_top = -60
-	_caption_box.offset_bottom = -8
+	_caption_box.offset_top = -72
+	_caption_box.offset_bottom = -22
 	_caption_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_caption_box)
 	var panel := PanelContainer.new()
@@ -54,13 +54,12 @@ func _ready() -> void:
 	_hint = Label.new()
 	_hint.text = tr("PREMISE_SKIP")
 	_hint.add_theme_color_override("font_color", Color("b9a697"))
-	_hint.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	_hint.offset_left = -200
-	_hint.offset_top = 4
-	_hint.offset_right = -6
-	_hint.offset_bottom = 22
-	_hint.grow_horizontal = Control.GROW_DIRECTION_BEGIN  # a longer line (Turkish) grows left, not off the screen
-	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)  # calm: the bottom edge, under the caption
+	_hint.offset_top = -20
+	_hint.offset_bottom = -2
+	_hint.offset_left = 0
+	_hint.offset_right = 0
+	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.visible = false
 	add_child(_hint)
 	_apply()

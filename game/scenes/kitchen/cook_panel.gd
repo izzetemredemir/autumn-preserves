@@ -102,6 +102,7 @@ var _product_icons := {}  # product key -> 16x16 JarIcon texture
 
 
 func _ready() -> void:
+	add_to_group("modal_card")  # the To-Do note hides while this is open
 	_build()
 
 

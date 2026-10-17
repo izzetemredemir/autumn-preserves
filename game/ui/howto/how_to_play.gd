@@ -70,6 +70,7 @@ static func page_count() -> int:
 
 func _ready() -> void:
 	layer = LAYER
+	add_to_group("modal_card")  # the To-Do note hides while How to Play is open
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("howto")
 	_build()
