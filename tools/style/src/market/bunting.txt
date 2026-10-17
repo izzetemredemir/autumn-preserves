@@ -1,0 +1,22 @@
+# Bunting pennant, 6x6 per frame, hangs from the string on row 0 (pennants side by side make the string).
+# Frames: still, flutter (tip swings right). build.sh appends gold, olive and cream with --variant: 8 frames
+# (red still, red flutter, gold..., olive..., cream...). Edge D = the colour's darkest tone, no ink outline.
+legend . transparent
+legend s bark_900
+legend L leaf_peach_300
+legend M leaf_red_500
+legend D leaf_red_700
+frame
+ssssss
+DLLMMD
+.DLMD.
+.DLMD.
+..DD..
+......
+frame
+ssssss
+DLLMMD
+.DLLMD
+..DLMD
+...DD.
+......

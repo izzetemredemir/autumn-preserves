@@ -1,0 +1,36 @@
+# Sparrow for perches, 8x8 per frame, facing left, feet on row 6 (pivot 4,7), light from the top-left.
+# Frames: sit, flap x2 (wings up, wings down). Same bird as critters/sparrow. Fills only: build.sh adds the ink outline.
+legend . transparent
+legend b bark_700
+legend o bark_500
+legend l cream_100
+legend y gold_300
+legend k ink
+legend d bark_900
+frame
+........
+........
+..oob...
+.ykbbb..
+.lloobb.
+..llobd.
+...d.d..
+........
+frame
+........
+..b..bb.
+..ob.bb.
+.ykobbb.
+..llobd.
+...ll...
+...d.d..
+........
+frame
+........
+........
+..oob...
+.ykobbb.
+..llobd.
+...bbd..
+...bdd..
+........

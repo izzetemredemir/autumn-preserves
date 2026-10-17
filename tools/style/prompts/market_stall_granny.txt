@@ -1,0 +1,10 @@
+Image 1 is an exact layout mock-up of a small wooden market stall in straight front view on a flat grey backdrop; image 2 is the approved style reference (the market square the stall will stand in). Redraw image 1 as ONE polished pixel art sprite in exactly the style, palette, pixel size and warm late-afternoon lighting of image 2, keeping the EXACT layout of image 1: every part at the same position and size, straight front view with no perspective turn, same proportions, same outer silhouette.
+- Top centre: a blank wooden sign board with a simple wooden frame, blank, no writing.
+- A red and cream striped fabric awning with a scalloped hem and soft folds, lit from the upper left.
+- Two wooden corner posts.
+- Under the awning: a dark plank back wall in shadow.
+- The left part: an EMPTY two-step wooden display: a dark back shelf, a plank step with a light front edge, then the counter top with a red and cream cloth skirt hanging in front. The shelves are completely empty: no jars, no goods, no items, no decorations on them.
+- The right part: a narrow empty space between the counter's end post and the right corner post, dark back wall only.
+- 1 pixel dark brown outline around the whole stall, light from the upper left, shadows to the lower right.
+- Fully transparent background around the stall: no ground, no cobbles, no cast shadow, no scenery.
+Pixel art, crisp hard pixels, no anti-aliasing, no text, no letters, no characters, no pure black, no neon colors.

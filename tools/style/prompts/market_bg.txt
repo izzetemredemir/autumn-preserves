@@ -1,0 +1,12 @@
+Image 1 is a rough layout mock-up (blocky stand-ins pasted onto a village square); image 2 is the approved style reference, the same village square on an ordinary day. Redraw image 1 as ONE coherent, polished pixel art painting in exactly the style, palette, pixel size and warm late-afternoon lighting of image 2, keeping the EXACT layout of image 1: same camera, same framing, every stall and object at the same position and size.
+It is market day in the village square:
+- Back left: a baker's market stall with a red and cream striped awning, a wooden counter with golden loaves and round breads, wicker baskets with long baguettes in front.
+- Back centre: a wine stall with a wine-red and cream striped awning, bunches of purple grapes on the counter, wooden wine barrels on both sides.
+- Back right: the stone post office from image 2 with its wooden door, stone steps, the hanging sign with an envelope (no writing) and the red mailbox.
+- Front left: a greengrocer's wooden hand cart with two big wooden wheels and a small olive and cream striped canopy, piled with pumpkins, red apples and cabbages.
+- Front right: a small flower and book stall with an olive and cream striped awning, metal buckets of autumn flowers in front and stacks of old books on the counter.
+- Two dark iron lamp posts with warm glowing lanterns stand between the stalls. Colourful triangle bunting garlands hang across the square between the stalls, the lamp posts and the post office.
+- Autumn maple trees with red and orange leaves fill the top behind the stalls, with a low hedge behind the back stalls.
+- KEEP EMPTY: the large middle area between the two lamp posts, from the foot of the back centre stall down to the bottom edge, is completely empty open cobblestone ground: no stall, no table, no crates, no barrels, no baskets, no objects there. The lane of cobbles in front of the three back stalls and the whole bottom strip are also empty open cobbles. Only a few scattered fallen leaves on the cobbles. Keep the cobbles calm and slightly muted so characters placed on top later stay readable.
+- No people, no animals, no birds, no characters anywhere.
+Wide 16:9 composition, pixel art, crisp hard pixels, no anti-aliasing, no text, no letters, no writing on any sign, no pure black, no neon colors.

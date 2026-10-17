@@ -1,0 +1,10 @@
+# Falling leaf, 4x4, too small for an outline: light half top-left, dark half and stem bottom-right.
+# One source, build.sh appends 3 tints with --variant: red, gold, amber, deep red (4 frames).
+legend . transparent
+legend L leaf_red_500
+legend D leaf_red_700
+frame
+.L..
+LLD.
+.LDD
+...D
