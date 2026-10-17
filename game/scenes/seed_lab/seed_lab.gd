@@ -257,8 +257,8 @@ func biome() -> String:
 
 func _generate() -> void:
 	var s := seed_from_text(seed_edit.text)
-	if not map.is_empty() and s != save_seed:
-		seed_b = save_seed
+	if not map.is_empty():
+		seed_b = save_seed  # the same seed again makes an identical twin in A | B (generation is deterministic)
 	save_seed = s
 	seed_edit.text = str(save_seed)
 	_vars = VarietyGen.generate_all(save_seed, 0)
@@ -318,7 +318,7 @@ func _on_area_resized() -> void:
 # ---------- step-by-step replay and A | B (P1-SEEDLAB) ----------
 
 func b_seed() -> int:
-	return seed_b if seed_b >= 0 and seed_b != save_seed else (save_seed + 1) & 0x7FFFFFFF
+	return seed_b if seed_b >= 0 else (save_seed + 1) & 0x7FFFFFFF
 
 
 func _ensure_b() -> void:
@@ -467,7 +467,7 @@ func _update_labels() -> void:
 	if p < n:
 		_step_label.text = (tr("WILD_STEP_COUNT") % [p + 1, n]) + "  " + tr(String(GrowView.STEP_KEYS[p]))
 	elif two:
-		_step_label.text = tr("WILD_LAB_SAME_RULES")
+		_step_label.text = tr("WILD_LAB_SAME_SEED") if b_seed() == save_seed else tr("WILD_LAB_SAME_RULES")
 	else:
 		_step_label.text = tr("WILD_STEP_DONE")
 	_step_panel.reset_size()

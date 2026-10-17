@@ -320,6 +320,7 @@ WILD_LAB_CAPTION,Seed %d
 WILD_LAB_CAPTION_A,A  %d
 WILD_LAB_CAPTION_B,B  %d
 WILD_LAB_SAME_RULES,"Same rules, different seed"
+WILD_LAB_SAME_SEED,"Same seed, same forest"
 WILD_STEP_NOISE,Value noise
 WILD_STEP_STREAM,Random-walk stream
 WILD_STEP_TREES,Poisson-disk trees

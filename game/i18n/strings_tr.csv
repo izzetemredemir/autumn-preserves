@@ -320,6 +320,7 @@ WILD_LAB_CAPTION,Tohum %d
 WILD_LAB_CAPTION_A,A  %d
 WILD_LAB_CAPTION_B,B  %d
 WILD_LAB_SAME_RULES,"Aynı kurallar, başka tohum"
+WILD_LAB_SAME_SEED,"Aynı tohum, aynı orman"
 WILD_STEP_NOISE,Değer gürültüsü
 WILD_STEP_STREAM,Rastgele yürüyüşle dere
 WILD_STEP_TREES,Poisson-disk ağaçlar

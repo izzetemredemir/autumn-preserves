@@ -1,0 +1,8 @@
+[
+	{"t": 0.0, "scene": "res://scenes/seed_lab/seed_lab.tscn", "do": "speed", "args": [1.0]},
+	{"t": 0.4, "do": "lab_type", "args": ["452", 0.0], "note": "MONTAGE: the Forest Lab starts on seed 452"},
+	{"t": 1.8, "do": "lab_compare", "args": [true], "note": "C: A | B, the previous map next to the new one"},
+	{"dt": 1.6, "do": "lab_type", "args": ["452", 0.25], "note": "seed 452 again: the twin forests"},
+	{"dt": 4.6, "do": "lab_type", "args": ["autumn", 0.2], "note": "a new seed: a different forest (the identical pair was held about 3 s)"},
+	{"dt": 3.2, "quit": true, "note": "about 10 s in all"}
+]
