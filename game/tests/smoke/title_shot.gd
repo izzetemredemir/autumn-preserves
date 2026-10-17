@@ -122,8 +122,9 @@ func _flow() -> void:
 			premise = c
 	_check(premise != null, "premise shows after New Game")
 	if premise != null:
-		premise._skip_or_leave()
-		premise._skip_or_leave()
+		var seen: Variant = GameSettings.get_value("game", "intro_seen")
+		premise.skip()  # FIRST-60: the intro has five beats; skip() leaves at once
+		GameSettings.set_value("game", "intro_seen", seen)  # the player's first intro stays unwatched
 	await create_timer(1.2).timeout
 	var home: String = load(TRANSITION).home_scene()
 	_check(router.current == home, "premise leads to %s (now '%s')" % [home, router.current])

@@ -1,13 +1,14 @@
 class_name GameSettings
 extends RefCounted
-## Player settings in user://settings.cfg (spec §10): volumes, fullscreen, show seed, Granny's To-Do, language.
+## Player settings in user://settings.cfg (spec §10): volumes, fullscreen, show seed, Granny's To-Do, language,
+## show the forest grow (FIRST-60), and whether the intro was seen once (it can be skipped after that).
 ## Read anywhere with GameSettings.get_value("game", "show_seed"); `apply()` pushes volumes, window mode and language.
 
 const PATH := "user://settings.cfg"
 const DEFAULTS := {
 	"audio": {"music": 0.8, "sfx": 0.8, "ambient": 0.8},
 	"display": {"fullscreen": false},
-	"game": {"show_seed": true, "tutorial": true, "language": "en"},
+	"game": {"show_seed": true, "tutorial": true, "language": "en", "show_grow": true, "intro_seen": false},
 }
 ## L10N-TR · Languages of the settings picker: locale -> its own name (shown untranslated). English stays the default,
 ## whatever the OS locale is.
@@ -42,6 +43,11 @@ static func set_value(section: String, key: String, value: Variant) -> void:
 
 static func show_seed() -> bool:
 	return bool(get_value("game", "show_seed"))
+
+
+## FIRST-60: replay the map's generation the first time a wild opens each day (the first visit of a save always does).
+static func show_grow() -> bool:
+	return bool(get_value("game", "show_grow"))
 
 
 static func tutorial_enabled() -> bool:

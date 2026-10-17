@@ -12,6 +12,7 @@ const TOGGLES := [
 	["TITLE_SET_FULLSCREEN", "display", "fullscreen"],
 	["TITLE_SET_SHOW_SEED", "game", "show_seed"],
 	["TITLE_SET_TUTORIAL", "game", "tutorial"],
+	["WORLD_GROW_SETTING", "game", "show_grow"],
 ]
 
 var _first: Control
@@ -26,22 +27,27 @@ func _ready() -> void:
 	head.theme_type_variation = &"Heading"
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(head)
+	# Two label/control pairs per row (FIRST-60: eight rows in one column no longer fit under the logo):
+	# the sliders and the language on the left, the toggles on the right.
 	var grid := GridContainer.new()
-	grid.columns = 2
+	grid.columns = 4
 	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 1)  # seven rows since the language picker (L10N-TR)
+	grid.add_theme_constant_override("v_separation", 2)
 	box.add_child(grid)
+	var left: Array = []
 	for s in SLIDERS:
-		grid.add_child(_label(tr(s[0])))
 		var slider := _slider(String(s[1]))
-		grid.add_child(slider)
+		left.append([_label(tr(s[0])), slider])
 		if _first == null:
 			_first = slider
+	left.append([_label(tr("TITLE_SET_LANGUAGE")), _language_button()])
+	var right: Array = []
 	for t in TOGGLES:
-		grid.add_child(_label(tr(t[0])))
-		grid.add_child(_toggle(String(t[1]), String(t[2])))
-	grid.add_child(_label(tr("TITLE_SET_LANGUAGE")))
-	grid.add_child(_language_button())
+		right.append([_label(tr(t[0])), _toggle(String(t[1]), String(t[2]))])
+	for r in maxi(left.size(), right.size()):
+		for side: Array in [left, right]:
+			grid.add_child(side[r][0] if r < side.size() else Control.new())
+			grid.add_child(side[r][1] if r < side.size() else Control.new())
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 6)

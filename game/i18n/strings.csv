@@ -695,6 +695,16 @@ GARDEN_BENCH_1,A cup of tea and a blanket.\nThe garden can wait a minute.
 GARDEN_BENCH_2,Walter built this bench.\nIt still fits two.
 GARDEN_BENCH_3,Sit. Breathe. Listen.\nThe bees are humming.
 UI_NIGHT_HONEY,The bees left honey for you.
+PREMISE_1,"In the valley of Everfall, autumn never ends."
+PREMISE_2,Every morning the forest beyond Granny Tonty's garden grows anew.
+PREMISE_3,"She puts that autumn in jars,"
+PREMISE_4,for everyone who must live through the winter beyond the hills.
+PREMISE_5,A new morning. The garden gate is open.
+PREMISE_SKIP,Click or press a key to skip
+WORLD_GROW_FOREST,"Today's forest, grown from seed %d"
+WORLD_GROW_VINEYARD,"Today's vineyard, grown from seed %d"
+WORLD_GROW_CREEK,"Today's creek, grown from seed %d"
+WORLD_GROW_SETTING,Show the forest grow
 FAREWELL_CREDIT_MADE_BY,Made by İzzet Emre Demir
 TOWN_CALL_GROCER_1,Apples fresh today!
 TOWN_CALL_GROCER_2,Pumpkins for pies!

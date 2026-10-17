@@ -1,8 +1,9 @@
 class_name TitleBackdrop
 extends Control
-## Title backdrop: dithered sunset sky, hills with autumn trees, Granny's cottage with chimney smoke, falling
-## leaves. The static part is baked into one texture per size; leaves and smoke move in whole pixels.
-## leaves_only = plain plum background with leaves (premise screen).
+## Title backdrop: the painted valley (bg_title.png) brought to life by TitleFx (FIRST-60): falling leaves behind and
+## in front of the menu, chimney smoke, birds crossing, glints on the river and motes in the low sun. All marks move
+## in whole pixels and use palette colours. Without the painting it bakes a dithered sunset scene of its own.
+## leaves_only = plain plum background with leaves.
 
 const BG := Color("3d1f29")
 const SKY := [Color("3d1f29"), Color("62272c"), Color("a22512"), Color("c94d2e"), Color("e19064")]
@@ -13,54 +14,41 @@ const MID := Color("50361e")
 const NEAR := Color("23282a")
 const TRUNK := Color("3d1f29")
 const CANOPY := [Color("a22512"), Color("c94d2e"), Color("b66813"), Color("e19064"), Color("c58845")]
-const LEAF := [Color("c94d2e"), Color("e19064"), Color("b66813"), Color("c58845"), Color("e5bd7f")]
-const SMOKE := [Color("b9a697"), Color("81746a")]
-const LEAF_COUNT := 22
 const IMAGE := "res://assets/sprites/scenes/bg_title.png"
 
 var leaves_only := false
 
 var _tex: Texture2D
-var _leaves: Array = []
-var _chimney := Vector2i(-100, -100)
+var _fx := TitleFx.new()
+var _front: Control
 var _t := 0.0
-var _rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_rng.seed = 1016
+	# The front leaves draw over the menu (z 1 > the title's other children), still under the premise (z 2).
+	_front = Control.new()
+	_front.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_front.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_front.z_index = 1
+	_front.draw.connect(func() -> void: _fx.draw_front(_front, _t))
+	add_child(_front)
 	resized.connect(_rebuild)
 	_rebuild()
-	for i in LEAF_COUNT:
-		_leaves.append(_new_leaf(true))
 
 
-func _new_leaf(anywhere: bool) -> Dictionary:
-	var h := maxf(size.y, 270.0)
-	return {
-		"x": _rng.randf_range(0.0, maxf(size.x, 480.0)),
-		"y": _rng.randf_range(-h, h) if anywhere else -4.0,
-		"speed": _rng.randf_range(9.0, 20.0),
-		"amp": _rng.randf_range(3.0, 9.0),
-		"phase": _rng.randf_range(0.0, TAU),
-		"color": LEAF[_rng.randi_range(0, LEAF.size() - 1)],
-	}
+## Seconds the backdrop has been alive (smoke shots seek it to show two moments).
+func seek(t: float) -> void:
+	_t = t
+	queue_redraw()
+	_front.queue_redraw()
 
 
 func _process(delta: float) -> void:
 	_t += delta
-	if size.x <= 0.0 or size.y <= 0.0:
-		return
-	for i in _leaves.size():
-		var l: Dictionary = _leaves[i]
-		l.y += l.speed * delta
-		l.x += 4.0 * delta
-		if l.y > size.y + 4.0 or l.x > size.x + 8.0:
-			_leaves[i] = _new_leaf(false)
-			_leaves[i].x = _rng.randf_range(-20.0, size.x)
 	queue_redraw()
+	_front.queue_redraw()
 
 
 func _draw() -> void:
@@ -68,28 +56,7 @@ func _draw() -> void:
 		draw_texture(_tex, Vector2.ZERO)
 	else:
 		draw_rect(Rect2(Vector2.ZERO, size), BG)
-	if not leaves_only:
-		_draw_smoke()
-	for l in _leaves:
-		var sway := sin(_t * 1.4 + float(l.phase))
-		var p := Vector2i(int(l.x + sway * float(l.amp)), int(l.y))
-		var c: Color = l.color
-		if sway > 0.3:
-			draw_rect(Rect2(p, Vector2i(3, 1)), c)
-			draw_rect(Rect2(p + Vector2i(1, 1), Vector2i(2, 1)), c)
-		elif sway < -0.3:
-			draw_rect(Rect2(p, Vector2i(2, 1)), c)
-			draw_rect(Rect2(p + Vector2i(0, 1), Vector2i(3, 1)), c)
-		else:
-			draw_rect(Rect2(p, Vector2i(2, 2)), c)
-
-
-func _draw_smoke() -> void:
-	for i in 4:
-		var life := fmod(_t + i * 0.8, 3.2)
-		var off := Vector2i(int(life * 4.0 + sin(life * 2.5) * 2.0), -int(life * 9.0))
-		var s := 2 if life < 1.6 else 1
-		draw_rect(Rect2(_chimney + off, Vector2i(s + 1, s)), SMOKE[0] if life < 2.2 else SMOKE[1])
+	_fx.draw_back(self, _t)
 
 
 func _rebuild() -> void:
@@ -97,9 +64,13 @@ func _rebuild() -> void:
 	var h := int(size.y)
 	if w <= 0 or h <= 0:
 		return
-	if not leaves_only and ResourceLoader.exists(IMAGE):
+	var painted := not leaves_only and ResourceLoader.exists(IMAGE)
+	_fx.smoke = painted
+	_fx.birds = painted
+	_fx.glints = painted
+	_fx.motes = painted
+	if painted:
 		_tex = load(IMAGE) as Texture2D
-		_chimney = Vector2i(44, 100)
 		queue_redraw()
 		return
 	var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
@@ -152,7 +123,6 @@ func _mid(x: int, horizon: int) -> int:
 
 func _house(img: Image, cx: int, base: int) -> void:
 	img.fill_rect(Rect2i(cx + 4, base - 24, 3, 8), MID)
-	_chimney = Vector2i(cx + 4, base - 27)
 	img.fill_rect(Rect2i(cx - 10, base - 12, 20, 12), Color("c58845"))
 	for i in 9:
 		img.fill_rect(Rect2i(cx - 12 + i, base - 13 - i, 24 - i * 2, 1), Color("a22512"))

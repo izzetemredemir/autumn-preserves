@@ -87,12 +87,34 @@ func _run() -> void:
 		root.add_child(o)
 		await _frames(8)
 		await _audit(p.get_file().get_basename(), o)
+		if o.has_method("audit_moments"):  # FIRST-60: every intro beat's caption, fully typed
+			o.set_process(false)  # seek only: never reach the end (that would mark the intro seen in settings.cfg)
+			for m in o.audit_moments():
+				o.seek(m)
+				await _frames(3)
+				await _audit("%s@%.1f" % [p.get_file().get_basename(), m], o)
 		o.queue_free()
 		await _frames(2)
+	await _world_grow()
 	_write(Time.get_ticks_msec() - t0)
 	var owned := _findings.filter(func(f): return f.owned).size()
 	print("ui_audit [%s]: %d states, %d texts, %d findings (%d in owned folders)" % [_locale, _states, _texts, _findings.size(), owned])
 	quit(1 if _findings.size() > 0 else 0)
+
+
+## FIRST-60: the world-grow overlay over the demo forest, half-way through.
+func _world_grow() -> void:
+	_fresh()
+	var g: Node = load("res://ui/transition/world_grow.gd").new()
+	var d: Dictionary = _gs.data
+	g.setup(WildGen.generate(int(d.save_seed), int(d.day), "forest", String(d.weather), d.varieties, true), d, "forest")
+	root.add_child(g)
+	g.set_process(false)
+	g.seek(1.6)
+	await _frames(3)
+	await _audit("world_grow", g)
+	g.queue_free()
+	await _frames(2)
 
 
 func _title_panels(s: Node) -> void:

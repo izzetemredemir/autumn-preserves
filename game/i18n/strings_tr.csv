@@ -695,6 +695,16 @@ GARDEN_BENCH_1,Bir fincan çay ve battaniye.\nBahçe biraz bekleyebilir.
 GARDEN_BENCH_2,Bu bankı Walter yaptı.\nHâlâ iki kişilik.
 GARDEN_BENCH_3,Otur. Nefes al. Dinle.\nArılar vızıldıyor.
 UI_NIGHT_HONEY,Arılar sana bal bıraktı.
+PREMISE_1,Everfall vadisinde sonbahar hiç bitmez.
+PREMISE_2,Tonty Nine'nin bahçesinin ötesindeki orman her sabah yeniden büyür.
+PREMISE_3,"O sonbaharı kavanozlara doldurur,"
+PREMISE_4,tepelerin ötesindeki kışı geçirecek herkes için.
+PREMISE_5,Yeni bir sabah. Bahçe kapısı açık.
+PREMISE_SKIP,Geçmek için tıkla ya da bir tuşa bas
+WORLD_GROW_FOREST,"Bugünün ormanı, %d tohumundan büyüdü"
+WORLD_GROW_VINEYARD,"Bugünün bağı, %d tohumundan büyüdü"
+WORLD_GROW_CREEK,"Bugünün deresi, %d tohumundan büyüdü"
+WORLD_GROW_SETTING,Büyümeyi göster
 FAREWELL_CREDIT_MADE_BY,Yapan: İzzet Emre Demir
 TOWN_CALL_GROCER_1,Bugün taze elma var!
 TOWN_CALL_GROCER_2,Turtalık balkabağı!
