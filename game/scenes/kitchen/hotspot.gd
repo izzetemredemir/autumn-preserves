@@ -105,12 +105,6 @@ static func set_device(keyboard: bool) -> bool:
 
 
 func _draw() -> void:
-	var w := int(size.x)
-	var h := int(size.y)
 	Art.draw_object(self, kind, _t, info)
-	if glow:
-		var on := int(_t * 3.0) % 2 == 0
-		Art.frame(self, Rect2i(-4, -4, w + 8, h + 8), Art.GOLD if on else Art.AMBER)
-	if picked():
-		Art.frame(self, Rect2i(-2, -2, w + 4, h + 4), Art.GOLD)
-		Art.frame(self, Rect2i(-1, -1, w + 2, h + 2), Art.INK)
+	# No frames (human, 17 Oct 23:40: "kutu kutu duruyor"): the caption tag and the hint line mark the picked
+	# object; the glow step blinks the tag and Granny's guide draws its arrow.
