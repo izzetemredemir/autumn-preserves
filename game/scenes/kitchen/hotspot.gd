@@ -1,7 +1,7 @@
 extends Button
 ## GD-KITCHEN · One clickable room object (stove, jar counter, cupboard, book, doors, bed).
 ## Draws its placeholder art through KitchenArt, a 1-px gold outline on hover/focus, a caption under it and,
-## when `glow` is on (Granny's To-Do step), a blinking frame with a bobbing arrow.
+## when `glow` is on (Granny's To-Do step), a blinking frame (Granny's guide draws the arrow over it, ONBOARD-GUIDE).
 ## It is a Button, so mouse, touch (emulated mouse) and keyboard (focus + ui_accept) all press it.
 
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
@@ -91,7 +91,6 @@ func _draw() -> void:
 	if glow:
 		var on := int(_t * 3.0) % 2 == 0
 		Art.frame(self, Rect2i(-4, -4, w + 8, h + 8), Art.GOLD if on else Art.AMBER)
-		Art.arrow(self, w >> 1, -12 + int(_t * 4.0) % 2, Art.GOLD)
 	if has_focus() or is_hovered():
 		Art.frame(self, Rect2i(-2, -2, w + 4, h + 4), Art.GOLD)
 		Art.frame(self, Rect2i(-1, -1, w + 2, h + 2), Art.INK)

@@ -6,7 +6,8 @@ extends Node2D
 ## with their fruit drawn on); everything else comes from assets/sprites/garden/ (art-bible §3.6): the cottage front
 ## (the door is part of it), plank beds with crop growth stages, compost bin, mailbox, gate, sign posts with a
 ## 9-slice board. No rules here: the scene passes the state in.
-## `highlighted`: Granny faces it. `glow`: Granny's To-Do points here (outline or frame blinking + bobbing arrow).
+## `highlighted`: Granny faces it. `glow`: Granny's To-Do points here (outline or frame blinking; the guide's arrow
+## stands at arrow_tip(), ONBOARD-GUIDE).
 
 const TILE := 16
 ## Approved tree sprites, first match wins: tree_<type>_ripe.png / tree_<type>_bare.png (art-bible §3.6).
@@ -46,7 +47,6 @@ const C_INK := Color("111010")
 const C_CREAM := Color("f2d9c5")
 const C_GOLD := Color("e5bd7f")
 const C_GOLD_LIGHT := Color("dbcc83")
-const C_RED := Color("c94d2e")
 ## Fruit spots on the stand-in canopy, sprite coordinates relative to the feet.
 const FRUIT_SPOTS := [Vector2(-18, -62), Vector2(-6, -70), Vector2(8, -64), Vector2(18, -54), Vector2(-12, -48),
 	Vector2(2, -54), Vector2(14, -42), Vector2(-22, -40)]
@@ -137,6 +137,14 @@ func hit_rect() -> Rect2:
 func top() -> Vector2:
 	var r := hit_rect()
 	return Vector2(r.position.x + r.size.x * 0.5, r.position.y)
+
+
+## ONBOARD-GUIDE: world point just above what is drawn (the sprite included), where Granny's guide puts its arrow tip.
+func arrow_tip() -> Vector2:
+	var top_y := _local_rect().position.y
+	if _sprite != null:
+		top_y = minf(top_y, _sprite.position.y)
+	return position + Vector2(0, top_y - 2)
 
 
 ## Where shaken fruit starts falling.
@@ -389,11 +397,6 @@ func _draw() -> void:
 	if not _outlined() and kind != "house":
 		if highlighted or (glow and _blink_on):
 			_frame(_local_rect(), C_GOLD if highlighted else C_CREAM)
-	if glow:
-		var top_y := _local_rect().position.y
-		if _sprite != null:
-			top_y = minf(top_y, _sprite.position.y)
-		_arrow(Vector2(0, top_y - 2 - _bob))
 
 
 func _draw_tree() -> void:
@@ -456,16 +459,3 @@ func _frame(r: Rect2, c: Color) -> void:
 	draw_rect(Rect2(r.position, Vector2(1, r.size.y)), c)
 	draw_rect(Rect2(r.position + Vector2(r.size.x - 1, 0), Vector2(1, r.size.y)), c)
 
-
-## Small down arrow with its tip at `tip`.
-func _arrow(tip: Vector2) -> void:
-	var t := tip.round()
-	draw_rect(Rect2(t.x - 2, t.y - 9, 5, 5), C_INK)
-	draw_rect(Rect2(t.x - 4, t.y - 5, 9, 3), C_INK)
-	draw_rect(Rect2(t.x - 2, t.y - 2, 5, 2), C_INK)
-	draw_rect(Rect2(t.x - 1, t.y, 3, 1), C_INK)
-	draw_rect(Rect2(t.x - 1, t.y - 8, 3, 4), C_RED)
-	draw_rect(Rect2(t.x - 3, t.y - 4, 7, 1), C_RED)
-	draw_rect(Rect2(t.x - 2, t.y - 3, 5, 1), C_RED)
-	draw_rect(Rect2(t.x - 1, t.y - 2, 3, 1), C_RED)
-	draw_rect(Rect2(t.x, t.y - 1, 1, 1), C_RED)

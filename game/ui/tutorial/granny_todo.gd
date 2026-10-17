@@ -5,6 +5,8 @@ extends CanvasLayer
 ## Steps tick from GameState.changed (rules in TodoRules); progress is written to state.flags.tutorial.
 ## Scenes can read `GrannyTodo.current_step()` + TodoRules.SCENE_OF to make the step's object glow.
 ## FESTIVAL: a festival save shows its six-step checklist under the festival title, even with the tutorial setting off.
+## ONBOARD-GUIDE: the note brings Granny's guide along (GuideArrow: arrow over the current step's target, her hint
+## bubble, first-time key caps); the guide follows `_step`.
 
 signal step_changed(step: String)
 
@@ -59,6 +61,7 @@ func _ready() -> void:
 	_collapsed = true
 	layer = 11
 	add_to_group("granny_todo")
+	GuideArrow.ensure()
 	_build()
 	GameState.changed.connect(_on_changed)
 	Router.scene_changed.connect(func(_id: String) -> void:

@@ -101,6 +101,7 @@ func _ready() -> void:
 	Audio.play_ambient("amb_hearth")
 	_refresh()
 	_connect_todo.call_deferred()
+	GuideArrow.attach(self, _guide_at)  # ONBOARD-GUIDE: arrow, Granny's hint, first-time key caps
 	_focus_spot()
 	_reveal_captions(true)  # touch players cannot hover: name every object for a moment on entry
 	get_tree().create_timer(REVEAL_SEC).timeout.connect(func() -> void: _reveal_captions(false))
@@ -322,6 +323,35 @@ func _update_glow() -> void:
 	_idle_hint()
 
 
+## ONBOARD-GUIDE: what Granny's guide asks the kitchen (GuideArrow header): the glowing object of the To-Do step
+## (or the door towards it), Granny by the stove, the station under the mouse or the keyboard focus.
+func _guide_at(what: String) -> Variant:
+	if not _room_active or _mg != null:
+		return null
+	match what:
+		"granny":
+			return _granny.get_global_rect() if _granny != null else null
+		"bubble":
+			return null
+		"near":
+			for k in ["stove", "counter", "press", "board"]:
+				var h: Control = _spots.get(k)
+				if h != null and h.is_visible_in_tree() and (h.has_focus() or h.is_hovered()):
+					return {"kind": "station", "at": _guide_top(h)}
+			return {}
+	return _guide_top(_spots[_glow]) if _spots.has(_glow) else null
+
+
+## Just above a hotspot's glow frame, in the middle (above its caption when the caption sits over the object).
+func _guide_top(h: Control) -> Vector2:
+	var r := h.get_global_rect()
+	var top := r.position.y - 6
+	var cap: Control = h.get("caption")
+	if cap != null and cap.position.y < 0:
+		top = minf(top, r.position.y + cap.position.y - 1)
+	return Vector2(r.position.x + roundf(r.size.x / 2.0), top)
+
+
 # ---------------------------------------------------------------- message bar
 
 func _say(text: String, sticky := false) -> void:
@@ -480,6 +510,7 @@ func _on_blocker_input(event: InputEvent) -> void:
 
 func _open_panel(station: String) -> void:
 	Audio.play_ui("ui_click")
+	GuideArrow.used("station")
 	_set_room_active(false)
 	_blocker.visible = true
 	_panel.open(station)

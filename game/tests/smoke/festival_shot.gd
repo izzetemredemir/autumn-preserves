@@ -8,10 +8,13 @@ extends SceneTree
 ##   4. the pantry: the new jam dragged into the room shelf's gap -> 3 stars,
 ##   5. the market: fill the stall, open it, the parade, the end card,
 ##   6. the garden mailbox: Mia's thank-you letter with her drawing,
-## then the end card (Keep playing hides it; Back to title returns to the title). The player's own save
+## then the end card (Keep playing hides it; Back to title returns to the title). ONBOARD-GUIDE: Granny's guide arrow
+## points at each step's target on the way (the gate and her hint in the garden, the rare tree in the forest in place
+## of the festival marker, stove, press, the new jam in the pantry inbox, Fill then Open stall, the mailbox).
+## The player's own save
 ## (user://save.json) must be byte for byte the same afterwards.
 ## Shots: user://shots/festival_00_title.png, _01_start, _02_wave, _02_garden, _03_grow, _03_wild, _04_shake, _05_stove, _05_stir, _06_jam,
-## _07_juice, _08_pantry, _09_market, _10_market_end, _11_letter, _12_end (+ "_tr" with -- --locale=tr).
+## _06_hint, _07_juice, _08_pantry, _09_market, _10_market_end, _11_letter, _12_end (+ "_tr" with -- --locale=tr).
 ##   godot --path game --audio-driver Dummy -s res://tests/smoke/festival_shot.gd   (about 60 s; exit 1 on a failed check)
 
 const TRANSITION := "res://ui/transition/transition.gd"
@@ -70,6 +73,12 @@ func _run() -> void:
 	_check(_todo_step() == "f_shake", "the note starts at: shake the rare tree")
 	var glow: Variant = garden.call("_todo_spot")
 	_check(glow != null and String(glow.kind) == "gate", "the gate glows for the forest step")
+	var guide := get_first_node_in_group("guide_arrow")
+	_check(guide != null, "Granny's guide is up")
+	await _until(func() -> bool: return guide.showing() and guide.hint_text() != "", 3000)
+	_check(String(guide.hint_text()) == tr("TODO_HINT_F_SHAKE"), "Granny says a rare tree grows in the forest")
+	if glow != null:
+		_check_aim(guide, garden.objects.to_global(glow.arrow_tip()), "the arrow points at the garden gate")
 	await _seconds(2.5)
 	_shot("festival_02_garden")
 
@@ -86,8 +95,11 @@ func _run() -> void:
 	var f: Dictionary = TodoRules.festival(_gs.data)
 	var tree_obj: Node2D = w.view.find("fruit_tree", int(f.tree))
 	_check(tree_obj != null, "the rare tree is on the map")
-	var marker: Node2D = w.view.fx.get_node_or_null("FestivalMarker")
-	_check(marker != null, "a marker hangs over the rare tree")
+	_check(w.view.fx.get_node_or_null("FestivalMarker") == null, "the guide's arrow stands in for the festival marker")
+	await _until(func() -> bool: return guide.showing(), 3000)
+	_check(String(guide.step()) == "f_shake", "the guide follows the rare tree step")
+	if tree_obj != null:
+		_check_aim(guide, w.view.objects.to_global(tree_obj.top()), "the arrow points at the rare tree (%s)" % guide.mode())
 	_shot("festival_03_wild")
 	if tree_obj != null:
 		w.granny.approach(tree_obj.cell, w._use.bind(tree_obj))
@@ -107,6 +119,8 @@ func _run() -> void:
 	await _frames(20)
 	var k := current_scene
 	_check(String(k.get("_glow")) == "stove", "the stove glows for the jam step (%s)" % k.get("_glow"))
+	await _until(func() -> bool: return guide.showing(), 3000)
+	_check_aim(guide, k._guide_top(k.get("_spots").stove), "the arrow sits over the stove")
 	k._on_spot("stove")
 	await _frames(6)
 	var panel: Node = k._panel
@@ -132,6 +146,12 @@ func _run() -> void:
 
 	# --- 3. juice at the press
 	_check(String(k.get("_glow")) == "press", "the press glows for the juice step (%s)" % k.get("_glow"))
+	await _until(func() -> bool: return guide.showing(), 3000)
+	_check_aim(guide, k._guide_top(k.get("_spots").press), "the arrow sits over the press (and its caption)")
+	await _until(func() -> bool: return guide.hint_text() != "", 3000)
+	_check(String(guide.hint_text()) == tr("TODO_HINT_F_JUICE"), "Granny says: now a juice at the press")
+	await _frames(4)
+	_shot("festival_06_hint")
 	k._on_spot("press")
 	await _frames(6)
 	panel._select_recipe("juice")
@@ -169,6 +189,11 @@ func _run() -> void:
 		if String(inbox[i].get("kind", "")) == "product" and String(inbox[i].key).begins_with("jam|" + rare):
 			index = i
 	_check(index >= 0, "the new jam waits in the pantry inbox")
+	await _until(func() -> bool: return guide.showing(), 3000)
+	if index >= 0:
+		var slot: Rect2i = p.inbox_view.slot_rect(index)
+		_check_aim(guide, p.inbox_view.get_global_transform() * Vector2(slot.position.x + roundf(slot.size.x / 2.0),
+			slot.position.y), "the arrow points at the new jam in the inbox")
 	if index >= 0:
 		var item: Dictionary = inbox[index]
 		var start: Vector2 = p.inbox_view.get_global_transform_with_canvas() * Vector2(p.inbox_view.slot_rect(index).get_center())
@@ -186,8 +211,11 @@ func _run() -> void:
 	await _until(func() -> bool: return _scene_id() == "market" and _ready_scene(), 6000)
 	await _frames(20)
 	var m := current_scene
+	await _until(func() -> bool: return guide.showing(), 3000)
+	_check_aim(guide, _over(m.get("_fill_btn"), -1), "the arrow points at Fill stall")
 	m._on_fill()
 	await _frames(6)
+	_check_aim(guide, _over(m.get("_open_btn"), -1), "then at Open stall")
 	m._on_open()
 	await _frames(4)
 	_check(_done("f_market"), "step 5: sold at the market")
@@ -206,6 +234,9 @@ func _run() -> void:
 	var mailbox: Variant = garden.call("find_spot", "mailbox")
 	var spot: Variant = garden.call("_todo_spot")
 	_check(spot != null and spot == mailbox, "the mailbox glows for the letter step")
+	await _until(func() -> bool: return guide.showing(), 3000)
+	if mailbox != null:
+		_check_aim(guide, garden.objects.to_global(mailbox.arrow_tip()), "the arrow points at the mailbox")
 	garden._use(mailbox)
 	await _seconds(1.0)
 	var ui := get_first_node_in_group("letters_ui")
@@ -275,6 +306,18 @@ func _festival_card() -> Node:
 		return null
 	var c: Variant = f.get("_card")
 	return c if c is Node and is_instance_valid(c) else null
+
+
+## ONBOARD-GUIDE: the guide's arrow aims at `world` (a canvas point of the scene), within a pixel.
+func _check_aim(guide: Node, world: Vector2, what: String) -> void:
+	var want := (root.canvas_transform * world).round()
+	var got: Vector2 = guide.aim()
+	_check(got.distance_to(want) <= 1.0, "%s (aim %s, target %s)" % [what, got, want])
+
+
+## The middle of a control's top edge, `dy` px above it.
+func _over(c: Control, dy: int) -> Vector2:
+	return c.get_global_rect().position + Vector2(roundf(c.size.x / 2.0), dy)
 
 
 func _todo_step() -> String:

@@ -874,3 +874,18 @@ HOWTO_SHARE,Paylaşma
 HOWTO_SHARE_1,"Komşuların siparişleri, her yedinci gün de pazar."
 HOWTO_SHARE_2,Torunlara mektuplar ve koliler.
 HOWTO_SHARE_3,Esc: menü. B: tarif defteri.
+TODO_HINT_D1_SHAKE,"Hadi elma ağacını silkeleyelim: yanına git, E'ye bas ya da ağaca tıkla."
+TODO_HINT_D1_JAM,Ne güzel elmalar! Mutfağa girip ocakta reçel pişirelim.
+TODO_HINT_D1_PANTRY,Şimdi kavanoz kilerdeki rafa. Kilerin kapısı mutfakta.
+TODO_HINT_D1_ORDER,Fırıncı bir kavanoz istemiş. Yol tabelasından kasabaya götürelim.
+TODO_HINT_D1_BED,Ne gündü ama! Yatma vakti canım: yatak mutfağın köşesinde.
+TODO_HINT_D2_FOREST,Hadi toplamaya: bahçe kapısından ormana çıkalım.
+TODO_HINT_D2_MUSHROOM,Mantarlar orman zemininde saklanır. Bir tane toplayalım!
+TODO_HINT_D2_BRINE,Mantarları kavanoz tezgahında turşuya yatıralım.
+TODO_HINT_D2_SELL,Fazla bir kavanozumuz var. Kasabada bakkala satalım.
+TODO_HINT_F_SHAKE,Bugün ormanda nadir bir ağaç var! Hadi bulup silkeleyelim.
+TODO_HINT_F_JAM,Nadir meyveden hiç yapmadığımız bir reçeli ocakta pişirelim.
+TODO_HINT_F_JUICE,Şimdi meyve presinde taze bir meyve suyu!
+TODO_HINT_F_PANTRY,Yeni reçeli kilere koyup boşluğu dolduralım: üç yıldız!
+TODO_HINT_F_MARKET,"Pazar günü! Kasabaya gidip tezgahı dolduralım ve açalım."
+TODO_HINT_F_LETTER,"Mia'dan bir mektup var, bahçedeki posta kutusunda."

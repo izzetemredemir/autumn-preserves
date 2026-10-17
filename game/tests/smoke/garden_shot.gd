@@ -5,6 +5,10 @@ extends SceneTree
 ## plant menu, makes a letter arrive (mailbox flag up), ripens two beds for the shot, opens and closes the
 ## letters overlay from the mailbox, then taps the door and checks the bag went to the inbox and the kitchen opened.
 ## GARDEN-LIFE: checks the props block their cells, walks Granny to the truck (a line) and to the hens (they scatter).
+## ONBOARD-GUIDE: Granny's guide arrow over the apple tree with her hint, over the house door after the shake (the jam
+## step is in the kitchen), then over the stove in the kitchen with the first-time key cap; the tree's key cap is spent
+## by the shake; the guide's own cost per frame. Shots guide_d1_tree, guide_d1_door, guide_d1_stove; every shot gets
+## "_tr" with `-- --locale=tr`.
 ## Saves user://shots/garden_start.png, garden_menu.png, garden.png, garden_letters.png, garden_rest.png,
 ## garden_truck.png, garden_hens.png.
 ## Exit code 1 on a failed check or timeout.
@@ -19,11 +23,15 @@ var _frames := 0
 var _scene: Node
 var _gs: Node
 var _router: Node
+var _suffix := ""
 
 
 func _initialize() -> void:
 	_gs = root.get_node("GameState")
 	_router = root.get_node("Router")
+	if "--locale=tr" in OS.get_cmdline_user_args():
+		GameSettings.apply_language("tr")
+		_suffix = "_tr"
 	_run()
 
 
@@ -46,11 +54,27 @@ func _run() -> void:
 	await _frames_wait(10)
 	_shot("garden_start")
 
+	# 0. ONBOARD-GUIDE: the arrow over the apple tree, Granny's hint over her head
+	var apple: Node = _tree("apple")
+	var guide: Node = await _guide()
+	_check(guide != null, "Granny's guide is up with the To-Do note")
+	await _until(func() -> bool: return guide.showing() and guide.hint_text() != "")
+	_check(String(guide.step()) == "d1_shake" and String(guide.mode()) == "over", "the arrow sits over the d1_shake target")
+	_check_aim(guide, _scene.objects.to_global(apple.arrow_tip()), "the arrow points at the apple tree")
+	_check(String(guide.hint_text()) == TranslationServer.translate("TODO_HINT_D1_SHAKE"), "Granny says how to shake it")
+	await _frames_wait(6)
+	_shot("guide_d1_tree")
+	var t0 := Time.get_ticks_usec()
+	for i in 200:
+		guide._process(0.0)
+	var us := (Time.get_ticks_usec() - t0) / 200.0
+	print("guide: %.1f us per frame" % us)
+	_check(us < 300.0, "the guide costs well under a millisecond a frame (%.1f us)" % us)
+
 	# 1. shake the apple tree
 	var d: Dictionary = _gs.data
 	var energy := int(d.energy)
 	var bag := _bag_count(d)
-	var apple: Node = _tree("apple")
 	_check(apple != null and bool(apple.get("glow")), "apple tree glows for the first To-Do step")
 	_scene.tap_world(apple.hit_rect().get_center())
 	await _until(func() -> bool: return int(_gs.data.energy) != energy)
@@ -58,6 +82,13 @@ func _run() -> void:
 	var got := _bag_count(_gs.data) - bag
 	_check(int(_gs.data.energy) == energy - 3, "shake costs 3 energy (%d -> %d)" % [energy, int(_gs.data.energy)])
 	_check(got >= 2 and got <= 3, "shake puts 2..3 fruit in the bag (got %d)" % got)
+	_check(int(_gs.data.flags.get("guide_keys", 0)) & 1 != 0, "the shake spends the tree's first-time key cap")
+	await _until(func() -> bool: return String(guide.step()) == "d1_jam" and guide.showing())
+	_check_aim(guide, _scene.objects.to_global(_scene.find_spot("door").arrow_tip()),
+		"after the shake the arrow moves to the house door (jam in the kitchen)")
+	await _until(func() -> bool: return guide.hint_text() == TranslationServer.translate("TODO_HINT_D1_JAM"))
+	await _frames_wait(6)
+	_shot("guide_d1_door")
 
 	# 2. buy a cucumber seed, plant it in the first empty bed
 	var bought: Dictionary = load("res://sim/economy.gd").buy(_gs.data, "seed_cucumber")
@@ -148,6 +179,15 @@ func _run() -> void:
 	_check(_bag_count(_gs.data) == 0, "bag emptied at the door")
 	_check(_inbox_count(_gs.data) >= bag, "inbox got the bag (%d items)" % _inbox_count(_gs.data))
 	_check(String(root.get_meta(&"garden_return", "")) == "door", "the garden remembers she left by the door")
+	# ONBOARD-GUIDE: in the kitchen the arrow sits over the stove, the stove's first-time key cap beside it
+	var k := current_scene
+	await _until(func() -> bool: return guide.showing())
+	var stove: Control = k.get("_spots").stove
+	_check(String(guide.step()) == "d1_jam" and String(guide.mode()) == "over", "the jam step's arrow is in the kitchen")
+	_check_aim(guide, k._guide_top(stove), "the arrow sits over the stove")
+	_check(guide.key_cap_showing(), "the stove shows its first-time key cap")
+	await _frames_wait(6)
+	_shot("guide_d1_stove")
 	print("GARDEN SMOKE OK")
 	quit(0)
 
@@ -172,6 +212,18 @@ func _tree(type: String) -> Node:
 		if s.kind == "tree" and s.tree_type == type:
 			return s
 	return null
+
+
+func _guide() -> Node:
+	await _until(func() -> bool: return get_first_node_in_group("guide_arrow") != null)
+	return get_first_node_in_group("guide_arrow")
+
+
+## The guide's arrow aims at `world` (a canvas point of the scene), within a pixel.
+func _check_aim(guide: Node, world: Vector2, what: String) -> void:
+	var want := (root.canvas_transform * world).round()
+	var got: Vector2 = guide.aim()
+	_check(got.distance_to(want) <= 1.0, "%s (aim %s, target %s)" % [what, got, want])
 
 
 func _bag_count(d: Dictionary) -> int:
@@ -200,7 +252,7 @@ func _frames_wait(n: int) -> void:
 
 func _shot(shot_name: String) -> void:
 	DirAccess.make_dir_recursive_absolute(DIR)
-	var path := "%s/%s.png" % [DIR, shot_name]
+	var path := "%s/%s%s.png" % [DIR, shot_name, _suffix]
 	RenderingServer.force_draw(false)  # macOS skips drawing a covered window; the shot must show this frame
 	root.get_texture().get_image().save_png(path)
 	print("saved ", ProjectSettings.globalize_path(path))

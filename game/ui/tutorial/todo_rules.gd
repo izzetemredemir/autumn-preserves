@@ -56,6 +56,11 @@ static func key_of(step: String) -> String:
 	return "TUT_" + step.to_upper()
 
 
+## ONBOARD-GUIDE: Granny's one-line hint when the step becomes current (GuideArrow's bubble).
+static func hint_key_of(step: String) -> String:
+	return "TODO_HINT_" + step.to_upper()
+
+
 static func bits_of(state: Dictionary) -> int:
 	return int(state.get("flags", {}).get("tutorial", 0))
 

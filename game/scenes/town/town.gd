@@ -21,6 +21,7 @@ var _tab_buttons: Dictionary = {}
 var _icon_sheet: Texture2D
 var _icon_cells: Dictionary = {}
 var _icon_size := Vector2(16, 16)
+var _back_btn: Button
 
 
 func _ready() -> void:
@@ -38,6 +39,7 @@ func _ready() -> void:
 	Audio.play_ambient("amb_town")
 	_render()
 	_show_rewards(0.4)
+	GuideArrow.attach(self, _guide_at)  # ONBOARD-GUIDE: arrow and Granny's hint
 
 
 ## Run-alone helper: coins, a few fresh items and real jars so the board and the neighbours can be tested.
@@ -156,6 +158,7 @@ func _build() -> void:
 	back.size = Vector2(62, 20)
 	back.pressed.connect(_on_back)
 	add_child(back)
+	_back_btn = back
 	if Market.can_open(GameState.data):  # MARKET: "Market today!" banner on market days, until the stall opens
 		add_child(load("res://scenes/market/market_banner.gd").new())
 	var panel := PanelContainer.new()
@@ -192,6 +195,44 @@ func _on_tab(id: String) -> void:
 
 func _on_back() -> void:
 	Router.goto("garden" if Router.exists("garden") else "kitchen")
+
+
+## ONBOARD-GUIDE: what Granny's guide asks the town (GuideArrow header): the Orders tab, then Deliver, for the order
+## step; the grocer's Sell for the selling step; the market banner on festival day; else the way back. No Granny here:
+## her hint sits over the square, above the panel.
+func _guide_at(what: String) -> Variant:
+	match what:
+		"granny":
+			return null
+		"near":
+			return {}
+		"bubble":
+			return Vector2(240, PANEL_Y - 6)
+	if not _picker.is_empty():
+		return null
+	var target: Control = _back_btn
+	match what:
+		"d1_order":
+			target = _tab_buttons.orders if _tab != "orders" else _guide_button(tr("TOWN_DELIVER"), 0)
+		"d2_sell":
+			if _tab != "grocer":
+				target = _tab_buttons.grocer
+			else:  # the Sell sub-tab in the head row, then the first Sell row under it
+				target = _guide_button(tr("TOWN_SELL"), 1 if _sub == "sell" else 0)
+		"f_market":
+			target = get_node_or_null("MarketToday") as Control
+	if target == null or not target.is_visible_in_tree():
+		return null
+	return target.get_global_rect().position + Vector2(roundf(target.size.x / 2.0), -1)
+
+
+## The first enabled button saying `text` in the tab's content, from child row `skip` on.
+func _guide_button(text: String, skip: int) -> Control:
+	for row in _content.get_children().slice(skip):
+		for b in row.find_children("*", "Button", true, false):
+			if (b as Button).text == text and not (b as Button).disabled and (b as Button).is_visible_in_tree():
+				return b
+	return null
 
 
 ## Post office (P1-LETTERS): grandchild letters and the parcel screen, as an overlay.

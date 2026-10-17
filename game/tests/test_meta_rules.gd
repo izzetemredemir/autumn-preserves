@@ -46,6 +46,27 @@ func test_todo_close_and_later_days() -> void:
 		assert_ne(TodoRules.BITS[step], TodoRules.CLOSED_BIT)
 
 
+## ONBOARD-GUIDE: every To-Do step has Granny's hint in English and Turkish, short enough for the compact bubble
+## (m5x7 16 px inside GuideArrow.BUBBLE_W, at most GuideArrow.HINT_LINES lines).
+func test_todo_hints_fit_the_bubble() -> void:
+	for path in ["res://i18n/strings.csv", "res://i18n/strings_tr.csv"]:
+		var texts := {}
+		var f := FileAccess.open(path, FileAccess.READ)
+		f.get_csv_line()
+		while not f.eof_reached():
+			var row := f.get_csv_line()
+			if row.size() >= 2:
+				texts[row[0]] = row[1]
+		for step in TodoRules.BITS:
+			var key := TodoRules.hint_key_of(step)
+			assert_has(texts, key, "%s in %s" % [key, path])
+			var para := TextParagraph.new()
+			para.add_string(String(texts.get(key, "")), GuideArrow.HINT_FONT, GuideArrow.HINT_SIZE)
+			para.width = GuideArrow.BUBBLE_W - 2 * GuideArrow.PAD.x
+			assert_true(para.get_line_count() <= GuideArrow.HINT_LINES,
+				"%s (%s) wraps to %d lines" % [key, path.get_file(), para.get_line_count()])
+
+
 func test_seed_text() -> void:
 	assert_eq(SeedText.parse(""), -1)
 	assert_eq(SeedText.parse("  "), -1)

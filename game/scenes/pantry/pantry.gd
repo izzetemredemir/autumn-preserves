@@ -195,6 +195,7 @@ func _ready() -> void:
 	_refresh_notes()
 	_refresh_tip()
 	queue_redraw()
+	GuideArrow.attach(self, _guide_at)  # ONBOARD-GUIDE: arrow and Granny's hint
 
 
 
@@ -595,6 +596,36 @@ func _on_auto() -> void:
 	board.notify_changed()
 	board.pop_all()
 	Audio.play_sfx("sfx_pantry_auto")
+
+
+## ONBOARD-GUIDE: what Granny's guide asks the pantry (GuideArrow header): the jar waiting in the inbox tray for the
+## pantry steps (the festival's new jam first), else the Back door. No Granny here: her hint sits top centre.
+func _guide_at(what: String) -> Variant:
+	match what:
+		"granny", "bubble":
+			return null
+		"near":
+			return {}
+		"d1_pantry", "f_pantry":
+			if board.is_holding():
+				return null
+			var known: Array = TodoRules.festival(GameState.data).get("jams", [])
+			var pick := -1
+			for i in mini(inbox_view.items.size(), inbox_view.capacity()):
+				var it: Dictionary = inbox_view.items[i]
+				if String(it.get("kind", "")) != "product":
+					continue
+				if pick < 0:
+					pick = i
+				if what == "f_pantry" and TodoRules.is_jam(String(it.get("key", ""))) and not known.has(String(it.key)):
+					pick = i
+					break
+			if pick < 0:
+				return null
+			var r := inbox_view.slot_rect(pick)
+			return inbox_view.get_global_transform() * Vector2(r.position.x + roundf(r.size.x / 2.0), r.position.y)
+	var back: Control = %Back
+	return back.get_global_rect().position + Vector2(roundf(back.size.x / 2.0), -1)
 
 
 func _on_back() -> void:

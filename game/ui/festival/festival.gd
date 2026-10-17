@@ -174,11 +174,12 @@ func _busy() -> bool:
 
 # --- the rare tree in the forest -------------------------------------------------------------------------------------
 
-## Today's rare tree gets a bobbing marker in the forest until it is shaken.
+## Today's rare tree gets a bobbing marker in the forest until it is shaken (ONBOARD-GUIDE: only with Granny's guide
+## off; otherwise the guide's arrow points at the tree).
 func _update_marker(d: Dictionary, f: Dictionary) -> void:
 	var scene := get_tree().current_scene
 	var shaken := TodoRules.is_done(TodoRules.bits_of(d), "f_shake") or not TodoRules.festival_today(d)
-	if _scene_id() != "wild" or scene == null or shaken:
+	if _scene_id() != "wild" or scene == null or shaken or GuideArrow.enabled():
 		if _marker != null and is_instance_valid(_marker):
 			_marker.queue_free()
 		_marker = null

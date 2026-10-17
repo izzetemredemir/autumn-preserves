@@ -78,6 +78,7 @@ func _ready() -> void:
 	camera.target = granny
 	camera.bounds = Rect2i(0, 0, Layout.W * Layout.TILE, Layout.VIEW_H)
 	camera.snap()
+	GuideArrow.attach(self, _guide_at)  # ONBOARD-GUIDE: arrow, Granny's hint, first-time key caps
 	GameState.changed.connect(_on_state_changed)
 	_refresh()
 	Audio.play_music("mus_garden")
@@ -187,6 +188,7 @@ func _on_stepped(cell: Vector2i) -> void:
 func _use(s: GardenSpot) -> void:
 	if not is_instance_valid(s) or _leaving or menu != null:
 		return
+	GuideArrow.used(s.kind)
 	match s.kind:
 		"tree":
 			_shake(s)
@@ -882,6 +884,27 @@ func _todo_spot() -> GardenSpot:
 		"town":
 			return find_spot("town_sign")
 	return null
+
+
+## ONBOARD-GUIDE: what Granny's guide asks the garden (GuideArrow header): the To-Do spot's arrow point, her body,
+## and the tree, bed or compost bin she faces (for the first-time key cap).
+func _guide_at(what: String) -> Variant:
+	if granny == null or _leaving:
+		return null
+	match what:
+		"granny":
+			return Rect2(granny.global_position + Vector2(-8, -32), Vector2(16, 32))
+		"bubble":
+			return null
+		"near":
+			if granny.is_moving() or menu != null:
+				return {}
+			var f := spot_at_cell(granny.facing_cell())
+			if f == null or not f.kind in ["tree", "bed", "compost"] or (f.kind == "tree" and not f.fruit):
+				return {}
+			return {"kind": f.kind, "at": objects.to_global(f.arrow_tip())}
+	var s := _todo_spot()
+	return objects.to_global(s.arrow_tip()) if s != null else null
 
 
 ## The gate swings open while Granny is within two steps of it, or walking to it.

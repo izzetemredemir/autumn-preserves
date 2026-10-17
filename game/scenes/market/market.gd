@@ -119,6 +119,7 @@ func _ready() -> void:
 	Audio.play_music("mus_town")
 	Audio.play_ambient("amb_market")
 	(_fill_btn if not _fill_btn.disabled else _back_btn).grab_focus.call_deferred()
+	GuideArrow.attach(self, _guide_at)  # ONBOARD-GUIDE: arrow and Granny's hint
 
 
 ## Run-alone and smoke content: a dozen ready jars of every vessel.
@@ -265,6 +266,21 @@ func _on_released_outside(item: Dictionary, from: Dictionary, _global_pos: Vecto
 	_source.append(item)
 	_source_view.refresh()
 	_refresh()
+
+
+## ONBOARD-GUIDE: what Granny's guide asks the market (GuideArrow header): Fill stall, then Open stall, for the market
+## step, else Back; nothing once the parade starts.
+func _guide_at(what: String) -> Variant:
+	if _phase != Phase.SETUP or what in ["granny", "bubble"]:
+		return null
+	if what == "near":
+		return {}
+	var b: Button = _back_btn
+	if what == "f_market":
+		b = _open_btn if _fill_btn.disabled or not _entries.is_empty() else _fill_btn
+	if b == null or b.disabled or not b.is_visible_in_tree():
+		return null
+	return b.get_global_rect().position + Vector2(roundf(b.size.x / 2.0), -1)
 
 
 func _on_back() -> void:

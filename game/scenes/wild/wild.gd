@@ -47,6 +47,7 @@ func _ready() -> void:
 	camera.target = granny
 	camera.bounds = Rect2i(Vector2i.ZERO, view.size_px())
 	camera.snap()
+	GuideArrow.attach(self, _guide_at)  # ONBOARD-GUIDE: arrow, Granny's hint, first-time key caps
 	add_child(WildWeather.make(String(s.weather), granny))  # windy leaves / fog around Granny (P1 weather)
 	CritterLayer.attach(view.objects, CritterRules.wild(map, int(s.save_seed), int(s.day), String(s.weather)), granny,
 		String(s.weather), map)  # WILD-LIFE: ambient critters
@@ -106,6 +107,7 @@ func _on_stepped(cell: Vector2i) -> void:
 func _use(o: WildObject) -> void:
 	if not is_instance_valid(o) or _leaving:
 		return
+	GuideArrow.used(o.kind)
 	var r: Dictionary
 	match o.kind:
 		"fruit_tree":
@@ -163,6 +165,53 @@ func _use(o: WildObject) -> void:
 func _species_card(type: String) -> void:
 	granny.input_enabled = false
 	SpeciesCard.open(self, type).closed.connect(func() -> void: granny.input_enabled = not _leaving)
+
+
+## ONBOARD-GUIDE: what Granny's guide asks the wild (GuideArrow header): the festival's rare tree, the nearest
+## mushroom on day 2, else the way out; her body; the thing she stands at while it has something to take.
+func _guide_at(what: String) -> Variant:
+	if granny == null or _leaving:
+		return null
+	match what:
+		"granny":
+			return Rect2(granny.global_position + Vector2(-8, -32), Vector2(16, 32))
+		"bubble", "d2_forest":
+			return null
+		"near":
+			if granny.is_moving():
+				return {}
+			var o := view.object_at_cell(granny.facing_cell())
+			if o == null:
+				o = view.object_at_cell(granny.current_cell())
+			return {"kind": o.kind, "at": view.objects.to_global(o.top())} if o != null and o.has_take() else {}
+		"d2_mushroom":
+			var m := _guide_mushroom()
+			return view.objects.to_global(m.top()) if m != null else null
+		"f_shake":
+			var f := TodoRules.festival(GameState.data)
+			if biome == String(f.get("biome", "forest")):
+				var t := view.find("fruit_tree", int(f.get("tree", -1)))
+				return view.objects.to_global(t.top()) if t != null and t.has_take() else null
+	for c in view.objects.get_children():
+		if c is WildObject and (c as WildObject).kind == "exit":
+			return view.objects.to_global((c as WildObject).top())
+	return null
+
+
+## The mushroom still lying on the ground nearest to Granny, or null.
+func _guide_mushroom() -> WildObject:
+	var best: WildObject = null
+	var at := granny.current_cell()
+	var ingredients := Data.ingredients()
+	for c in view.objects.get_children():
+		var o := c as WildObject
+		if o == null or o.kind != "ground" or not o.has_take():
+			continue
+		if String(ingredients.get(String(o.info.get("type", "")), {}).get("group", "")) != "mushroom":
+			continue
+		if best == null or (o.cell - at).length_squared() < (best.cell - at).length_squared():
+			best = o
+	return best
 
 
 ## Pulls today's progress (shaken trees, collected pickups) from Forage into the view.
