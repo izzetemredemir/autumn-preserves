@@ -6,6 +6,10 @@ extends Button
 
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const ANIMATED := ["stove"]
+## Last input device (KITCHEN-FOCUS): a frame shows only under a really moving mouse or on a key-given focus.
+## is_hovered() can be stale after a scene change and focus is grabbed on entry, so neither lights on its own.
+static var kb_mode := false
+static var mouse_moved := false
 
 var kind := ""
 ## Live numbers the art shows: {"cupboard": {...}} or {"inbox": int}.
@@ -77,11 +81,27 @@ func _process(delta: float) -> void:
 
 
 func _on_state() -> void:
-	var lit := reveal or has_focus() or is_hovered() or (glow and int(_t * 3.0) % 2 == 0)
+	var lit := reveal or picked() or (glow and int(_t * 3.0) % 2 == 0)
 	if caption != null:
 		caption.visible = lit
 		caption.add_theme_color_override("font_color", Art.GOLD)
 	queue_redraw()
+
+
+## True while the mouse is really over the object or a key gave it the focus.
+func picked() -> bool:
+	if kb_mode:
+		return has_focus()
+	return mouse_moved and is_hovered()
+
+
+static func set_device(keyboard: bool) -> bool:
+	## Returns true when the mode changed.
+	var changed := keyboard != kb_mode or (not keyboard and not mouse_moved)
+	kb_mode = keyboard
+	if not keyboard:
+		mouse_moved = true
+	return changed
 
 
 func _draw() -> void:
@@ -91,6 +111,6 @@ func _draw() -> void:
 	if glow:
 		var on := int(_t * 3.0) % 2 == 0
 		Art.frame(self, Rect2i(-4, -4, w + 8, h + 8), Art.GOLD if on else Art.AMBER)
-	if has_focus() or is_hovered():
+	if picked():
 		Art.frame(self, Rect2i(-2, -2, w + 4, h + 4), Art.GOLD)
 		Art.frame(self, Rect2i(-1, -1, w + 2, h + 2), Art.INK)

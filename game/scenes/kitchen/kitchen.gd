@@ -34,7 +34,7 @@ const STEP_SPOT := {"d1_jam": "stove", "d1_bed": "bed", "d2_brine": "counter", "
 const NAV := [["move_left", SIDE_LEFT], ["move_right", SIDE_RIGHT], ["move_up", SIDE_TOP], ["move_down", SIDE_BOTTOM]]
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const Hotspot := preload("res://scenes/kitchen/hotspot.gd")
-const REVEAL_SEC := 2.5  ## every caption shows this long when Granny walks in
+const REVEAL_SEC := 1.5  ## every caption shows this long when Granny walks in
 const CookPanel := preload("res://scenes/kitchen/cook_panel.gd")
 const Shelf := preload("res://scenes/kitchen/waiting_shelf.gd")
 const Wall := preload("res://scenes/kitchen/wall_drawings.gd")
@@ -103,6 +103,8 @@ func _ready() -> void:
 	_refresh()
 	_connect_todo.call_deferred()
 	GuideArrow.attach(self, _guide_at)  # ONBOARD-GUIDE: arrow, Granny's hint, first-time key caps
+	Hotspot.kb_mode = false  # KITCHEN-FOCUS: no frame until the mouse really moves or a key is pressed
+	Hotspot.mouse_moved = false
 	_focus_spot()
 	_reveal_captions(true)  # touch players cannot hover: name every object for a moment on entry
 	get_tree().create_timer(REVEAL_SEC).timeout.connect(func() -> void: _reveal_captions(false))
@@ -337,7 +339,7 @@ func _guide_at(what: String) -> Variant:
 		"near":
 			for k in ["stove", "counter", "press", "board"]:
 				var h: Control = _spots.get(k)
-				if h != null and h.is_visible_in_tree() and (h.has_focus() or h.is_hovered()):
+				if h != null and h.is_visible_in_tree() and h.picked():
 					return {"kind": "station", "at": _guide_top(h)}
 			return {}
 	return _guide_top(_spots[_glow]) if _spots.has(_glow) else null
@@ -399,14 +401,18 @@ func _on_spot_hover(kind: String, by_mouse: bool) -> void:
 	if not _room_active:
 		return
 	if by_mouse:
+		if not Hotspot.mouse_moved or Hotspot.kb_mode:
+			return  # stale hover after a scene change
 		Audio.play_ui("ui_hover")
+	elif not Hotspot.kb_mode:
+		return  # focus grabbed by code, not by a key
 	_say(_spot_hint(kind))
 
 
 func _on_spot_leave() -> void:
 	var f := get_viewport().gui_get_focus_owner()
 	for k in _spots:
-		if _spots[k] == f:
+		if _spots[k] == f and Hotspot.kb_mode:
 			_say(_spot_hint(k))
 			return
 	_idle_hint()
@@ -797,9 +803,42 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventKey and (event as InputEventKey).physical_keycode == KEY_TAB and not event.is_echo():
 		_reveal_captions(event.is_pressed())
+	_set_device(event)
 	_idle = 0.0
 	if _doze != null and _doze.visible:
 		_set_dozing(false)
+
+
+## A navigation press (move_*, ui_*, interact, Tab); stray modifier or media keys do not count.
+func _is_nav_press(event: InputEvent) -> bool:
+	if not (event is InputEventKey or event is InputEventJoypadButton) or not event.is_pressed():
+		return false
+	for a in ["move_left", "move_right", "move_up", "move_down", "ui_left", "ui_right", "ui_up", "ui_down",
+			"ui_accept", "ui_focus_next", "ui_focus_prev", "interact"]:
+		if InputMap.has_action(a) and event.is_action(a):
+			return true
+	return false
+
+
+## Mouse motion -> mouse mode (frames follow the pointer); a ui/interact/Tab key -> keyboard mode (focus frame).
+func _set_device(event: InputEvent) -> void:
+	var kb := false
+	if event is InputEventMouseMotion:
+		kb = false
+	elif _is_nav_press(event):
+		kb = true
+	else:
+		return
+	var was := Hotspot.kb_mode
+	var had := Hotspot.mouse_moved
+	Hotspot.set_device(kb)
+	if was != kb or had != Hotspot.mouse_moved:
+		for k in _spots:
+			_spots[k]._on_state()
+		if kb:
+			_on_spot_leave()
+		else:
+			_idle_hint()
 
 
 # ---------------------------------------------------------------- bed

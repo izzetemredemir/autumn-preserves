@@ -35,6 +35,40 @@ func _run() -> void:
 	_check(g != null and int(g.position.y) + 86 >= 175 and int(g.position.y) + 86 <= 185, "her feet stand at y 175-185")
 	_check(_k._doze.size == Vector2(58, 85) and _k._doze.get_index() < _k._spots.stove.get_index(),
 		"doze chair at her scale, under the hotspots and captions")
+	# --- KITCHEN-FOCUS: nothing lit on entry, frames only under a real mouse move or a key-given focus
+	var hs: Dictionary = _k._spots
+	_shot("kitchen_focus_entry")
+	_check(_real_over(hs) or not _any_picked(hs), "entry: no object carries a frame")
+	await create_timer(2.0).timeout  # reveal (1.5 s) is over
+	_check(_real_over(hs) or (not _any_picked(hs) and not _any_caption(hs)), "2 s after entry without input: nothing lit")
+	for k in hs:
+		if hs[k].picked() or (hs[k].caption != null and hs[k].caption.visible and not hs[k].glow):
+			print("lit: ", k, " picked=", hs[k].picked(), " kb=", hs[k].kb_mode, " moved=", hs[k].mouse_moved)
+	_shot("kitchen_focus_idle")
+	var c: Vector2 = (hs.stove as Control).get_global_rect().get_center()
+	var mv := InputEventMouseMotion.new()
+	mv.position = c
+	root.push_input(mv, true)
+	await _frames(4)
+	_check(hs.stove.picked() and not hs.door_right.picked() if hs.has("door_right") else hs.stove.picked(), "mouse over the stove: frame")
+	_shot("kitchen_focus_hover")
+	mv = InputEventMouseMotion.new()
+	mv.position = Vector2(2, 2)
+	root.push_input(mv, true)
+	await _frames(4)
+	_check(_real_over(hs) or not _any_picked(hs), "mouse away: no frame")
+	var kev := InputEventKey.new()
+	kev.keycode = KEY_RIGHT
+	kev.physical_keycode = KEY_RIGHT
+	kev.pressed = true
+	root.push_input(kev, true)
+	await _frames(4)
+	_check(_any_picked(hs), "key press: the focused object shows its frame")
+	_shot("kitchen_focus_keyboard")
+	mv = InputEventMouseMotion.new()
+	mv.position = Vector2(2, 2)
+	root.push_input(mv, true)
+	await _frames(4)
 	var gs: Node = root.get_node("GameState")
 	var d: Dictionary = gs.data
 	var inbox_before: int = d.inbox.size()
@@ -137,6 +171,29 @@ func _run() -> void:
 	_check(int(gs.data.day) == day0 + 1 and _k._room_active, "slept: day %d -> %d" % [day0, int(gs.data.day)])
 	print("KITCHEN SMOKE ", "OK" if _fail == 0 else "FAILED (%d)" % _fail)
 	quit(1 if _fail > 0 else 0)
+
+
+## A live OS cursor resting over an object legitimately lights it (a windowed run cannot park the real mouse).
+func _real_over(hs: Dictionary) -> bool:
+	for k in hs:
+		if (hs[k] as Control).get_global_rect().has_point(DisplayServer.mouse_get_position() - root.position):
+			return true
+	return false
+
+
+func _any_picked(hs: Dictionary) -> bool:
+	for k in hs:
+		if hs[k].picked():
+			return true
+	return false
+
+
+func _any_caption(hs: Dictionary) -> bool:
+	for k in hs:
+		var cap: Control = hs[k].caption
+		if cap != null and cap.visible and not hs[k].glow:
+			return true
+	return false
 
 
 func _waiting_jars(d: Dictionary) -> int:
