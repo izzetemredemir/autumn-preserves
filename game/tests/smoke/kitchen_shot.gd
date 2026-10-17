@@ -2,7 +2,8 @@ extends SceneTree
 ## Smoke shot (GD-KITCHEN): runs the kitchen alone (throwaway game + debug inventory), cooks jam on the stove
 ## (stir_pot plays itself through the ctx autoplay hook) and pickles at the jar counter (pack_jar result is
 ## emitted by this script), checks both jars reached the inbox, then keyboard open/close, a real mouse drag
-## into the chutney slot and a night in bed. Saves:
+## into the chutney slot and a night in bed. ART-GRANNY: Granny stands at the painting's scale (44x88, feet at
+## y 175-185), her doze chair sits under the hotspots, and a click on her skirt reaches the stove. Saves:
 ##   user://shots/kitchen.png        room after both cooks (waiting jar on the sill, To-Do glow, captions)
 ##   user://shots/kitchen_panel.png  stove panel with a filled slot and an add-in
 ##   user://shots/kitchen_card.png   result card after the jam
@@ -27,6 +28,13 @@ func _run() -> void:
 	root.add_child(_k)
 	todo_script.ensure()
 	await _frames(12)
+	# --- ART-GRANNY: Granny at the painting's scale, feet on the floor between the stove and the bench
+	var g: TextureRect = _k._granny
+	_check(g != null and g.size == Vector2(44, 88) and g.mouse_filter == Control.MOUSE_FILTER_IGNORE,
+		"Granny at kitchen scale (44x88), the mouse passes through her")
+	_check(g != null and int(g.position.y) + 86 >= 175 and int(g.position.y) + 86 <= 185, "her feet stand at y 175-185")
+	_check(_k._doze.size == Vector2(58, 85) and _k._doze.get_index() < _k._spots.stove.get_index(),
+		"doze chair at her scale, under the hotspots and captions")
 	var gs: Node = root.get_node("GameState")
 	var d: Dictionary = gs.data
 	var inbox_before: int = d.inbox.size()
@@ -94,6 +102,11 @@ func _run() -> void:
 	_action("cancel")
 	await _frames(4)
 	_check(not panel.visible and _k._room_active, "Esc closes the panel")
+	# a click on Granny's skirt reaches the stove behind her
+	await _click(Vector2(78, 160))
+	_check(panel.visible and panel.station == "stir_pot", "a click through Granny opens the stove")
+	_action("cancel")
+	await _frames(4)
 
 	# --- bed: confirm, Night runs end_day, back in the kitchen on day 2
 	var day0: int = int(gs.data.day)
@@ -152,6 +165,23 @@ func _drag(from: Vector2, to: Vector2) -> void:
 	up.pressed = false
 	up.position = to
 	root.push_input(up, true)
+	await _frames(3)
+
+
+## Hover, press and release the left button at one point (viewport coordinates).
+func _click(at: Vector2) -> void:
+	var mv := InputEventMouseMotion.new()
+	mv.position = at
+	root.push_input(mv, true)
+	await process_frame
+	for down: bool in [true, false]:
+		var ev := InputEventMouseButton.new()
+		ev.button_index = MOUSE_BUTTON_LEFT
+		ev.pressed = down
+		ev.position = at
+		ev.button_mask = MOUSE_BUTTON_MASK_LEFT if down else 0
+		root.push_input(ev, true)
+		await process_frame
 	await _frames(3)
 
 

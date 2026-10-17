@@ -19,7 +19,13 @@ const TRANSITION_GD := "res://ui/transition/transition.gd"
 const TODO_GD := "res://ui/tutorial/granny_todo.gd"
 const MINIGAME := "res://minigames/%s/%s.tscn"
 const BACKGROUNDS := ["res://assets/sprites/backgrounds/bg_kitchen.png", "res://assets/sprites/scenes/bg_kitchen.png"]
-const GRANNY_IDLE := "res://assets/sprites/granny/granny_idle.png"
+## Granny at the painting's own pixel density (2 frames 44x88: idle, blink), standing on the floor between the
+## stove and the bench's left end, feet at (94, 182); she blinks every BLINK_EVERY seconds.
+const GRANNY_KITCHEN := "res://assets/sprites/granny/granny_kitchen.png"
+const GRANNY_SIZE := Vector2(44, 88)
+const GRANNY_AT := Vector2(72, 96)
+const BLINK_EVERY := 3.4
+const BLINK_SEC := 0.14
 const PANEL_POS := Vector2(8, 30)
 const STICKY_MS := 4000
 ## Granny's To-Do steps that happen at a kitchen object; steps elsewhere light the door that leads there.
@@ -32,9 +38,10 @@ const CookPanel := preload("res://scenes/kitchen/cook_panel.gd")
 const Shelf := preload("res://scenes/kitchen/waiting_shelf.gd")
 const Wall := preload("res://scenes/kitchen/wall_drawings.gd")
 const Doze := preload("res://scenes/kitchen/doze.gd")
-## Idle seconds before Granny dozes off on a hint day, and where her chair stands (by the stove, where she waits).
+## Idle seconds before Granny dozes off on a hint day, and where her chair stands (by the stove, where she waits;
+## rockers on the floor at y 186, same scale as her).
 const DOZE_AFTER := 10.0
-const DOZE_AT := Vector2(86, 171)
+const DOZE_AT := Vector2(64, 102)
 
 ## QA hook: merged into every mini-game ctx (e.g. {"autoplay": true, "duration": 4.0} makes stir_pot play itself).
 var debug_ctx: Dictionary = {}
@@ -123,18 +130,29 @@ func _build_room() -> void:
 	_room.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_room.size = Vector2(480, 270)
 	add_child(_room)
-	if Art.painted and ResourceLoader.exists(GRANNY_IDLE):  # Granny at the stove, for life
+	# Granny and her doze chair go in before the hotspots: captions, hover frames and the P1 press (it stands
+	# nearer the viewer) draw over her, and clicks pass through her to the objects behind.
+	if Art.painted and ResourceLoader.exists(GRANNY_KITCHEN):  # Granny by the stove, for life
 		var g := TextureRect.new()
-		var at := AtlasTexture.new()  # first idle frame (the sheet holds two 16x32 frames)
-		at.atlas = load(GRANNY_IDLE)
-		at.region = Rect2(0, 0, 16, 32)
+		var at := AtlasTexture.new()  # idle frame; the blink frame sits right of it
+		at.atlas = load(GRANNY_KITCHEN)
+		at.region = Rect2(Vector2.ZERO, GRANNY_SIZE)
 		g.texture = at
 		g.stretch_mode = TextureRect.STRETCH_KEEP
-		g.position = Vector2(90, 172)
-		g.size = Vector2(16, 32)
+		g.position = GRANNY_AT
+		g.size = GRANNY_SIZE
 		g.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_room.add_child(g)
 		_granny = g
+		var blink := create_tween().set_loops()
+		blink.tween_interval(BLINK_EVERY)
+		blink.tween_callback(func() -> void: at.region.position.x = GRANNY_SIZE.x)
+		blink.tween_interval(BLINK_SEC)
+		blink.tween_callback(func() -> void: at.region.position.x = 0.0)
+	_doze = Doze.new()
+	_doze.position = DOZE_AT
+	_doze.visible = false
+	_room.add_child(_doze)
 	var captions := {
 		"garden": tr("KITCHEN_TO_GARDEN"), "stove": tr("KITCHEN_STOVE"), "counter": tr("KITCHEN_COUNTER"),
 		"cupboard": tr("KITCHEN_CUPBOARD"), "pantry": tr("KITCHEN_TO_PANTRY"), "bed": tr("KITCHEN_BED_CAPTION"),
@@ -159,10 +177,6 @@ func _build_room() -> void:
 	_room.add_child(_wall)
 	_wall.hovered.connect(_on_shelf_hover)
 	_wall.open_requested.connect(func(letter: Dictionary) -> void: _open_drawing.call_deferred(letter))
-	_doze = Doze.new()
-	_doze.position = DOZE_AT
-	_doze.visible = false
-	_room.add_child(_doze)
 
 
 func _build_bar() -> void:
