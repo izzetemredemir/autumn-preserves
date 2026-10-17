@@ -13,112 +13,73 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Title" type="Label" parent="."]
+[node name="Meter" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
 layout_mode = 0
-offset_left = 148.0
+offset_left = 8.0
 offset_top = 2.0
-offset_right = 260.0
-offset_bottom = 24.0
+offset_right = 172.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="Title" type="Label" parent="Meter"]
+layout_mode = 2
 theme_type_variation = &"Heading"
 text = "PANTRY_TITLE"
-horizontal_alignment = 1
+
+[node name="Bonus" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_top = 20.0
+offset_right = 172.0
+offset_bottom = 38.0
+
+[node name="Hint" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 7.0
+offset_top = 96.0
+offset_right = 175.0
+offset_bottom = 134.0
+theme_override_colors/font_color = Color(0.8980, 0.7412, 0.4980, 1)
+autowrap_mode = 3
 
 [node name="InboxLabel" type="Label" parent="."]
 layout_mode = 0
-offset_left = 18.0
-offset_top = 2.0
-offset_right = 110.0
-offset_bottom = 20.0
+offset_left = 6.0
+offset_top = 137.0
+offset_right = 100.0
+offset_bottom = 155.0
 text = "PANTRY_INBOX"
 
 [node name="InboxCount" type="Label" parent="."]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 96.0
-offset_top = 2.0
-offset_right = 144.0
-offset_bottom = 20.0
+offset_left = 106.0
+offset_top = 137.0
+offset_right = 154.0
+offset_bottom = 155.0
 horizontal_alignment = 2
 
 [node name="Inbox" type="Control" parent="."]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 16.0
-offset_top = 22.0
-offset_right = 144.0
-offset_bottom = 222.0
+offset_left = 4.0
+offset_top = 155.0
+offset_right = 156.0
+offset_bottom = 187.0
 script = ExtResource("2")
 
 [node name="InboxEmpty" type="Label" parent="."]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 16.0
-offset_top = 112.0
-offset_right = 144.0
-offset_bottom = 130.0
-text = "PANTRY_INBOX_EMPTY"
-horizontal_alignment = 1
-
-[node name="RuleZone" type="Label" parent="."]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 166.0
-offset_top = 22.0
-offset_right = 260.0
-offset_bottom = 38.0
-text = "PANTRY_RULE_ZONE"
-
-[node name="RuleGroup" type="Label" parent="."]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 166.0
-offset_top = 40.0
-offset_right = 260.0
-offset_bottom = 56.0
-text = "PANTRY_RULE_GROUP"
-
-[node name="RulePretty" type="Label" parent="."]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 166.0
-offset_top = 58.0
-offset_right = 260.0
-offset_bottom = 74.0
-text = "PANTRY_RULE_PRETTY"
-
-[node name="Bonus" type="Label" parent="."]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 148.0
-offset_top = 78.0
-offset_right = 260.0
-offset_bottom = 120.0
-autowrap_mode = 3
-
-[node name="Hint" type="Label" parent="."]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 148.0
-offset_top = 122.0
-offset_right = 260.0
-offset_bottom = 188.0
-autowrap_mode = 3
-
-[node name="Bubble" type="PanelContainer" parent="."]
-unique_name_in_owner = true
-visible = false
-layout_mode = 0
-offset_left = 162.0
-offset_top = 190.0
-offset_right = 246.0
-offset_bottom = 220.0
-theme_type_variation = &"PaperPanel"
-
-[node name="Text" type="Label" parent="Bubble"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.3137, 0.2118, 0.1176, 1)
-theme_override_colors/font_shadow_color = Color(0.0667, 0.0627, 0.0627, 0)
-text = "PANTRY_LOVELY"
+offset_left = 4.0
+offset_top = 162.0
+offset_right = 156.0
+offset_bottom = 180.0
+text = "PANTRY_TRAY_EMPTY"
 horizontal_alignment = 1
 
 [node name="Board" type="Control" parent="."]
@@ -130,20 +91,49 @@ offset_right = 456.0
 offset_bottom = 254.0
 script = ExtResource("3")
 
+[node name="Bubble" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 310.0
+offset_top = 92.0
+offset_right = 458.0
+offset_bottom = 140.0
+mouse_filter = 2
+theme_type_variation = &"PaperPanel"
+
+[node name="Box" type="VBoxContainer" parent="Bubble"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Text" type="Label" parent="Bubble/Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3137, 0.2118, 0.1176, 1)
+theme_override_colors/font_shadow_color = Color(0.0667, 0.0627, 0.0627, 0)
+text = "PANTRY_PERFECT"
+horizontal_alignment = 1
+
+[node name="Sub" type="Label" parent="Bubble/Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5137, 0.3412, 0.1176, 1)
+theme_override_colors/font_shadow_color = Color(0.0667, 0.0627, 0.0627, 0)
+horizontal_alignment = 1
+
 [node name="AutoArrange" type="Button" parent="."]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 154.0
-offset_top = 224.0
-offset_right = 254.0
-offset_bottom = 248.0
+offset_left = 110.0
+offset_top = 240.0
+offset_right = 210.0
+offset_bottom = 264.0
 text = "PANTRY_AUTO"
 
 [node name="Back" type="Button" parent="."]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 16.0
-offset_top = 228.0
-offset_right = 84.0
-offset_bottom = 252.0
+offset_left = 4.0
+offset_top = 240.0
+offset_right = 72.0
+offset_bottom = 264.0
 text = "UI_BACK"

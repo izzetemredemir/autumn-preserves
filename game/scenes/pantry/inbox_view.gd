@@ -3,9 +3,11 @@ extends Control
 ## board's hand (ArrangeBoard.begin_hold); dropping a board item here sends it back (handled by pantry.gd).
 ## QA-FIX: refresh() keeps the views of items that did not change and only makes the new ones (it ran after every
 ## drop and rebuilt every jar). The letters' parcel page and the market's jar column use it too.
+## JURY-PANTRY: the pantry sets `cols` and `max_rows` for a compact tray: it is sized to what it holds (1 row when
+## empty, up to max_rows), and only filled slots are drawn, so no big empty grid. Others keep the fixed grid.
 
 const SLOT := 24
-## 5 columns (40 slots, more than a full bag) leave the middle column room for the 18 px rule texts.
+## 5 columns by default (the market's jar column and the letters' parcel page are 128 px wide).
 const COLS := 5
 const PAD := 4
 const C_FRAME := Color("83571e")
@@ -17,6 +19,10 @@ const C_HOVER := Color("f2d9c5")
 var items: Array = []
 var board: ArrangeBoard
 var make_view: Callable
+## Slots per row.
+var cols := COLS
+## > 0: compact tray, height follows the item count (1..max_rows rows). 0: the fixed grid fills `size`.
+var max_rows := 0
 var _views: Array[Control] = []
 var _hidden := -1
 var _hover := -1
@@ -32,14 +38,29 @@ func setup(p_items: Array, p_board: ArrangeBoard, p_make_view: Callable) -> void
 
 
 func capacity() -> int:
-	return COLS * floori((size.y - PAD * 2) / SLOT)
+	return cols * rows()
+
+
+## Rows shown: the compact tray's 1..max_rows for the items it holds, else as many as fit the height.
+func rows() -> int:
+	if max_rows > 0:
+		return clampi(ceili(items.size() / float(cols)), 1, max_rows)
+	return floori((size.y - PAD * 2) / SLOT)
+
+
+## Size of the compact tray for `n` items (width from cols).
+func tray_size(n: int) -> Vector2:
+	var r := clampi(ceili(n / float(cols)), 1, maxi(max_rows, 1))
+	return Vector2(cols * SLOT + PAD * 2, r * SLOT + PAD * 2)
 
 
 func slot_rect(i: int) -> Rect2i:
-	return Rect2i(PAD + (i % COLS) * SLOT, PAD + floori(i / float(COLS)) * SLOT, SLOT, SLOT)
+	return Rect2i(PAD + (i % cols) * SLOT, PAD + floori(i / float(cols)) * SLOT, SLOT, SLOT)
 
 
 func refresh(rebuild := false) -> void:
+	if max_rows > 0:
+		size = tray_size(items.size())
 	var spare := {}  # view key -> views free to reuse
 	for v in _views:
 		if not is_instance_valid(v):
@@ -127,7 +148,8 @@ func _draw() -> void:
 	draw_rect(Rect2(0, 0, w, h), C_FRAME)
 	draw_rect(Rect2(0, 0, w, 1), C_FRAME_HI)
 	draw_rect(Rect2(2, 2, w - 4, h - 4), C_FILL)
-	for i in capacity():
+	var shown := mini(items.size(), capacity()) if max_rows > 0 else capacity()
+	for i in shown:
 		draw_rect(Rect2(slot_rect(i).grow(-1)), C_SLOT)
 	if _hover >= 0:
 		var r := slot_rect(_hover)

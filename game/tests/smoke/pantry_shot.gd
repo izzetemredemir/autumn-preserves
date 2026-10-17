@@ -6,7 +6,11 @@ extends SceneTree
 ## POLISH-PANTRY: with 1 and 3 bought shelves the room stays painted (labels on plates, no off-palette pixel in any
 ## shot) and scrolls: wheel, drag on empty space, W/S + Up/Down, and a held item reaches the lowest shelf by mouse
 ## (edge auto-scroll) and by keyboard (tap, S/Down, tap) -> user://shots/pantry_rows1.png, pantry_rows3.png.
+## JURY-PANTRY: the goal panel (no chip lit and the start tip on a first visit, chips follow the rules, the third
+## star's banner), the compact tray (sized to its items, "All put away!" only when empty), shelf signs, the glow on
+## the shelves a held item likes, "+star" over a drop that meets a rule -> pantry_start.png, pantry_drag.png.
 ##   godot --audio-driver Dummy --path game -s res://tests/smoke/pantry_shot.gd   (needs a display; exit 1 on a fail)
+## Add `-- --locale=tr` for the Turkish texts (shots get a "_tr" suffix).
 
 const PAL := ["111010", "a22512", "c94d2e", "e19064", "49423d", "81746a", "b9a697", "f2d9c5", "50361e", "b66813",
 	"c58845", "83571e", "e5bd7f", "9b8039", "dbcc83", "b1a13d", "c5bf3f", "b4b3a0", "b7b768", "747c37", "53612e",
@@ -21,10 +25,14 @@ var _last := Vector2.ZERO
 var _checks := 0
 var _fails := 0
 var _notified := 0
+var _suffix := ""
 
 
 func _initialize() -> void:
 	_gs = root.get_node("GameState")
+	if "--locale=tr" in OS.get_cmdline_user_args():
+		GameSettings.apply_language("tr")
+		_suffix = "_tr"
 	_gs.connect("changed", func(_keys: PackedStringArray) -> void: _notified += 1)
 	_run()
 
@@ -32,12 +40,15 @@ func _initialize() -> void:
 func _run() -> void:
 	await process_frame
 	await _open(_test_state())
+	_goal_start_checks()
+	_shot("pantry_start.png")
+	await _glow_checks()
 	_interaction_checks()
 	_scene.queue_free()
 	await process_frame
 	await _open(_shot_state())
 	_shot_moves()
-	await _frames(20)
+	await create_timer(0.45).timeout  # FEEL's warm flash is over, the banner still shows
 	_painted_checks(0)
 	_shot("pantry.png")
 	_board.cancel_hold()
@@ -80,6 +91,9 @@ func _interaction_checks() -> void:
 	_drag(_slot(_find(inbox, "jam|apple_1|-")), _cell(Vector2i(0, 2)))
 	_check("inbox -> shelf by drag", items.size() == 1 and inbox.size() == n_in - 1 and _at(items, Vector2i(0, 2)) == "jam")
 	_check("GameState.notify on a move", _notified > 0)
+	var chips: Array = _scene.get("_chips")
+	_check("first jar on its shelf: 'Right shelves' chip lights up", bool(chips[0].met) and not bool(chips[1].met))
+	_check("a drop that meets a rule shows +star", _board.find_child("StarPop*", false, false) != null)
 
 	var start := _slot(_find(inbox, "pie|apple_1|-"))
 	_press(start)
@@ -132,6 +146,72 @@ func _interaction_checks() -> void:
 	_check("Auto-arrange clicks through", inbox.size() < before)
 	var stars1 := int(_board.stars_result().get("stars", -1))
 	_check("stars are live (%d -> %d)" % [stars0, stars1], stars1 >= 1 and stars1 != stars0)
+	var flags: Array = _board.stars_result().get("rules", [])
+	var chips_ok := true
+	for i in chips.size():
+		chips_ok = chips_ok and bool(chips[i].met) == bool(flags[i])
+	_check("chips follow the rules %s" % [flags], chips_ok)
+	var empty: Label = _scene.get_node("%InboxEmpty")
+	_check("'All put away!' shows only with an empty inbox (%d left)" % inbox.size(), empty.visible == inbox.is_empty())
+	_check("tray fits what is left (%d items, %d px)" % [inbox.size(), int(_inbox.size.y)],
+		int(_inbox.size.y) == clampi(ceili(inbox.size() / 6.0), 1, 3) * 24 + 8)
+
+
+## A first visit: empty shelves, 15 things waiting. The tray is sized to them (3 rows of 6, no empty grid), no chip
+## is lit, the tip says where to start and every shelf sign says what goes there.
+func _goal_start_checks() -> void:
+	_check("tray: 15 items -> 3 rows (%d px)" % int(_inbox.size.y), int(_inbox.size.y) == 3 * 24 + 8 and int(_inbox.size.x) == 6 * 24 + 8)
+	var chips: Array = _scene.get("_chips")
+	var lit := 0
+	for c in chips:
+		lit += 1 if bool(c.met) else 0
+	_check("three rule chips, none lit", chips.size() == 3 and lit == 0)
+	var hint: Label = _scene.get_node("%Hint")
+	_check("tip: where to start ('%s')" % hint.text, hint.text == TranslationServer.translate("PANTRY_TIP_START"))
+	var notes: Array = _scene.get("_zone_notes")
+	var ok := notes.size() == (_scene.get("_zone_labels") as Array).size()
+	for n: Label in notes:
+		ok = ok and n.text != "" and n.position.x >= 180.0
+	_check("every shelf sign says what goes there (%s)" % [notes.map(func(n: Label) -> String: return n.text)], ok)
+	_check("empty inbox text hidden while things wait", not (_scene.get_node("%InboxEmpty") as Control).visible)
+	var tips := [
+		{"key": "PANTRY_TIP_START"},
+		{"key": "PANTRY_TIP_ZONE", "kind": ProductGen.recipe_name("blackberry_honey_jam"),
+			"short": ProductGen.recipe_short("blackberry_honey_jam"), "zone": "room"},
+		{"key": "PANTRY_TIP_TURN", "kind": ProductGen.recipe_name("bread"), "zone": "dry"},
+		{"key": "PANTRY_TIP_FLOOR", "kind": VarietyGen.type_name("pumpkin")},
+		{"key": "PANTRY_TIP_GROUP", "kind": ProductGen.recipe_name("brined_mushroom"),
+			"short": ProductGen.recipe_short("brined_mushroom")},
+		{"key": "PANTRY_TIP_GROUP_MORE", "n": 3},
+		{"key": "PANTRY_TIP_FILL", "zone": "cool", "n": 4},
+		{"key": "PANTRY_TIP_PRETTY", "n": 4},
+		{"key": "PANTRY_TIP_DONE"},
+	]
+	var too_long: Array = []
+	for d: Dictionary in tips:
+		var t: String = _scene.call("_tip_text", d)
+		if t == "" or int(_scene.call("_lines", t)) > 2:
+			too_long.append(t)
+	_check("every tip fits two lines %s" % [too_long], too_long.is_empty())
+
+
+## Holding the juice: the room shelves glow, the tip names its shelf, Esc puts it back and the glow goes.
+func _glow_checks() -> void:
+	var d: Dictionary = _gs.get("data")
+	var p := _slot(_find(d.inbox, "juice|apple_2|-"))
+	_move(p)
+	_press(p)
+	_move(p + Vector2(30, 0))
+	_move(_cell(Vector2i(4, 2)) + Vector2(0, 4))
+	await _frames(12)
+	var hint: Label = _scene.get_node("%Hint")
+	_check("held juice: its shelves glow (%s)" % _scene.call("glow_zone"), _scene.call("glow_zone") == "room")
+	_check("held juice: the tip names its shelf ('%s')" % hint.text, hint.text.contains(TranslationServer.translate("PANTRY_ZONE_ROOM")))
+	_shot("pantry_drag.png")
+	_key(KEY_ESCAPE)
+	_release(_cell(Vector2i(4, 2)))
+	await _frames(2)
+	_check("put back: no glow", _scene.call("glow_zone") == "" and not _board.is_holding())
 
 
 func _test_state() -> Dictionary:
@@ -169,7 +249,12 @@ func _shot_moves() -> void:
 	_drag(_cell(Vector2i(3, 4)), _cell(Vector2i(1, 4)))
 	var stars1 := int(_board.stars_result().get("stars", -1))
 	_check("one drag gives the third star (%d -> %d)" % [stars0, stars1], stars0 == 2 and stars1 == 3)
-	_check("lovely bubble shows", (_scene.get_node("%Bubble") as Control).visible)
+	var bubble := _scene.get_node("%Bubble") as Control
+	var sub := bubble.get_node("Box/Sub") as Label
+	_check("banner 'Perfect pantry! +15 energy tomorrow' shows ('%s')" % sub.text, bubble.visible and sub.text.contains("15"))
+	var chips: Array = _scene.get("_chips")
+	_check("all three chips lit", chips.all(func(c: Control) -> bool: return bool(c.met)))
+	_check("+star over the pickles that did it", _board.find_child("StarPop*", false, false) != null)
 	var d: Dictionary = _gs.get("data")
 	var p := _slot(_find_type(d.inbox, "chanterelle"))
 	_press(p)
@@ -332,6 +417,7 @@ func _shot(file: String) -> void:
 	DirAccess.make_dir_recursive_absolute(dir)
 	RenderingServer.force_draw(false)
 	var img := root.get_texture().get_image()
+	file = file.get_basename() + _suffix + ".png"
 	img.save_png(dir + "/" + file)
 	print("saved ", ProjectSettings.globalize_path(dir + "/" + file))
 	var pal := {}

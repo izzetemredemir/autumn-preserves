@@ -815,3 +815,14 @@ MG_PRESS_JUICE,Juice
 UI_TIP_ENERGY,Energy
 UI_TIP_BAG,Bag
 UI_TIP_COINS,Coins
+PANTRY_PERFECT,Perfect pantry!
+PANTRY_TRAY_EMPTY,All put away!
+PANTRY_TIP_START,Drag a jar from the inbox onto a shelf
+PANTRY_TIP_ZONE,Put the %s on the %s shelf
+PANTRY_TIP_TURN,Put the %s on the %s shelf. R turns it
+PANTRY_TIP_FLOOR,Put the %s on the floor
+PANTRY_TIP_GROUP,Keep the %s side by side
+PANTRY_TIP_GROUP_MORE,Put %d of one kind side by side
+PANTRY_TIP_FILL,Fill the %s shelf (%d left)
+PANTRY_TIP_PRETTY,"Fill a shelf, or set %d jars light to dark in a row"
+PANTRY_TIP_DONE,All three stars. Lovely!

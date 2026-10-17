@@ -815,3 +815,14 @@ MG_PRESS_JUICE,Meyve suyu
 UI_TIP_ENERGY,Enerji
 UI_TIP_BAG,Çanta
 UI_TIP_COINS,Para
+PANTRY_PERFECT,Kusursuz kiler!
+PANTRY_TRAY_EMPTY,Hepsi yerinde!
+PANTRY_TIP_START,Sepetten bir kavanozu rafa sürükle
+PANTRY_TIP_ZONE,%s: %s rafına koy
+PANTRY_TIP_TURN,%s: %s rafına koy. R çevirir
+PANTRY_TIP_FLOOR,%s: yere koy
+PANTRY_TIP_GROUP,%s yan yana dursun
+PANTRY_TIP_GROUP_MORE,Aynı türden %d şeyi yan yana koy
+PANTRY_TIP_FILL,%s rafını doldur (%d kaldı)
+PANTRY_TIP_PRETTY,Açıktan koyuya %d kavanoz diz ya da bir raf doldur
+PANTRY_TIP_DONE,Üç yıldız da tamam. Ne güzel!
