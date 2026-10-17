@@ -809,6 +809,25 @@ UI_PAUSE_QUIT_FESTIVAL,Festival sona erecek.
 UI_PAUSE_QUIT_TEMP,Bu gün kaydedilmeyecek.
 UI_PAUSE_QUIT_YES,Çık
 UI_PAUSE_QUIT_NO,Kal
+UI_COOK_GO,Pişir!
+UI_COOK_SLOT,%s ×%d
+UI_COOK_HAVE,%d tane var
+UI_COOK_SLOT_EMPTY,Uyan bir şey yok
+UI_COOK_CHANGE_TIP,Değiştirmek için tıkla
+UI_COOK_PICK,%s: birini seç
+UI_COOK_FILL,Ne gireceğini seç: bir yuvaya tıkla.
+UI_COOK_ALSO,Ayrıca: %s
+UI_COOK_EXTRA,Ekstra (isteğe bağlı)
+UI_COOK_EXTRA_NONE,Ekstra yok: sade tarif
+UI_COOK_EXTRA_LINE,%s (%d): %s
+UI_COOK_NEW,Yeni!
+UI_COOK_NEW_TIP,Tarif defterinde henüz yok
+UI_COOK_VALUE,~%d
+UI_COOK_VALUE_TIP,Bir kavanoz yaklaşık %d altına satılır
+UI_COOK_GROUP_FRUIT,Meyve
+UI_COOK_GROUP_VEGETABLE,Sebze
+UI_COOK_GROUP_MUSHROOM,Mantar
+UI_COOK_GROUP_NUT,Kuruyemiş
 MG_PACK_FULL,Dolu!
 MG_PACK_LINE,dolum çizgisi
 MG_PRESS_JUICE,Meyve suyu

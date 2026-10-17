@@ -66,11 +66,13 @@ func _run() -> void:
 		elif n == "garden":
 			await _overlays("garden")
 		elif n == "kitchen":
+			await _cook_panel(s)
 			await _invent_panel(s)
 		s.queue_free()
 		await _frames(2)
 	await _farewell()
 	await _festival_cards()
+	await _festival_kitchen()
 	await _species()
 	# Overlays on top of a quiet backdrop
 	_fresh()
@@ -128,6 +130,56 @@ func _pause_menu() -> void:
 	m.visible = false
 	m._ui.queue_free()
 	m._ui = null
+	await _frames(2)
+
+
+## JURY-STOVE: the cook panel at every station the demo save has, each tab (base and family), every add-in's
+## one-line description, and the Change picker of the first slot.
+func _cook_panel(k: Node) -> void:
+	for spot: String in ["stove", "counter", "press", "board"]:
+		if not k._spots.has(spot) or not (k._spots[spot] as Control).visible:
+			continue
+		k._on_spot(spot)
+		await _frames(4)
+		var panel: Node = k._panel
+		for fam in [false, true]:
+			if fam:
+				if not panel._family_btn.visible:
+					continue
+				panel._toggle_family()
+				await _frames(2)
+			for id: String in panel._recipes.duplicate():
+				panel._select_recipe(id)
+				await _frames(2)
+				await _audit("kitchen/%s/%s" % [spot, id], k)
+		if spot == "stove":
+			if panel.family:
+				panel._toggle_family()
+			panel._select_recipe("jam")
+			await _frames(2)
+			for id: String in panel._addin_buttons:
+				panel._show_addin_line(id)
+				await _audit("kitchen/stove/extra_%s" % id, k)
+			panel.open_picker("main")
+			await _frames(2)
+			await _audit("kitchen/stove/picker", k)
+			panel._close_picker(false)
+		k._close_panel()
+		await _frames(2)
+
+
+## JURY-STOVE: the cook panel again with the festival save (four stove tabs, family recipes, big pot, many add-ins).
+func _festival_kitchen() -> void:
+	var d := FestivalFacts.load_save()
+	if d.is_empty():
+		return
+	_gs.data = d
+	_gs.notify(PackedStringArray(["*"]))
+	var k := (load("res://scenes/kitchen/kitchen.tscn") as PackedScene).instantiate()
+	root.add_child(k)
+	await _frames(6)
+	await _cook_panel(k)
+	k.queue_free()
 	await _frames(2)
 
 

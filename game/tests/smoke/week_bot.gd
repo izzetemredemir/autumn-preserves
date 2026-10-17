@@ -786,9 +786,13 @@ func _cook(plan: Dictionary) -> bool:
 		await _click_ctrl(tabs[recipe])
 		if not await _wait(func() -> bool: return String(panel.get("recipe")) == recipe, "the %s tab" % recipe):
 			return false
-	for vid: String in [String(plan.main), String(plan.second)]:
+	for which: String in ["main", "second"]:
+		var vid := String(plan[which])
 		if vid == "":
 			continue
+		if panel.has_method("open_picker"):  # JURY-STOVE: the rows live in the slot's Change picker
+			panel.call("open_picker", which)
+			await _frames(2)
 		var rows: Dictionary = panel.get("_rows")
 		if not rows.has(vid):
 			_problem("medium", "kitchen", "%s: no row for %s in the %s list" % [recipe, vid, station])
@@ -870,6 +874,9 @@ func _cook(plan: Dictionary) -> bool:
 
 func _close_panel(k: Node) -> void:
 	_act("kitchen: Esc closes the panel")
+	var panel: Node = k.get("_panel")
+	if panel.has_method("_close_picker"):  # an open Change picker would take this Esc
+		panel.call("_close_picker", false)
 	_key(KEY_ESCAPE)
 	await _wait(func() -> bool: return not (k.get("_panel") as Control).visible, "the cook panel to close")
 

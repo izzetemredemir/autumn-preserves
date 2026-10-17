@@ -1,10 +1,10 @@
 extends SceneTree
 ## Smoke shot (KITCHEN-P1B): the kitchen alone (throwaway game, debug inventory) with the big pot and a jam variant
 ## two good cooks away from Mastered.
-##   1. Mouse: stove -> apple row -> x2 -> Cook; the stir mini-game ends with 3 stars -> two jars, "Mastered!" on the
-##      result card, the mastery line on the message bar.
-##   2. Stove again: Batch cook and x2 side by side (the card's smoke shot); Batch cook -> no mini-game, two more jars
-##      at the best quality for one cook's energy.
+##   1. Mouse: stove -> fruit slot -> apple row in its picker -> x2 -> Cook; the stir mini-game ends with 3 stars ->
+##      two jars, "Mastered!" on the result card, the mastery line on the message bar.
+##   2. Stove again (the apple picked by hand is kept): Batch cook beside x2 under Cook (the card's smoke shot);
+##      Batch cook -> no mini-game, two more jars at the best quality for one cook's energy.
 ##   3. The recipe book shows the Mastered badge.
 ##   4. Knead alone: bread shapes a loaf (part 2), pie fills in the fruit's tones; the press bottle in three tones.
 ## Saves user://shots/kitchen_p1b_panel.png (cook panel with Batch cook and x2), kitchen_p1b_x2.png,
@@ -49,6 +49,7 @@ func _run() -> void:
 	_check(panel.visible and panel.recipe == "jam", "stove opens on jam")
 	_check(panel._extras.visible and panel._mult_buttons[2].visible, "x1/x2 shown with the big pot")
 	_check(not panel._batch.visible, "no Batch cook before a jam is Mastered")
+	await _click(panel._slots.main.button.get_global_rect().get_center())
 	if panel._rows.has(apple):
 		panel._scroll.ensure_control_visible(panel._rows[apple])
 		await _frames(2)
@@ -57,8 +58,8 @@ func _run() -> void:
 	await _click(panel._mult_buttons[2].get_global_rect().get_center())
 	await _frames(2)
 	_check(panel.mult == 2 and panel._ok, "x2 picked and ready")
-	_check(String(panel._slots.main.need.text).ends_with("/6"), "slot asks for 6 (%s)" % panel._slots.main.need.text)
-	_check(panel._cook.text == tr("UI_BATCH_COOK_TWO") % Kitchen.energy_cost("stir_pot"), "Cook says two jars")
+	_check(String(panel._slots.main.caption.text).ends_with("6"), "slot asks for 6 (%s)" % panel._slots.main.caption.text)
+	_check(panel._cook.tooltip_text == tr("UI_BATCH_COOK_TWO") % Kitchen.energy_cost("stir_pot"), "Cook says two jars")
 	await _frames(14)
 	_shot("kitchen_p1b_x2")
 	var jars0 := _count(gs.data, key)

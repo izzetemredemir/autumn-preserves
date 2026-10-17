@@ -2,14 +2,15 @@ extends SceneTree
 ## Smoke shot (FESTIVAL): plays the whole Harvest Festival from the title menu, the way a juror would, through the
 ## scenes' own handlers (what a click calls): the start card, Mia and Leo in the garden, then the six steps:
 ##   1. the forest: the marker over the rare tree, Granny walks up and shakes it,
-##   2. the stove: a jam of the rare fruit (stir mini-game, ended with 3 stars) -> "New recipe!",
+##   2. the stove: opening it already picks a new jam of the rare fruit (JURY-STOVE), so only Cook is pressed (stir
+##      mini-game, ended with 3 stars) -> "New recipe!",
 ##   3. the press: a juice of the inbox apples,
 ##   4. the pantry: the new jam dragged into the room shelf's gap -> 3 stars,
 ##   5. the market: fill the stall, open it, the parade, the end card,
 ##   6. the garden mailbox: Mia's thank-you letter with her drawing,
 ## then the end card (Keep playing hides it; Back to title returns to the title). The player's own save
 ## (user://save.json) must be byte for byte the same afterwards.
-## Shots: user://shots/festival_00_title.png, _01_start, _02_wave, _02_garden, _03_grow, _03_wild, _04_shake, _05_stir, _06_jam,
+## Shots: user://shots/festival_00_title.png, _01_start, _02_wave, _02_garden, _03_grow, _03_wild, _04_shake, _05_stove, _05_stir, _06_jam,
 ## _07_juice, _08_pantry, _09_market, _10_market_end, _11_letter, _12_end (+ "_tr" with -- --locale=tr).
 ##   godot --path game --audio-driver Dummy -s res://tests/smoke/festival_shot.gd   (about 60 s; exit 1 on a failed check)
 
@@ -109,13 +110,13 @@ func _run() -> void:
 	k._on_spot("stove")
 	await _frames(6)
 	var panel: Node = k._panel
-	panel._select_recipe("jam")
-	await _frames(2)
 	var rare := String(f.rare)
 	_check(panel._fits("main", rare) and int(panel.fresh_stock(_gs.data).get(rare, 0)) >= 3, "the rare fruit is in the kitchen")
-	panel._pick(rare, panel)
-	await _frames(4)
-	panel._on_cook()
+	_check(String(panel.recipe) == "jam" and String(panel.picks.main) == rare and bool(panel._ok),
+		"the stove opens on a jam of the rare fruit, ready (%s, %s)" % [panel.recipe, panel.picks.main])
+	await _frames(10)
+	_shot("festival_05_stove")
+	panel._cook.pressed.emit()  # open stove -> Cook: nothing else to pick
 	await _until(func() -> bool: return k._mg != null, 3000)
 	await _seconds(1.5)
 	_shot("festival_05_stir")

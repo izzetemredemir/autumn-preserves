@@ -1,10 +1,10 @@
 extends SceneTree
 ## Smoke shot (P1-RECIPES): the kitchen alone (throwaway game, debug inventory + DevTools.unlock_p1) with the fruit
 ## press and the dough board.
-##   1. Mouse: click the press, click a fruit row, click Cook; the press mini-game is played to the end with Space
-##      and mouse clicks on the beat -> juice in the inbox.
-##   2. Keyboard: focus the dough board, E opens it, arrow to the bread tab, E, walk focus to Cook, E; knead plays
-##      itself (short ctx times) -> bread in the inbox.
+##   1. Mouse: click the press, click the fruit slot, click a fruit row in its picker, click Cook; the press mini-game
+##      is played to the end with Space and mouse clicks on the beat -> juice in the inbox.
+##   2. Keyboard: focus the dough board, E opens it (focus on Cook), right arrow switches to bread, E cooks; knead
+##      plays itself (short ctx times) -> bread in the inbox.
 ##   3. A second juice of the same fruit -> syrup at the stove (four tabs, juice rows) with gifted mint (a P1
 ##      add-in held only in the cupboard) -> syrup in the inbox.
 ##   4. The recipe book lists the P1 recipes.
@@ -43,7 +43,9 @@ func _run() -> void:
 	_check(panel.visible and panel.station == "press", "click on the press opens it")
 	_check(panel._recipes == ["juice", "fruit_vinegar"], "press recipes: %s" % [panel._recipes])
 	var fruit := _first_fitting(panel, "main", 4)
-	if fruit != "":
+	await _click(panel._slots.main.button.get_global_rect().get_center())
+	_check(panel._picker.visible, "click on the fruit slot opens its picker")
+	if fruit != "" and panel._rows.has(fruit):
 		panel._scroll.ensure_control_visible(panel._rows[fruit])
 		await _frames(2)
 		await _click(panel._rows[fruit].get_global_rect().get_center())
@@ -70,19 +72,10 @@ func _run() -> void:
 	await _frames(4)
 	_check(panel.visible and panel.station == "knead", "E on the focused board opens it")
 	_check(panel._recipes == ["pie", "bread"], "board recipes: %s" % [panel._recipes])
-	print("focus before: ", _focus_name(panel))
+	_check(root.gui_get_focus_owner() == panel._cook, "focus starts on Cook (%s)" % _focus_name(panel))
 	_action("move_right")
-	await _frames(2)
-	print("focus after right: ", _focus_name(panel))
-	_action("interact")
 	await _frames(4)
-	_check(panel.recipe == "bread", "arrow + E picks the bread tab")
-	var steps := 0
-	while root.gui_get_focus_owner() != panel._cook and steps < 12:
-		_action("move_down" if steps < 6 else "move_right")
-		await _frames(2)
-		steps += 1
-	_check(root.gui_get_focus_owner() == panel._cook, "arrows reach Cook (%d steps)" % steps)
+	_check(panel.recipe == "bread" and root.gui_get_focus_owner() == panel._cook, "right arrow switches to bread, focus stays on Cook")
 	await _frames(10)
 	_shot("kitchen_p1_board")
 	_k.debug_ctx = {"autoplay": true, "knead_time": 3.0, "trace_time": 2.0}
@@ -105,6 +98,8 @@ func _run() -> void:
 	_check(panel._recipes.has("syrup"), "syrup at the stove once the press is there")
 	panel._select_recipe("syrup")
 	await _frames(4)
+	panel.open_picker("main")
+	await _frames(2)
 	_check(panel._rows.has(fruit) and panel._rows.size() == Kitchen.product_stock(d, "juice").size(), "juice rows for syrup")
 	if panel._rows.has(fruit):
 		await _click(panel._rows[fruit].get_global_rect().get_center())

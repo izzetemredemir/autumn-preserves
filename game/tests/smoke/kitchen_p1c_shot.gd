@@ -84,6 +84,7 @@ func _run() -> void:
 		"pepper_relish"], "four family tabs at the stove: %s" % [panel._tabs.keys()])
 	_check(panel.recipe == "grannys_quince_butter", "first family tab picked")
 	_check(panel.addin == "cinnamon" and panel._addin_buttons.keys() == ["cinnamon"], "the add-in row holds only cinnamon")
+	await _click(panel._slots.main.button.get_global_rect().get_center())  # the quince slot's Change picker
 	if panel._rows.has(quince):
 		panel._scroll.ensure_control_visible(panel._rows[quince])
 		await _frames(2)

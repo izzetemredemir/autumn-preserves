@@ -1,8 +1,8 @@
 extends SceneTree
 ## Smoke shot (GD-KITCHEN): runs the kitchen alone (throwaway game + debug inventory), cooks jam on the stove
 ## (stir_pot plays itself through the ctx autoplay hook) and pickles at the jar counter (pack_jar result is
-## emitted by this script), checks both jars reached the inbox, then keyboard open/close, a real mouse drag
-## into the chutney slot and a night in bed. ART-GRANNY: Granny stands at the painting's scale (44x88, feet at
+## emitted by this script), checks both jars reached the inbox, then keyboard open/close, the chutney vegetable
+## slot's Change picker with real mouse clicks (JURY-STOVE; Esc closes the picker first) and a night in bed. ART-GRANNY: Granny stands at the painting's scale (44x88, feet at
 ## y 175-185), her doze chair sits under the hotspots, and a click on her skirt reaches the stove. Saves:
 ##   user://shots/kitchen.png        room after both cooks (waiting jar on the sill, To-Do glow, captions)
 ##   user://shots/kitchen_panel.png  stove panel with a filled slot and an add-in
@@ -89,16 +89,22 @@ func _run() -> void:
 	_action("interact")
 	await _frames(4)
 	_check(panel.visible and panel.station == "stir_pot", "E on the focused stove opens the panel")
-	# chutney: drag a vegetable row onto the second slot with real mouse events
+	_check(root.gui_get_focus_owner() == panel._cook, "focus starts on Cook (Enter cooks)")
+	# chutney (JURY-STOVE): a click on the vegetable slot opens its Change picker, a click on a row fills the slot
 	panel._select_recipe("chutney")
 	await _frames(4)
-	var veg2 := _first_fitting(panel, "second", 2)
-	if veg2 != "":
-		var row: Control = panel._rows[veg2]
-		panel._scroll.ensure_control_visible(row)
+	var veg2 := _first_fitting(panel, "second", 2, String(panel.picks.second))
+	await _click(panel._slots.second.button.get_global_rect().get_center())
+	_check(panel._picker.visible, "a click on the slot opens the picker")
+	if veg2 != "" and panel._rows.has(veg2):
+		panel._scroll.ensure_control_visible(panel._rows[veg2])
 		await _frames(2)
-		await _drag(row.get_global_rect().get_center(), panel._slots.second.button.get_global_rect().get_center())
-	_check(panel.picks.second == veg2 and veg2 != "", "drag fills the chutney vegetable slot")
+		await _click(panel._rows[veg2].get_global_rect().get_center())
+	_check(panel.picks.second == veg2 and veg2 != "" and not panel._picker.visible, "a picker row fills the chutney vegetable slot")
+	await _click(panel._slots.second.button.get_global_rect().get_center())
+	_action("cancel")
+	await _frames(4)
+	_check(panel.visible and not panel._picker.visible, "Esc closes the picker first")
 	_action("cancel")
 	await _frames(4)
 	_check(not panel.visible and _k._room_active, "Esc closes the panel")
@@ -144,30 +150,6 @@ func _action(name: String) -> void:
 	Input.parse_input_event(ev)
 
 
-## Press, move in steps past the drag threshold, release (viewport coordinates).
-func _drag(from: Vector2, to: Vector2) -> void:
-	var down := InputEventMouseButton.new()
-	down.button_index = MOUSE_BUTTON_LEFT
-	down.pressed = true
-	down.position = from
-	down.button_mask = MOUSE_BUTTON_MASK_LEFT
-	root.push_input(down, true)
-	await process_frame
-	for i in range(1, 11):
-		var mv := InputEventMouseMotion.new()
-		mv.position = from.lerp(to, i / 10.0)
-		mv.relative = (to - from) / 10.0
-		mv.button_mask = MOUSE_BUTTON_MASK_LEFT
-		root.push_input(mv, true)
-		await process_frame
-	var up := InputEventMouseButton.new()
-	up.button_index = MOUSE_BUTTON_LEFT
-	up.pressed = false
-	up.position = to
-	root.push_input(up, true)
-	await _frames(3)
-
-
 ## Hover, press and release the left button at one point (viewport coordinates).
 func _click(at: Vector2) -> void:
 	var mv := InputEventMouseMotion.new()
@@ -185,14 +167,18 @@ func _click(at: Vector2) -> void:
 	await _frames(3)
 
 
-func _first_fitting(panel: Control, which: String, need := 4) -> String:
+## The first variety (by id) that fits the slot with `need` units, other than `but` when another one does.
+func _first_fitting(panel: Control, which: String, need := 4, but := "") -> String:
 	var stock: Dictionary = panel.fresh_stock(root.get_node("GameState").data)
 	var ids: Array = stock.keys()
 	ids.sort()
+	var found := ""
 	for vid in ids:
 		if panel._fits(which, vid) and int(stock[vid]) >= need:
-			return vid
-	return ""
+			if vid != but:
+				return vid
+			found = vid
+	return found
 
 
 func _has_product(d: Dictionary, prefix: String) -> bool:
