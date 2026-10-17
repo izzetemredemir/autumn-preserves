@@ -216,7 +216,7 @@ TITLE_SET_SHOW_SEED,Tohumu göster
 TITLE_SET_TUTORIAL,Nine'nin İşleri
 TITLE_ON,Açık
 TITLE_OFF,Kapalı
-TITLE_PREMISE_1,Everfall vadisinde sonbahar hiç bitmez. Orman her sabah yeniden büyür.
+TITLE_PREMISE_1,Everfall'da sonbahar kalır. Orman her sabah yeniden büyür.
 TITLE_PREMISE_2,"Bu, Tonty Nine'nin onsuz ilk sonbaharı. Tepelerin ötesine kış çoktan geldi."
 TITLE_PREMISE_HINT,Devam etmek için tıkla ya da dokun
 TUT_TITLE,Nine'nin İşleri
@@ -723,7 +723,7 @@ GARDEN_BENCH_1,Bir fincan çay ve battaniye.\nBahçe biraz bekleyebilir.
 GARDEN_BENCH_2,Bu bankı Teo yaptı.\nHâlâ iki kişilik.
 GARDEN_BENCH_3,Otur. Nefes al. Dinle.\nArılar vızıldıyor.
 UI_NIGHT_HONEY,Arılar sana bal bıraktı.
-PREMISE_1,Everfall vadisinde sonbahar hiç bitmez.
+PREMISE_1,Everfall'da sonbahar kalır.
 PREMISE_2,"Orman her sabah yeniden büyür. Teo, ""aynı günü iki kez vermez,"" derdi."
 PREMISE_3,"Bu, Tonty Nine'nin onsuz ilk sonbaharı."
 PREMISE_4,Tepelerin ötesine kış çoktan geldi.
@@ -857,25 +857,25 @@ HOWTO_BACK,Geri
 HOWTO_DONE,Anladım!
 HOWTO_CLOSE,Kapat
 HOWTO_AUTUMN,Senin sonbaharın
-HOWTO_AUTUMN_1,Tonty Nine bitmeyen sonbaharı kış için kavanozlara doldurur.
-HOWTO_AUTUMN_2,"Ölüm yok, ceza yok, saat yok."
-HOWTO_AUTUMN_3,"Gün, Nine yatağa gidince biter."
+HOWTO_AUTUMN_1,Tonty Nine'nin Teo'suz ilk sonbaharı. Raflar boş.
+HOWTO_AUTUMN_2,Kışın çoktan geldiği şehirdeki Mia ile Leo için kavanoz doldur.
+HOWTO_AUTUMN_3,"Hiçbir şey seni aceleye getirmez. Gün, Nine yatağa gidince biter."
 HOWTO_FORAGE,Toplama
-HOWTO_FORAGE_1,Bahçe kapısının ötesindeki orman her sabah yeniden büyür.
+HOWTO_FORAGE_1,Bahçe kapısının ötesindeki orman her sabah yeniden büyür; aynı günü iki kez vermez.
 HOWTO_FORAGE_2,"Yürü (WASD / tıkla), ağaçları salla ve topla (E / tıkla)."
-HOWTO_FORAGE_3,Her gün yeni türler çıkar.
+HOWTO_FORAGE_3,Her gün yeni türler çıkar. Nine'nin İşleri notu (sağ üst) sıradaki adımı gösterir.
 HOWTO_COOK,Pişirme
 HOWTO_COOK_1,"Ocakta tarif seç, Pişir'e bas."
-HOWTO_COOK_2,20 saniyelik bir mutfak oyunu yıldızları belirler.
+HOWTO_COOK_2,Kısa bir mutfak oyunu yıldızları belirler.
 HOWTO_COOK_3,"Her kavanozun kendi adı, tadı ve değeri olur. 'Buluş yap' her şeyi karıştırıp yeni yemekler çıkarır."
 HOWTO_PANTRY,Kiler
 HOWTO_PANTRY_1,"Kavanozları doğru raflara koy, türleri bir arada tut."
 HOWTO_PANTRY_2,Güzel bir raf diz.
 HOWTO_PANTRY_3,"Üç yıldız, Nine'ye yarın daha çok enerji verir."
 HOWTO_SHARE,Paylaşma
-HOWTO_SHARE_1,"Komşuların siparişleri, her yedinci gün de pazar."
-HOWTO_SHARE_2,Torunlara mektuplar ve koliler.
-HOWTO_SHARE_3,Esc: menü. B: tarif defteri.
+HOWTO_SHARE_1,Komşuların siparişleri ve her yedinci gün kurulan pazar altın getirir.
+HOWTO_SHARE_2,Torunların mektupları oturma odasında bekler; koliyi postane gönderir.
+HOWTO_SHARE_3,Esc: menü. B: tarif defteri. M: ses.
 TODO_HINT_D1_SHAKE,"Hadi elma ağacını silkeleyelim: yanına git, E'ye bas ya da ağaca tıkla."
 TODO_HINT_D1_JAM,Ne güzel elmalar! Mutfağa girip ocakta reçel pişirelim.
 TODO_HINT_D1_PANTRY,Şimdi kavanoz kilerdeki rafa. Kilerin kapısı mutfakta.

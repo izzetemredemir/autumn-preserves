@@ -5,7 +5,7 @@
 <h1 align="center">Autumn Preserves</h1>
 
 <p align="center">
-  <b>A cozy pixel-art game about a grandma who puts an endless autumn in jars.</b><br>
+  <b>A cozy pixel-art game about a grandma who puts autumn in jars for the ones living through winter.</b><br>
   Every forest, every ingredient and every jar is procedurally generated from one seed.
 </p>
 
@@ -32,7 +32,7 @@
 
 ## The story
 
-Outside the valley of **Everfall** it is winter. Inside, autumn never ends. For fifty years **Granny Tonty** and **Teo** filled their pantry together: he knew the forest, which tree would fruit on which morning and where the mushrooms hid, and she knew the kitchen. Every autumn they sent parcels of jars over the mountain road to their daughter **Nora** and her children, **Mia** and **Leo**, in the city.
+Outside the valley of **Everfall** it is winter. Inside, autumn stays, for as long as someone keeps giving it away. For fifty years **Granny Tonty** and **Teo** filled their pantry together: he knew the forest, which tree would fruit on which morning and where the mushrooms hid, and she knew the kitchen. Every autumn they sent parcels of jars over the mountain road to their daughter **Nora** and her children, **Mia** and **Leo**, in the city.
 
 This summer Teo died. The shelves are empty and the garden gate has been shut ever since. Then a letter comes from Nora: it snowed in the city this morning, the children keep asking when Granny's jars will come, and *"Send us a little autumn. One jar is enough to start."*
 
