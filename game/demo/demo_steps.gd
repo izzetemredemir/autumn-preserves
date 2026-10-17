@@ -12,6 +12,8 @@ const TRANSITION := "res://ui/transition/transition.gd"
 const TODO := "res://ui/tutorial/granny_todo.gd"
 const LETTERS_UI := "res://ui/letters/letters_ui.gd"
 const BOOK := "res://ui/book/book.gd"
+const FESTIVAL := "res://ui/festival/festival.gd"
+const FESTIVAL_FACTS := "res://ui/festival/festival_facts.gd"
 
 var _recording := false
 var _book: Node = null
@@ -74,6 +76,51 @@ func load_demo(to: String = "garden", params: Dictionary = {}) -> void:
 	load(TODO).ensure()
 	if to != "":
 		load(TRANSITION).go(to, params)
+
+
+## DEMO-02B · The Harvest Festival save (seed 24, day 14) as a temporary game, as the title's button loads it, with
+## its director (the rare tree's marker, the cards); then `to`. With to = "" (a recording that starts inside a scene,
+## at t = 0) `params` become Router.params for that first scene, e.g. {"biome": "forest", "grow": true} for the
+## forest growing from its seed. `skip_start`: no start card in the garden (the trailer).
+func festival_load(to: String = "", params: Dictionary = {}, skip_start: bool = false) -> void:
+	var d: Dictionary = load(FESTIVAL_FACTS).load_save()
+	if d.is_empty():
+		push_warning("demo: no festival save")
+		return
+	if skip_start:
+		d.flags.festival["started"] = true
+	_gs().data = d
+	_gs().notify(PackedStringArray(["*"]))
+	load(TODO).ensure()
+	load(FESTIVAL).ensure()
+	if to != "":
+		load(TRANSITION).go(to, params)
+	else:
+		get_node("/root/Router").params = params
+
+
+## A button of the festival's start or end card ("go", "keep", "title"), as a click would.
+func festival_choose(id: String) -> void:
+	var f := get_tree().get_first_node_in_group("festival")
+	var card: Variant = f.get("_card") if f != null else null
+	if card is Node and is_instance_valid(card):
+		card._choose(id)
+	else:
+		push_warning("demo: no festival card")
+
+
+## The title without its menu: the painting, the name and the slogan (the trailer's last card). Called with the
+## go("title") that leads there, it waits (up to 3 s) for the title to load behind the transition.
+func title_card() -> void:
+	for i in 180:
+		var scene := _scene()
+		var menu: CanvasItem = null
+		if scene != null:
+			menu = scene.get_node_or_null("%Menu") as CanvasItem
+		if menu != null:
+			menu.visible = false
+			return
+		await get_tree().process_frame
 
 
 # ---------------------------------------------------------------- Seed Lab
@@ -239,6 +286,21 @@ func speed(scale: float) -> void:
 	Engine.time_scale = scale
 
 
+## DEMO-02B · Cook with the mini-game playing itself, without waiting for it (the press keeps its own wall clock, so
+## a recording shows a few beats and ends it with kitchen_finish).
+func kitchen_start(duration: float = 30.0) -> void:
+	var k := _scene()
+	k.debug_ctx = {"autoplay": true, "duration": duration}
+	k._panel._on_cook()
+
+
+## Ends the running mini-game with `stars` (what its last beat would send); the kitchen shows the result card.
+func kitchen_finish(stars: int = 2) -> void:
+	var mg: Variant = _scene().get("_mg")
+	if mg is Node and is_instance_valid(mg) and mg.has_signal("finished"):
+		mg.finished.emit({"stars": stars})
+
+
 ## Closes the result card (its button).
 func card_close() -> void:
 	var card: Node = _scene().get("_card")
@@ -321,6 +383,34 @@ func _free_cell(board: Control, item: Dictionary) -> Vector2i:
 
 func pantry_auto() -> void:
 	_scene()._on_auto()
+
+
+## DEMO-02B · Drags the inbox jar whose key holds `prefer` (else the newest) onto shelf cell (x, y) over `sec`: the
+## festival's new jam into the room shelf's gap, which gives the pantry its third star.
+func pantry_drag_to(x: int, y: int, prefer: String = "", sec: float = 1.2) -> void:
+	var p := _scene()
+	var board: Control = p.board
+	var inbox: Array = _gs().data.inbox
+	var index := -1
+	for i in range(inbox.size() - 1, -1, -1):
+		if String(inbox[i].get("kind", "")) != "product":
+			continue
+		if prefer == "" or String(inbox[i].get("key", "")).contains(prefer):
+			index = i
+			break
+	if index < 0:
+		push_warning("demo: no jar %s in the inbox" % prefer)
+		return
+	var item: Dictionary = inbox[index]
+	var start: Vector2 = p.inbox_view.get_global_transform_with_canvas() * Vector2(p.inbox_view.slot_rect(index).get_center())
+	if not board.begin_hold(item, {"where": "inbox", "index": index}, start):
+		return
+	var from: Vector2 = board.get_global_transform_with_canvas().affine_inverse() * start
+	var to := Vector2(board.cell_rect(Vector2i(x, y)).get_center())
+	var t := create_tween()
+	t.tween_method(_hold_at.bind(board), from, to, sec).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	t.tween_interval(0.15)
+	t.tween_callback(_drop.bind(board))
 
 
 # ---------------------------------------------------------------- town and letters
@@ -454,6 +544,20 @@ func market_speed() -> void:
 	_scene()._on_speed()
 
 
+## DEMO-02B · Ends the parade the way Esc does: the rest of the buyers settle at once and the end card shows.
+func market_finish() -> void:
+	var m := _scene()
+	if int(m.get("_phase")) == 1:  # market.gd Phase.PARADE
+		m._t = m._t_end
+		m._step_parade()
+		m._finish()
+
+
+## The end card's "To town" (or Back while setting up).
+func market_back() -> void:
+	_scene()._on_back()
+
+
 # ---------------------------------------------------------------- garden (GARDEN-LIFE)
 
 ## The day's weather before the garden scene loads (a recording that starts in it: --scene garden.tscn), so its hens,
@@ -471,3 +575,13 @@ func garden_use(id: String) -> void:
 		push_warning("demo: no garden prop %s" % id)
 		return
 	g.approach_prop(p)
+
+
+## DEMO-02B · A click on a garden spot ("mailbox", "door", "compost", ...): Granny walks over and uses it.
+func garden_spot(kind: String) -> void:
+	var g := _scene()
+	var s: Node = g.find_spot(kind)
+	if s == null:
+		push_warning("demo: no garden spot %s" % kind)
+		return
+	g.tap_world(s.hit_rect().get_center())
