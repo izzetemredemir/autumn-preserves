@@ -5,6 +5,7 @@ extends Node2D
 ## wooden fence (left, right, bottom, with gaps for the gate and the town road). All sprites, integer positions.
 
 const Layout := preload("res://scenes/garden/garden_layout.gd")
+const Props := preload("res://scenes/garden/garden_props.gd")
 const T := 16
 const GROUND := preload("res://assets/sprites/garden/garden_ground.png")
 const DECOR := preload("res://assets/sprites/garden/garden_decor.png")  ## 16x12 frames: Layout.D_*
@@ -17,8 +18,11 @@ const RUN_TO_POST := 13
 
 func _draw() -> void:
 	draw_texture(GROUND, Vector2.ZERO)
+	var covered := Props.blocked(Props.data())  # GARDEN-LIFE: no decor under a prop or in the hens' run
 	for d in Layout.DECOR:
 		var c: Vector2i = d[0]
+		if covered.has(c):
+			continue
 		var pos := Vector2(c.x * T, (c.y + 1) * T - DECOR_SIZE.y)
 		_frame(DECOR, int(d[1]), DECOR_SIZE, pos)
 	var bottom := Layout.H - 1

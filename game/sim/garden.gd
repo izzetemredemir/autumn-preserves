@@ -2,6 +2,29 @@ class_name Garden
 extends RefCounted
 ## SIM-04 · Garden actions (spec §5, §7.5, §8.1). Trees refill rules.garden.tree_refill_days after shaking.
 ## Shaken fruit and harvests go into the bag. Random draws use stream "garden" with the current day and a sub per spot.
+## GARDEN-LIFE: the garden's hives leave HIVE_HONEY honey in the cupboard on the night before every HONEY_EVERY-th day.
+
+const HONEY_EVERY := 4
+const HIVE_HONEY := 1
+
+
+## True on the mornings the hives have left honey (day 4, 8, 12, ...). No RNG: same day, same answer.
+static func honey_day(day: int) -> bool:
+	return day > 0 and day % HONEY_EVERY == 0
+
+
+## Days from `day` until the next honey morning (1..HONEY_EVERY; HONEY_EVERY on a honey morning itself).
+static func days_to_honey(day: int) -> int:
+	return HONEY_EVERY - posmod(day, HONEY_EVERY)
+
+
+## Night step (DayEnd, after the day number moves on): on a honey morning the hives add HIVE_HONEY honey to the
+## cupboard. Old saves without honey start from 0. Events [{"type": "honey", "count"}] or [].
+static func night_honey(state: Dictionary) -> Array:
+	if not honey_day(int(state.day)):
+		return []
+	state.cupboard["honey"] = int(state.cupboard.get("honey", 0)) + HIVE_HONEY
+	return [{"type": "honey", "count": HIVE_HONEY}]
 
 
 static func shake_tree(state: Dictionary, tree_index: int) -> Dictionary:

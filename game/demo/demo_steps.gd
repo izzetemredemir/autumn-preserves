@@ -433,3 +433,22 @@ func market_open() -> void:
 
 func market_speed() -> void:
 	_scene()._on_speed()
+
+
+# ---------------------------------------------------------------- garden (GARDEN-LIFE)
+
+## The day's weather before the garden scene loads (a recording that starts in it: --scene garden.tscn), so its hens,
+## bees and butterflies follow it.
+func garden_prep(weather := "sunny") -> void:
+	_gs().data.weather = weather
+	_gs().notify(PackedStringArray(["weather"]))
+
+
+## Granny walks to a garden prop ("truck", "coop", "hive_1", "scarecrow", "bench") and uses it, as a click would.
+func garden_use(id: String) -> void:
+	var g := _scene()
+	var p: Node = g.find_prop(id)
+	if p == null:
+		push_warning("demo: no garden prop %s" % id)
+		return
+	g.approach_prop(p)

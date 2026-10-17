@@ -11,6 +11,7 @@ extends RefCounted
 ##         (hops). "lift" is the perch height in px above the cell's feet; "feet" (garden fence) overrides the position.
 ##   hedgehog: in the leaves, curls up when Granny is close. frog: on a creek bank next to the water.
 ##   ring: a fish ring on a water cell.
+##   butterfly (garden): over the flower clump on `cell`, "tint" 0|1; GardenButterfly draws it, not Critter.
 ## Order is stable: birds are listed so that rain keeps the first ones.
 
 const MAX_NODES := 40  ## per map, the frame-time budget
@@ -23,6 +24,8 @@ const N4 := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 ## Garden fence: the bottom row's post caps; a perched bird stands 3 px under the cell's top edge.
 const FENCE_STAND := 3
 const GARDEN_LAWN_ROWS := Vector2i(3, 14)
+const GARDEN_SQUIRREL_TREES := ["apple", "walnut"]  ## GARDEN-LIFE: a squirrel at the foot of each
+const BUTTERFLY_TINTS := 2
 
 
 ## Placements for a wild map (WildGen.generate output) on `day`. Empty for an empty map.
@@ -57,8 +60,10 @@ static func wild(map: Dictionary, save_seed: int, day: int, weather: String) -> 
 	return _finish(out, birds, weather)
 
 
-## Placements for the garden: a robin on the bottom fence and a sparrow or two on the lawn. `walkable(cell) -> bool`
-## says which lawn cells are free (the scene knows about beds, trees and signs).
+## Placements for the garden: a robin on the bottom fence and a sparrow or two on the lawn, then (GARDEN-LIFE) a
+## squirrel at the apple and the walnut tree and one or two late butterflies over flower clumps, none in rain. The new
+## ones are drawn after the birds, so the birds of a day stay where they were. `walkable(cell) -> bool` says which
+## lawn cells are free (the scene knows about beds, trees, signs and props).
 static func garden(save_seed: int, day: int, weather: String, walkable: Callable) -> Array:
 	var r := Seeds.rng(save_seed, "critters:garden", day)
 	var posts: Array = []
@@ -77,7 +82,18 @@ static func garden(save_seed: int, day: int, weather: String, walkable: Callable
 				lawn.append(c)
 	for c in _pick(lawn, r.randi_range(1, 2), r):
 		birds.append({"kind": "bird", "species": "sparrow", "cell": c, "perch": false})
-	return _finish([], birds, weather)
+	var out := _finish([], birds, weather)
+	for t in GARDEN_SQUIRREL_TREES:
+		out.append({"kind": "squirrel", "cell": Layout.TREES[t]})
+	var flowers: Array = []
+	for d in Layout.DECOR:
+		if int(d[1]) in [Layout.D_FLOWERS_RED, Layout.D_FLOWERS_GOLD] and walkable.is_valid() and bool(walkable.call(d[0])):
+			flowers.append(d[0])
+	for c in _pick(flowers, r.randi_range(1, 2), r):
+		var fly := {"kind": "butterfly", "cell": c, "tint": r.randi_range(0, BUTTERFLY_TINTS - 1)}
+		if weather != "rainy":
+			out.append(fly)
+	return out.slice(0, MAX_NODES)
 
 
 ## How many of `n` birds are out in `weather`: rain leaves RAIN_BIRD_SHARE of them (rounded), other weather all.

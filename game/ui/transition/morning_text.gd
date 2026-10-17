@@ -9,7 +9,7 @@ const MAX_NOTABLE := 6
 ## onto two rows, so the notable lines are capped by rows, not by count (QA-WEEK: the day-8 card was 283 px).
 const MAX_ROWS := 10
 const ROW_CHARS := 32  ## about the card's 236 px at 18 px text, with room for word wrap
-const NOTABLE := ["matured", "stalled", "grown", "tree_refilled", "order_new", "spoiled", "fertilizer"]
+const NOTABLE := ["matured", "stalled", "grown", "tree_refilled", "honey", "order_new", "spoiled", "fertilizer"]
 const MANY := ["UI_NIGHT_GROWN", "UI_NIGHT_MATURED"]
 
 
@@ -75,6 +75,8 @@ static func line(e: Dictionary, state: Dictionary) -> Dictionary:
 			return _l("UI_NIGHT_GROWN", [type_name(String(e.get("crop", ""))).to_lower()])
 		"tree_refilled":
 			return _l("UI_NIGHT_TREE", [type_name(String(e.get("tree_type", ""))).to_lower()])
+		"honey":
+			return _l("UI_NIGHT_HONEY", [])
 		"order_new":
 			var npc := String(e.get("order", {}).get("npc", ""))
 			return _l("UI_NIGHT_ORDER", [npc_name(npc)])

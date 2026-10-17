@@ -4,12 +4,15 @@ extends SceneTree
 ## Taps the apple tree (energy -3, bag +2..3), buys a cucumber seed and plants it in an empty bed through the
 ## plant menu, makes a letter arrive (mailbox flag up), ripens two beds for the shot, opens and closes the
 ## letters overlay from the mailbox, then taps the door and checks the bag went to the inbox and the kitchen opened.
-## Saves user://shots/garden_start.png, garden_menu.png, garden.png, garden_letters.png.
+## GARDEN-LIFE: checks the props block their cells, walks Granny to the truck (a line) and to the hens (they scatter).
+## Saves user://shots/garden_start.png, garden_menu.png, garden.png, garden_letters.png, garden_rest.png,
+## garden_truck.png, garden_hens.png.
 ## Exit code 1 on a failed check or timeout.
 ## Autoloads are reached through the root and scene scripts by path (SceneTree scripts can't name autoloads).
 
 const SEED := 1
-const TIMEOUT_FRAMES := 3600
+const TIMEOUT_FRAMES := 5400
+const _props := preload("res://scenes/garden/garden_props.gd")
 const DIR := "user://shots"
 
 var _frames := 0
@@ -109,6 +112,34 @@ func _run() -> void:
 	_check(_scene.get("menu") == null, "letters closed, Granny walks again")
 	_check(int(mailbox.get("unread")) == 0, "mailbox flag is down after reading")
 
+	# 3b. GARDEN-LIFE: the props block their cells; Granny walks to Walter's truck (a line), then to the hens' run
+	# (they scatter, a hen line); the garden at rest first
+	for id in ["truck", "coop", "hive_1", "hive_2", "clothesline", "scarecrow", "bench"]:
+		var pr: Node = _scene.find_prop(id)
+		_check(pr != null, "prop %s stands in the garden" % id)
+		for c: Vector2i in pr.get("info").blocked:
+			_check(not bool(_scene._walkable(c)), "%s blocks %s" % [id, c])
+	_check(_scene.get("hens").size() == 4, "three hens and a rooster")
+	_check(_scene.get("crows").size() >= 2, "crows on the scarecrow")
+	await _frames_wait(30)
+	_shot("garden_rest")
+	var truck: Node = _scene.find_prop("truck")
+	_scene.tap_world(truck.hit_rect().get_center())
+	await _until(func() -> bool: return _bubbles() > 0)
+	await _frames_wait(20)
+	_check(_scene.granny.current_cell() in _props.prop(_props.data(), "truck").interact or _scene.prop_at_cell(
+		_scene.granny.facing_cell()) == truck, "Granny stands at the truck, facing it")
+	_shot("garden_truck")
+	await _until(func() -> bool: return _bubbles() == 0)
+	_scene.tap_world(_scene.find_prop("coop").hit_rect().get_center())
+	await _until(func() -> bool: return _scared() > 0)
+	await _frames_wait(8)
+	_check(_scared() >= 3, "the hens scatter as Granny comes to the run (%d)" % _scared())
+	_shot("garden_hens")
+	await _until(func() -> bool: return _bubbles() > 0)
+	await _until(func() -> bool: return _scared() == 0)
+	_check(true, "the hens go back to pecking")
+
 	# 4. walk to the door -> kitchen, the bag empties into the inbox
 	bag = _bag_count(_gs.data)
 	_scene.tap_world(_scene.find_spot("door").hit_rect().get_center())
@@ -119,6 +150,21 @@ func _run() -> void:
 	_check(String(root.get_meta(&"garden_return", "")) == "door", "the garden remembers she left by the door")
 	print("GARDEN SMOKE OK")
 	quit(0)
+
+
+## Bubbles (paper panels) showing in the garden's fx layer.
+func _bubbles() -> int:
+	var n := 0
+	for c in _scene.get("fx").get_children():
+		n += 1 if c is PanelContainer else 0
+	return n
+
+
+func _scared() -> int:
+	var n := 0
+	for h in _scene.get("hens"):
+		n += 1 if h.is_scared() else 0
+	return n
 
 
 func _tree(type: String) -> Node:

@@ -1,0 +1,8 @@
+[
+	{"t": 0.0, "do": "load_demo", "args": [""], "note": "recorded with --scene res://scenes/garden/garden.tscn: the demo save before the garden loads"},
+	{"t": 0.0, "do": "garden_prep", "args": ["sunny"], "note": "a sunny morning: bees and butterflies are out, the rooster crows"},
+	{"t": 1.8, "do": "garden_use", "args": ["coop"], "note": "Granny walks to the hens; they scatter, a hen line"},
+	{"dt": 3.4, "do": "garden_use", "args": ["truck"], "note": "Walter's truck: the crow on the roof flies off, a line about Walter"},
+	{"dt": 3.8, "do": "wild_walk", "args": [21, 12], "note": "down the road through a leaf pile"},
+	{"dt": 3.0, "quit": true, "note": "12 s in all"}
+]

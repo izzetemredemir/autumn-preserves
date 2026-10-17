@@ -677,6 +677,24 @@ MARKET_HELLO_3,Jam or pickles?
 MARKET_HELLO_4,"Nice day, isn't it?"
 TITLE_MARKET_DAY,Market day
 TITLE_MARKET_DAY_TIP,"The demo day moved to its first weekly market, straight to Granny's stall. Your own save stays untouched."
+GARDEN_TRUCK_1,Walter's old truck. It hasn't\nstarted in years but it still\ncarries the pumpkins.
+GARDEN_TRUCK_2,Walter drove us to market\nin this every Saturday.\nHe sang the whole way.
+GARDEN_TRUCK_3,He always said she just\nneeded a little rest.\nShe's having a long one.
+GARDEN_TRUCK_4,His gloves are still\nin the glovebox. Just in case.
+GARDEN_HENS_1,Hello ladies.\nBusy morning?
+GARDEN_HENS_2,Cluck cluck. Somebody\nwants the apple peels.
+GARDEN_HENS_3,The rooster thinks\nhe runs this garden.
+GARDEN_HIVES_DAYS,Busy bees.\nHoney in %d days.
+GARDEN_HIVES_TOMORROW,Busy bees.\nHoney tomorrow morning.
+GARDEN_HIVES_TODAY,Fresh honey this morning.\nThank you bees!
+GARDEN_HIVES_RAIN,The bees stay in\nwhen it rains.
+GARDEN_SCARECROW_1,He wears Walter's old coat.\nThe crows like him anyway.
+GARDEN_SCARECROW_2,The crows aren't scared of him.\nThey just like the view.
+GARDEN_SCARECROW_3,A new hat this autumn.\nHe looks rather dashing.
+GARDEN_BENCH_1,A cup of tea and a blanket.\nThe garden can wait a minute.
+GARDEN_BENCH_2,Walter built this bench.\nIt still fits two.
+GARDEN_BENCH_3,Sit. Breathe. Listen.\nThe bees are humming.
+UI_NIGHT_HONEY,The bees left honey for you.
 FAREWELL_CREDIT_MADE_BY,Made by İzzet Emre Demir
 TOWN_CALL_GROCER_1,Apples fresh today!
 TOWN_CALL_GROCER_2,Pumpkins for pies!

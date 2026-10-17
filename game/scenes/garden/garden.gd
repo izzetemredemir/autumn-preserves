@@ -4,25 +4,53 @@ extends Node2D
 ## draws, walks Granny and answers every action (motion, sound, bubble or toast).
 ## Router.params: "from" ("wild" | "town" | else the house door) picks where Granny appears (the scene also
 ## remembers which exit she left by); "seed" only when no game is running (scene run alone -> start_temp).
+## GARDEN-LIFE: the props of garden_props.json (Walter's truck, the hens and their run, hives, clothesline, scarecrow,
+## bench) stand y-sorted with Granny and block their cells; clicking one walks her to it and she says a line. Hens,
+## bees, crows, butterflies, squirrels, chimney smoke and leaf piles are cosmetic and never saved.
 
 const Fx := preload("res://scenes/wild/wild_fx.gd")
 const Layout := preload("res://scenes/garden/garden_layout.gd")
+const Props := preload("res://scenes/garden/garden_props.gd")
+const Leaves := preload("res://actors/garden_life/garden_leaves.gd")
 const PlantMenu := preload("res://scenes/garden/plant_menu.gd")
 const GRANNY := preload("res://player/granny.tscn")
 const RETURN_META := &"garden_return"  ## on the root window: the exit Granny left by, for her way back
+const ROOSTER_META := &"garden_rooster_day"  ## on the root window: the day the rooster last crowed (not saved)
 const BIOME := "forest"  ## the gate goes straight here until a second wild opens (vineyard key, rubber boots)
 const C_HUSK := Color("b7b768")  ## olive_300
 const FOREST_DB := -8.0  ## forest ambience in the background here; the wild plays it full
+## Props Granny can use, by kind ("hive_2" -> "hive"; the run and its fence count as "coop"), with their line count.
+const USABLE := {"truck": 4, "coop": 3, "hive": 0, "scarecrow": 3, "bench": 3}
+const HUD_H := 32  ## px under the screen's top edge that the HUD covers: bubbles stay below it
+const HENS_NEAR_PX := 18.0  ## Granny's feet this close to the run: the hens scatter
+const HIVE_NEAR := 2  ## cells (Chebyshev) from a hive: the bees buzz
+const CLUCK_SEC := Vector2(10.0, 24.0)
+const BEES_PER_HIVE := 4
+const BEE_FLOWER_PX := 80.0
+const LEAF_PILE_MS := 900  ## a pile bursts at most this often
 
 var granny: Granny
 var spots: Array[GardenSpot] = []
 var menu: Node  ## the open plant menu, or null
 var cat: Cat  ## Granny's cat (P2-CAT): naps at today's spot, wanders a little, purrs when petted
+var props: Array[GardenProp] = []
+var hens: Array[GardenHen] = []
+var crows: Array[GardenCrow] = []
+var butterflies: Array[GardenButterfly] = []
+var _props_data: Dictionary
+var _prop_cells := {}  ## cell -> prop id (the run's cells -> "coop")
 var _last_pet_line := 0
+var _last_line := {}  ## prop kind -> last line number said
 var _blocked := {}
 var _leaving := false
+var _near_run := false
+var _near_hive := false
+var _cluck_in := 12.0
+var _leaf_piles := {}  ## cell -> ticks msec of its last burst
+var _rng := RandomNumberGenerator.new()  ## visual randomness only (which line, which hen clucks)
 
 @onready var ground: TileMapLayer = $Ground
+@onready var backdrop: Node2D = $Backdrop
 @onready var objects: Node2D = $Objects
 @onready var fx: Node2D = $Fx
 @onready var camera: FollowCamera = $Camera
@@ -32,8 +60,10 @@ func _ready() -> void:
 	if not GameState.has_game():
 		GameState.start_temp(int(Router.params.get("seed", 1)))
 	Garden.ensure_beds(GameState.data)  # saves that bought the beds before they existed in the list
+	_rng.randomize()
 	_paint_ground()
 	_build_spots()
+	_build_props()
 	granny = GRANNY.instantiate()
 	objects.add_child(granny)
 	var spawn: Array = Layout.spawn(_came_from())
@@ -42,6 +72,7 @@ func _ready() -> void:
 	granny.interact_requested.connect(_on_interact)
 	_build_cat()
 	_build_critters()
+	_build_life()
 	camera.target = granny
 	camera.bounds = Rect2i(0, 0, Layout.W * Layout.TILE, Layout.VIEW_H)
 	camera.snap()
@@ -52,13 +83,16 @@ func _ready() -> void:
 	_update_rain_sound()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if granny == null:
 		return
 	cat.near_granny = CatRules.near(cat.cell, granny.current_cell())
 	var facing: GardenSpot = null
+	var facing_prop: GardenProp = null
 	if not granny.is_moving() and menu == null and not _leaving:
 		facing = spot_at_cell(granny.facing_cell())
+		if facing == null and granny.facing_cell() != cat_cell():  # the cat on the hood or bench comes first
+			facing_prop = prop_at_cell(granny.facing_cell())
 	var todo := _todo_spot()
 	var near_gate := _near_gate()
 	for s in spots:
@@ -66,6 +100,9 @@ func _process(_delta: float) -> void:
 		s.glow = s == todo
 		if s.kind == "gate":
 			s.set_open(near_gate)
+	for p in props:
+		p.highlighted = facing_prop != null and use_kind(p) == use_kind(facing_prop)
+	_tick_life(delta)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -82,6 +119,10 @@ func tap_world(p: Vector2) -> void:
 			Fx.bubble(fx, cat.top(), tr("WILD_CANT_REACH"))
 		return
 	var s := spot_at_point(p)
+	var pr := prop_at_point(p)
+	if pr != null and (s == null or pr.position.y > s.position.y):
+		approach_prop(pr)
+		return
 	if s == null and Layout.HOUSE.has_point(Granny.point_to_cell(p)):
 		s = find_spot("door")  # the whole cottage front leads to its door
 	if s == null:
@@ -125,6 +166,10 @@ func _on_interact(cell: Vector2i) -> void:
 	var s := spot_at_cell(cell)
 	if s != null:
 		_use(s)
+		return
+	var p := prop_at_cell(cell)
+	if p != null:
+		use_prop(p)
 
 
 func _on_stepped(cell: Vector2i) -> void:
@@ -134,6 +179,7 @@ func _on_stepped(cell: Vector2i) -> void:
 		_go_town()
 	else:
 		Audio.play_sfx("sfx_step_leaves" if Layout.ground(cell) == Layout.T_LEAVES else "sfx_step_grass")
+		_leaf_pile(cell)
 
 
 func _use(s: GardenSpot) -> void:
@@ -388,20 +434,345 @@ func _build_spots() -> void:
 
 
 ## The cat naps at today's spot (CatRules). Its cell is not walkable, so Granny can face it and pet it.
+## GARDEN-LIFE: on a prop (the truck hood, the bench) it sits at the json's feet point, drawn over the prop (its feet
+## are above the prop's sort line), and stays put.
 func _build_cat() -> void:
 	var spot := CatRules.spot_for(int(GameState.data.save_seed), int(GameState.data.day))
+	var cell: Vector2i = spot.cell
+	var seat := Props.cat_spot(_props_data, String(spot.id)) if spot.has("prop") else {}
+	if not seat.is_empty():
+		cell = seat.cell
 	cat = Cat.new()
 	objects.add_child(cat)
-	cat.setup(Seeds.seed_for(int(GameState.data.save_seed), "cat_walk", int(GameState.data.day)), spot.cell)
-	cat.wander_walkable = _cat_may_walk
+	cat.setup(Seeds.seed_for(int(GameState.data.save_seed), "cat_walk", int(GameState.data.day)), cell)
+	if not seat.is_empty():
+		cat.position = Vector2(seat.px)
+		cat.z_index = 1
+	else:
+		cat.wander_walkable = _cat_may_walk
 
 
-## WILD-LIFE: a robin on the fence and a sparrow or two on the lawn (cosmetic, not saved).
+## WILD-LIFE: a robin on the fence and a sparrow or two on the lawn; GARDEN-LIFE: squirrels at the apple and walnut
+## trees, late butterflies over the flowers (cosmetic, not saved). Butterflies are GardenButterfly, the rest Critter.
 func _build_critters() -> void:
 	var s: Dictionary = GameState.data
 	var weather := String(s.get("weather", "sunny"))
 	var lawn := func(c: Vector2i) -> bool: return _walkable(c) and not spot_blocks(c)
-	CritterLayer.attach(objects, CritterRules.garden(int(s.save_seed), int(s.day), weather, lawn), granny, weather)
+	var list: Array = []
+	for p: Dictionary in CritterRules.garden(int(s.save_seed), int(s.day), weather, lawn):
+		if p.kind == "butterfly":
+			var b := GardenButterfly.new()
+			fx.add_child(b)
+			b.setup(p, hash([butterflies.size(), int(s.day)]))
+			butterflies.append(b)
+		else:
+			list.append(p)
+	CritterLayer.attach(objects, list, granny, weather)
+
+
+## GARDEN-LIFE: the props, y-sorted with Granny (or under everything with "z": "back": the truck's gravel, the run's
+## back fence); their cells block her. The truck bed carries the calendar week's load.
+func _build_props() -> void:
+	_props_data = Props.data()
+	var d: Dictionary = GameState.data
+	var weather := String(d.get("weather", "sunny"))
+	for p: Dictionary in _props_data.props:
+		var n := GardenProp.new()
+		(backdrop if p.z == "back" else objects).add_child(n)
+		n.setup(p, weather)
+		props.append(n)
+		if n.kind == "truck" and _props_data.truck_bed.x >= 0:
+			n.set_load(GardenLifeRules.truck_load(int(d.day)), _props_data.truck_bed)
+	_prop_cells = Props.blocked(_props_data)
+	for c in _prop_cells:
+		_blocked[c] = true
+	for dec in Layout.DECOR:
+		if dec[1] == Layout.D_LEAVES and not _prop_cells.has(dec[0]):
+			_leaf_piles[dec[0]] = -LEAF_PILE_MS
+
+
+## GARDEN-LIFE: hens and the rooster in the run, crows on their perches (scarecrow, truck roof, hen house ridge), bees
+## at the hives (not in rain), chimney smoke where it shows.
+func _build_life() -> void:
+	var d: Dictionary = GameState.data
+	var day := int(d.day)
+	var weather := String(d.get("weather", "sunny"))
+	var run := Props.run_px(_props_data)
+	if run.has_area():
+		var coop := _footprint(Props.prop(_props_data, "coop"))
+		var area := GardenLifeRules.area(run, coop, weather == "rainy")
+		var avoid: Array = [coop] if coop.has_area() else []
+		var i := 0
+		for h: Dictionary in GardenLifeRules.flock():
+			var hen := GardenHen.new()
+			objects.add_child(hen)
+			hen.setup(String(h.kind), int(h.variant), GardenLifeRules.route(int(d.save_seed), day, i, area, avoid), area,
+				avoid, hash([i, day]))
+			hens.append(hen)
+			i += 1
+	var i := 0
+	for on in _props_data.perches:  # crows on the scarecrow, the truck roof, the hen house ridge
+		var under := find_prop(String(on))
+		if under == null:
+			continue
+		for perch: Vector2i in _props_data.perches[on]:
+			var c := GardenCrow.new()
+			objects.add_child(c)
+			c.setup(perch, int(under.position.y), hash([i, day, "crow"]))
+			crows.append(c)
+			i += 1
+	if weather != "rainy":
+		for p in props:
+			if p.kind == "hive":
+				var r := p.hit_rect()
+				var door := Vector2(roundf(r.get_center().x), r.end.y + 3)  # bees hover in front of the hive
+				var bees := GardenBees.new()
+				fx.add_child(bees)
+				bees.setup(door, _flowers_near(door), BEES_PER_HIVE, hash([p.id, day]))
+	# chimney smoke only where it can be seen: in the 480x270 view the chimney sits under the HUD bar (taller windows
+	# show it)
+	var view_top := minf(0.0, (Layout.VIEW_H - get_viewport_rect().size.y) * 0.5)  # FollowCamera centres a taller view
+	if _props_data.chimney.x >= 0 and _props_data.chimney.y - GardenSmoke.RISE * 0.5 > view_top + HUD_H:
+		var smoke := GardenSmoke.new()
+		fx.add_child(smoke)
+		smoke.setup(_props_data.chimney, weather == "windy")
+	var root := get_tree().root
+	if int(root.get_meta(ROOSTER_META, -1)) != day and not hens.is_empty():
+		root.set_meta(ROOSTER_META, day)
+		get_tree().create_timer(1.0).timeout.connect(_rooster_crow)
+
+
+## The rooster's morning call, once a day when Granny first steps out.
+func _rooster_crow() -> void:
+	if not is_instance_valid(self) or hens.is_empty() or _leaving:
+		return
+	for h in hens:
+		if h.kind == "rooster":
+			h.crow()
+	Audio.play_sfx("sfx_rooster", false)
+
+
+## Per frame: hens scatter as Granny comes to the run, clucks now and then, crows take off, the hives buzz as she
+## passes, butterflies keep their distance.
+func _tick_life(delta: float) -> void:
+	var feet := granny.position
+	if not hens.is_empty():
+		var near := Rect2(Props.run_px(_props_data)).grow(HENS_NEAR_PX).has_point(feet)
+		if near and not _near_run:
+			scatter_hens()
+		_near_run = near
+		_cluck_in -= delta
+		if _cluck_in <= 0.0:
+			_cluck_in = _rng.randf_range(CLUCK_SEC.x, CLUCK_SEC.y)
+			hens[_rng.randi_range(0, hens.size() - 1)].cluck()
+			Audio.play_sfx("sfx_hen_cluck")
+	var took_off := false
+	for c in crows:
+		took_off = c.tick(delta, feet) or took_off
+	if took_off:
+		Audio.play_sfx("sfx_crow_caw")
+	for b in butterflies:
+		b.tick(delta, feet)
+	var near_hive := false
+	if String(GameState.data.get("weather", "sunny")) != "rainy":
+		var g := granny.current_cell()
+		for p in props:
+			if p.kind == "hive":
+				for c: Vector2i in p.info.blocked:
+					near_hive = near_hive or maxi(absi(c.x - g.x), absi(c.y - g.y)) <= HIVE_NEAR
+	if near_hive and not _near_hive:
+		Audio.play_sfx("sfx_bees_buzz", false)
+	_near_hive = near_hive
+
+
+## Every hen flaps away from Granny inside the run (and one clucks).
+func scatter_hens() -> void:
+	for h in hens:
+		h.scatter(granny.position)
+	if not hens.is_empty():
+		Audio.play_sfx("sfx_hen_cluck")
+
+
+## Granny walks through a leaf pile: a few leaves fly up.
+func _leaf_pile(cell: Vector2i) -> void:
+	if not _leaf_piles.has(cell):
+		return
+	var now := Time.get_ticks_msec()
+	if now - int(_leaf_piles[cell]) < LEAF_PILE_MS:
+		return
+	_leaf_piles[cell] = now
+	Leaves.burst(fx, Vector2(cell.x * Layout.TILE + 8, (cell.y + 1) * Layout.TILE - 3), 6)
+
+
+func find_prop(id: String) -> GardenProp:
+	for p in props:
+		if p.id == id:
+			return p
+	return null
+
+
+## What using a prop does: "truck" | "coop" | "hive" | "scarecrow" | "bench", or "" (the clothesline, others).
+func use_kind(p: GardenProp) -> String:
+	return use_kind_of(p.id)
+
+
+## The usable prop standing on `cell` (the run's cells are the hens'), or null.
+func prop_at_cell(cell: Vector2i) -> GardenProp:
+	if not _prop_cells.has(cell):
+		return null
+	var id := String(_prop_cells[cell])
+	for p in props:
+		if (p.id == id or (Props.group(id) == "coop" and use_kind(p) == "coop")) and use_kind(p) != "":
+			return p
+	return null
+
+
+## The usable prop drawn front-most under a garden point, or null.
+func prop_at_point(at: Vector2) -> GardenProp:
+	var best: GardenProp = null
+	for p in props:
+		if use_kind(p) != "" and p.hit_rect().has_point(at) and (best == null or p.position.y > best.position.y):
+			best = p
+	return best
+
+
+## Walks Granny to the prop (to the side of one of its cells next to an interact cell, nearest first), then uses it.
+func approach_prop(p: GardenProp) -> void:
+	var kind := use_kind(p)
+	var cells: Array[Vector2i] = []
+	var spots_to: Array[Vector2i] = []
+	for c in _prop_cells:
+		var q := prop_at_cell(c)
+		if q != null and use_kind(q) == kind:
+			cells.append(c)
+	for d: Dictionary in _props_data.props:
+		if use_kind_of(String(d.id)) == kind:
+			spots_to.append_array(d.interact)
+	var from := granny.dest_cell()
+	var best := Vector2i(-1, -1)
+	var best_len := 1 << 30
+	for ic in spots_to:
+		var path := granny.find_path(from, ic)
+		if path.is_empty() or path.size() >= best_len:
+			continue
+		for dir: Vector2i in Granny.DIRS:
+			if (ic + dir) in cells:
+				best = ic + dir
+				best_len = path.size()
+				break
+	if best.x < 0:  # no interact cell: any reachable side of its cells
+		cells.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return (a - from).length_squared() < (b - from).length_squared())
+		for c in cells:
+			if granny.approach(c, use_prop.bind(p)):
+				return
+		_say(tr("WILD_CANT_REACH"))
+		return
+	if not granny.approach(best, use_prop.bind(p)):
+		_say(tr("WILD_CANT_REACH"))
+
+
+func use_kind_of(id: String) -> String:
+	if Props.group(id) == "coop":
+		return "coop"
+	var k := id.rstrip("0123456789").trim_suffix("_")
+	return k if USABLE.has(k) else ""
+
+
+## Granny uses a prop: a sound, a little squash and a line in her voice.
+func use_prop(p: GardenProp) -> void:
+	if not is_instance_valid(p) or _leaving or menu != null:
+		return
+	var kind := use_kind(p)
+	if kind == "":
+		return
+	if kind != "coop":
+		p.pop()
+	match kind:
+		"truck":
+			Audio.play_sfx("sfx_truck_creak", false)
+		"coop":
+			scatter_hens()
+		"hive":
+			Audio.play_sfx("sfx_bees_buzz", false)
+			_say(_hive_line(), _clear_of(kind))
+			return
+		"bench":
+			Audio.play_ui("ui_click")
+		"scarecrow":
+			Audio.play_sfx("sfx_bush_rustle")
+	var n := GardenLifeRules.line(_rng, int(USABLE[kind]), int(_last_line.get(kind, 0)))
+	_last_line[kind] = n
+	_say(tr("GARDEN_%s_%d" % [("HENS" if kind == "coop" else kind.to_upper()), n]), _clear_of(kind))
+
+
+## The area of every prop of a kind (the run and its hen house together), for the bubble to keep clear of.
+func _clear_of(kind: String) -> Rect2:
+	var r := Rect2()
+	for p in props:
+		if use_kind(p) == kind:
+			r = p.hit_rect() if not r.has_area() else r.merge(p.hit_rect())
+	return r
+
+
+## The hives' line: when the next honey comes (rules: Garden.honey_day), or that the bees stay in on rainy days.
+func _hive_line() -> String:
+	var day := int(GameState.data.day)
+	if String(GameState.data.get("weather", "sunny")) == "rainy":
+		return tr("GARDEN_HIVES_RAIN")
+	if Garden.honey_day(day):
+		return tr("GARDEN_HIVES_TODAY")
+	var n := Garden.days_to_honey(day)
+	return tr("GARDEN_HIVES_TOMORROW") if n == 1 else tr("GARDEN_HIVES_DAYS") % n
+
+
+## A paper bubble over Granny's head with her line (like Fx.bubble), kept on screen: where it would hide under the
+## HUD or cover `keep_clear` (the thing she talks about) it goes under her feet instead.
+func _say(text: String, keep_clear := Rect2(), seconds := 2.6) -> void:
+	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"PaperPanel"
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.z_index = 50
+	var label := Label.new()
+	label.text = text
+	label.add_theme_color_override("font_color", Color("50361e"))
+	panel.add_child(label)
+	fx.add_child(panel)
+	var size := panel.get_combined_minimum_size()
+	panel.size = size
+	var view := get_canvas_transform().affine_inverse() * get_viewport_rect()
+	var x := clampf(roundf(granny.position.x - size.x * 0.5), view.position.x + 2, view.end.x - 2 - size.x)
+	var y := granny.position.y - 34 - size.y
+	if y < view.position.y + HUD_H or (keep_clear.has_area() and keep_clear.intersects(Rect2(Vector2(x, y), size))):
+		y = minf(granny.position.y + 6, view.end.y - 2 - size.y)
+	panel.position = Vector2(x, roundf(y))
+	panel.pivot_offset = Vector2(floori(size.x * 0.5), size.y)
+	panel.scale = Vector2(0.6, 0.6)
+	var t := panel.create_tween()
+	t.tween_property(panel, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(panel, "position:y", panel.position.y - 4, 0.25)
+	t.tween_interval(seconds)
+	t.tween_callback(panel.queue_free)
+
+
+## A prop's blocked cells as one rectangle in garden px (the hen house's footprint), or an empty rect.
+func _footprint(p: Dictionary) -> Rect2i:
+	var r := Rect2i()
+	for c: Vector2i in p.get("blocked", []):
+		var cell := Rect2i(c * Layout.TILE, Vector2i(Layout.TILE, Layout.TILE))
+		r = cell if not r.has_area() else r.merge(cell)
+	return r
+
+
+## Flower clumps within BEE_FLOWER_PX of a hive door that no prop covers, in garden px.
+func _flowers_near(door: Vector2) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for dec in Layout.DECOR:
+		var c: Vector2i = dec[0]
+		if dec[1] in [Layout.D_FLOWERS_RED, Layout.D_FLOWERS_GOLD] and not _prop_cells.has(c):
+			var at := Vector2(c.x * Layout.TILE + 8, c.y * Layout.TILE + 8)
+			if at.distance_to(door) <= BEE_FLOWER_PX:
+				out.append(at)
+	return out
 
 
 ## A cell a garden thing (bed, sign, tree) stands on or reaches over, for the critters' sake.

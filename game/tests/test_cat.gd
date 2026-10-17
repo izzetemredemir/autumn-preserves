@@ -2,6 +2,7 @@ extends "res://tests/_runner/test_case.gd"
 ## P2-CAT: the cat's nap spot, wandering and petting lines (CatRules, pure).
 
 const SEEDS := [1, 2, 7, 42, 314, 4242, 90210, 123456]
+const PINNED_42 := ["compost", "gate_post", "doorstep", "gate_post", "bed_edge", "doorstep", "bench", "truck_hood"]
 
 
 func _spot_cells() -> Array:
@@ -15,6 +16,11 @@ func test_spot_is_deterministic() -> void:
 	for sd in SEEDS:
 		for day in range(1, 30):
 			assert_eq(CatRules.spot_for(sd, day).id, CatRules.spot_for(sd, day).id, "seed %d day %d" % [sd, day])
+	# Pinned on purpose (GARDEN-LIFE added the truck hood and the bench: six spots, so the draw picks differently).
+	var ids: Array = []
+	for day in range(1, 9):
+		ids.append(String(CatRules.spot_for(42, day).id))
+	assert_eq(ids, PINNED_42, "seed 42, days 1-8")
 
 
 func test_spot_is_one_of_the_list_and_varies() -> void:

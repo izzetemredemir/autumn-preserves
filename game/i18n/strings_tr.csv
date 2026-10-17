@@ -677,6 +677,24 @@ MARKET_HELLO_3,Reçel mi turşu mu?
 MARKET_HELLO_4,"Güzel gün, değil mi?"
 TITLE_MARKET_DAY,Pazar günü
 TITLE_MARKET_DAY_TIP,"Demo gününün ilk haftalık pazarı, doğrudan ninenin tezgâhına. Kendi kaydına dokunmaz."
+GARDEN_TRUCK_1,Walter'ın eski kamyoneti.\nYıllardır çalışmıyor ama\nbalkabaklarını hâlâ taşıyor.
+GARDEN_TRUCK_2,Walter bizi her cumartesi\nbununla pazara götürürdü.\nYol boyu şarkı söylerdi.
+GARDEN_TRUCK_3,Biraz dinlenmesi gerek\nderdi hep. Epey dinlendi.
+GARDEN_TRUCK_4,Eldivenleri hâlâ torpidoda.\nNe olur ne olmaz.
+GARDEN_HENS_1,Merhaba hanımlar.\nYoğun bir sabah mı?
+GARDEN_HENS_2,Gıt gıdak. Biri elma\nkabuklarını istiyor.
+GARDEN_HENS_3,Horoz bu bahçeyi\nkendisi yönetiyor sanıyor.
+GARDEN_HIVES_DAYS,Çalışkan arılar.\n%d gün sonra bal var.
+GARDEN_HIVES_TOMORROW,Çalışkan arılar.\nYarın sabah bal var.
+GARDEN_HIVES_TODAY,Bu sabah taze bal!\nSağ olun arılar.
+GARDEN_HIVES_RAIN,Yağmurda arılar\nkovandan çıkmaz.
+GARDEN_SCARECROW_1,Walter'ın eski ceketini giyiyor.\nKargalar yine de onu seviyor.
+GARDEN_SCARECROW_2,Kargalar ondan korkmuyor.\nSadece manzarayı seviyorlar.
+GARDEN_SCARECROW_3,Bu sonbahar yeni şapka aldı.\nPek yakışıklı oldu.
+GARDEN_BENCH_1,Bir fincan çay ve battaniye.\nBahçe biraz bekleyebilir.
+GARDEN_BENCH_2,Bu bankı Walter yaptı.\nHâlâ iki kişilik.
+GARDEN_BENCH_3,Otur. Nefes al. Dinle.\nArılar vızıldıyor.
+UI_NIGHT_HONEY,Arılar sana bal bıraktı.
 FAREWELL_CREDIT_MADE_BY,Yapan: İzzet Emre Demir
 TOWN_CALL_GROCER_1,Bugün taze elma var!
 TOWN_CALL_GROCER_2,Turtalık balkabağı!

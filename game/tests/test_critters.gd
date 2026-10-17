@@ -118,8 +118,46 @@ func test_garden_robin_on_the_fence_is_deterministic() -> void:
 			assert_eq(c.y, CritterRules.Layout.H - 1, "on the bottom fence")
 			assert_false(CritterRules.Layout.is_gate(c), "not on the gate")
 			var rain := CritterRules.garden(sd, day, "rainy", open)
-			assert_true(rain.size() < a.size() and rain.size() >= 1, "rain: the robin stays, fewer birds")
-	assert_eq(CritterRules.garden(1, 1, "sunny", Callable()).size(), 1, "no lawn when nothing is walkable")
+			assert_true(_count(rain, "bird") < _count(a, "bird") and _count(rain, "bird") >= 1, "rain: the robin stays, fewer birds")
+	assert_eq(_count(CritterRules.garden(1, 1, "sunny", Callable()), "bird"), 1, "no lawn when nothing is walkable")
+	assert_eq(_count(CritterRules.garden(1, 1, "sunny", Callable()), "butterfly"), 0, "no free flowers, no butterflies")
+
+
+## GARDEN-LIFE: a squirrel at the apple and the walnut tree; one or two butterflies over free flower clumps, none in
+## rain; the birds come first and rain keeps them as before.
+func test_garden_squirrels_and_butterflies() -> void:
+	var layout: GDScript = CritterRules.Layout
+	var open := func(c: Vector2i) -> bool: return true
+	var flowers: Array = []
+	for d in layout.DECOR:
+		if int(d[1]) in [layout.D_FLOWERS_RED, layout.D_FLOWERS_GOLD]:
+			flowers.append(d[0])
+	for sd in SEEDS:
+		for day in range(1, 12):
+			var a := CritterRules.garden(sd, day, "sunny", open)
+			var squirrels: Array = []
+			for p in a:
+				if p.kind == "squirrel":
+					squirrels.append(p.cell)
+				elif p.kind == "butterfly":
+					assert_has(flowers, p.cell, "butterfly over a flower clump")
+			assert_eq(squirrels, [layout.TREES.apple, layout.TREES.walnut], "squirrels at the apple and walnut trees")
+			var n := _count(a, "butterfly")
+			assert_true(n >= 1 and n <= 2, "one or two butterflies (%d)" % n)
+			var rain := CritterRules.garden(sd, day, "rainy", open)
+			assert_eq(_count(rain, "butterfly"), 0, "no butterflies in rain")
+			assert_eq(_count(rain, "squirrel"), 2, "squirrels stay in rain")
+			for w in ["windy", "foggy"]:
+				assert_eq(CritterRules.garden(sd, day, w, open), a, "%s changes nothing in the garden" % w)
+			var birds := 0
+			for p in a:
+				if p.kind != "bird":
+					break
+				birds += 1
+			assert_eq(birds, _count(a, "bird"), "the birds come first")
+	var shut := func(c: Vector2i) -> bool: return c != Vector2i(20, 3)
+	for p in CritterRules.garden(42, 3, "sunny", shut):
+		assert_ne(p.cell, Vector2i(20, 3), "no butterfly over a covered flower clump")
 
 
 func test_empty_map_has_none() -> void:
