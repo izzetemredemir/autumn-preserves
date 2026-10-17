@@ -203,6 +203,8 @@ func _render_reader() -> void:
 		var group := String(Letters.kid_info(kid).get("dislikes_group", ""))
 		if group != "":
 			_paper(tr("LET_PS_DISLIKE") % tr("LET_GROUP_" + group.to_upper()))
+		if int(letter.get("ps_story", 0)) > 0:
+			_paper(tr("LET_PS_STORY_%d" % int(letter.ps_story)))
 		var done := bool(letter.get("done", false))
 		_pack_btn.visible = not done
 		if done and _status.text == "":
@@ -222,7 +224,8 @@ func _render_reader() -> void:
 		for rid in letter.get("unlocked", []):
 			names.append(tr("LET_RECIPE_" + String(rid).to_upper()))
 		if not names.is_empty():
-			_paper(tr("LET_PS_RECIPE") % ", ".join(names))
+			var page := Kitchen.family_ids().find(String(letter.unlocked[0])) + 1
+			_paper(tr("LET_PS_RECIPE") % [page, ", ".join(names)])
 		if _status.text == "":
 			_status.text = tr("LET_LOVE_PREVIEW") % int(letter.get("hearts", 0))
 	_paper(tr("LET_SIGN") % Letters.kid_name(kid))

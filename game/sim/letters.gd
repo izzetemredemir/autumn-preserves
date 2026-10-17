@@ -147,6 +147,9 @@ static func make_request(state: Dictionary, kid: String, r: RandomNumberGenerato
 	var letter := {"id": int(l.next_id), "kind": "request", "from": kid, "day": int(state.day),
 		"note": Farewell.note_key(kid, r.randi_range(1, NOTE_COUNT), int(state.day)),  # days 90-99: worried notes
 		"request": reqs, "done": false, "read": false}
+	var ps := Story.take_ps(state, kid)  # STORY-03: by letter index, no RNG
+	if ps > 0:
+		letter["ps_story"] = ps
 	l.next_id = int(l.next_id) + 1
 	return letter
 

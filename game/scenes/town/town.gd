@@ -32,6 +32,7 @@ var _icon_sheet: Texture2D
 var _icon_cells: Dictionary = {}
 var _icon_size := Vector2(16, 16)
 var _back_btn: Button
+var _story_npc := ""  # STORY-03: the neighbour whose Teo line is on show
 
 
 func _ready() -> void:
@@ -649,14 +650,33 @@ func _render_neighbours() -> void:
 	var says := tr("NPC_%s_%d" % [_npc.to_upper(), clampi(hearts / 2, 0, 2)])
 	if Economy.unlocked(d, "hints") and _npc == "librarian":
 		says += "  " + tr("NPC_LIBRARIAN_HINT")
-	for t in [says, tr("TOWN_LIKES") % _axis_text(npc.likes)]:
+	var story := _story_says(d, hearts, says)
+	var lines: Array = [story] if story != says else [story, tr("TOWN_LIKES") % _axis_text(npc.likes)]  # the Teo line takes the likes' place
+	for t in lines:
 		var l := _label(t)
 		l.theme_type_variation = &"Body"
 		l.autowrap_mode = TextServer.AUTOWRAP_OFF
+		if story != says:  # a Teo line runs to up to three wrapped lines
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			l.custom_minimum_size.x = 380
+			l.max_lines_visible = 3
 		info.add_child(l)
 
 
+## STORY-03: a neighbour's one Teo line replaces the usual line, once per save (it stays while this page stays open).
+func _story_says(d: Dictionary, hearts: int, says: String) -> String:
+	var key := Story.npc_line_due(d, _npc, hearts, TodoRules.festival_today(d))
+	if key != "":
+		Story.mark_npc_said(d, _npc)
+		_story_npc = _npc
+		Save.save_game(d)
+	elif _story_npc == _npc:
+		key = "STORY_NPC_" + _npc.to_upper()
+	return tr(key) if key != "" else says
+
+
 func _select_npc(id: String) -> void:
+	_story_npc = ""
 	_npc = id
 	_render()
 

@@ -17,6 +17,7 @@ const GREEN := Color("4e7664")
 const RED := Color("a22512")
 const SILHOUETTE := Color("49423d")
 const FONT_BODY := preload("res://assets/fonts/m6x11plus.ttf")
+const FONT_LETTER := preload("res://assets/fonts/m5x7.ttf")  ## STORY-03: Teo's letter, theme Body font
 const FONT_TITLE := preload("res://assets/fonts/m6x11plus.ttf")
 const MILESTONES := [5, 15, 30, 60]
 const VARIANTS_PER_PAGE := 2
@@ -87,6 +88,9 @@ func show_book(tab := 0) -> void:
 	visible = true
 	_tab = tab
 	_page = 0
+	if not _data().is_empty() and Story.teo_letter_new(_data()):  # STORY-03: opens on the back cover, once
+		_tab = 0
+		_page = _page_count() - 1
 	_refresh()
 	_close.grab_focus()
 
@@ -309,7 +313,7 @@ func _page_count() -> int:
 	if _tab == 0:
 		var variant_pages := ceili(_variant_keys().size() / float(VARIANTS_PER_PAGE))
 		var recipe_pages := _base_pages() + ceili(_family_ids().size() / float(FAMILY_PER_PAGE))
-		return maxi(maxi(variant_pages, recipe_pages), 1)
+		return maxi(maxi(variant_pages, recipe_pages), 1) + (1 if _teo_open() else 0)
 	if _tab == CREATIONS:
 		return CreationsPage.page_count(_data())
 	return _type_pages() + SpeciesPage.pages(_data())  # SPECIES-GEN: the forest species follow the types
@@ -373,8 +377,29 @@ func _heading(box: Control, text: String) -> Label:
 	return l
 
 
+func _teo_open() -> bool:
+	return not _data().is_empty() and Story.teo_letter_open(_data())
+
+
+## STORY-03: the last spread of the recipes tab is the inside of the back cover: Teo's letter.
+func _fill_teo() -> void:
+	_left.add_theme_constant_override("separation", 4)
+	_heading(_left, tr("STORY_LETTER_TEO_TITLE"))
+	for i in range(1, Story.TEO_LINES + 1):
+		var l := _label(FONT_LETTER, 16, TEXT)
+		l.text = tr("STORY_LETTER_TEO_%d" % i)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size.x = PAGE_W
+		if i == Story.TEO_LINES:
+			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_left.add_child(l)
+
+
 func _fill_recipes() -> void:
 	_left.add_theme_constant_override("separation", 0)
+	if _teo_open() and _page >= _page_count() - 1:
+		_fill_teo()
+		return
 	var recipes := Data.recipes()
 	var family := _family_ids()
 	if not family.is_empty() and _page >= _base_pages():

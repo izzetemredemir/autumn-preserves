@@ -163,6 +163,7 @@ static func letter(state: Dictionary) -> Array:
 		out.append(_l("FAREWELL_LETTER_FRIEND_NONE", []))
 	else:
 		out.append(_l("FAREWELL_LETTER_FRIEND", [npc_name(friend)]))
+	out.append(_l("FAREWELL_LETTER_TEO", []))  # STORY-03: answers Teo's letter in the recipe book
 	out.append(_l("FAREWELL_LETTER_LOVE", []))
 	out.append(_l("FAREWELL_LETTER_SIGN", []))
 	return out

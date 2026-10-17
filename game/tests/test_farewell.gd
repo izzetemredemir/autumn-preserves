@@ -132,7 +132,7 @@ func test_letter_with_an_empty_pantry_uses_the_fallbacks() -> void:
 		var keys: Array = lines.map(func(l: Dictionary) -> String: return String(l.key))
 		assert_eq(keys, ["FAREWELL_LETTER_DEAR_TWO", "FAREWELL_LETTER_DAYS", "FAREWELL_LETTER_JARS_NONE",
 			"FAREWELL_LETTER_TOP_NONE", "FAREWELL_LETTER_RARE_NONE", "FAREWELL_LETTER_FRIEND_NONE",
-			"FAREWELL_LETTER_LOVE", "FAREWELL_LETTER_SIGN"], "seed %d" % sd)
+			"FAREWELL_LETTER_TEO", "FAREWELL_LETTER_LOVE", "FAREWELL_LETTER_SIGN"], "seed %d" % sd)
 		assert_eq(lines[1].args, [100])
 		_check_lines(lines, "empty pantry")
 

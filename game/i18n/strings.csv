@@ -390,7 +390,7 @@ LET_REQ_RECIPE,some %s
 LET_REQ_BOTH,some %s %s
 LET_REQ_ANY,anything you made
 LET_PS_DISLIKE,"P.S. No %s, please!"
-LET_PS_RECIPE,P.S. Mum found the family recipe for %s. It is yours again!
+LET_PS_RECIPE,P.S. Page %d of Grandpa's notebook: %s. Mum says it is yours now.
 LET_SIGN,"Love, %s"
 LET_GROUP_FRUIT,fruit
 LET_GROUP_VEGETABLE,vegetables
@@ -909,3 +909,21 @@ STORY_LETTER_NORA_5,Send us a little autumn. One jar is enough to start.
 STORY_LETTER_NORA_SIGN,"Love, Nora"
 TUT_D1_MAIL,Check the mailbox
 TODO_HINT_D1_MAIL,"Something is in the mailbox, dear. Let's see who wrote."
+LET_PS_STORY_1,P.S. Does Grandpa's pear tree still have pears? Mum says the forest moves. I don't believe her.
+LET_PS_STORY_2,P.S. I drew Grandpa's hat. It is on the fridge. The fridge is cold like outside.
+LET_PS_STORY_3,"P.S. Mum found Grandpa's notebook in the attic. She cried, then laughed, then made soup."
+LET_PS_STORY_4,"P.S. When it is winter here, is it still autumn at your house? Leo says yes because you are there."
+STORY_NPC_VINTNER,"The vineyard was Teo's idea, you know. 'Grapes keep better in a bottle,' he said. He was wrong, but we planted it."
+STORY_NPC_POSTMAN,"He used to meet me at the gate every morning, rain or not. Said the post tasted better with tea."
+STORY_NPC_LIBRARIAN,He borrowed the same mushroom book every autumn and never once read it. He just liked the pictures.
+STORY_NPC_GROCER,Your Teo paid his bill in jars for thirty years. I still have one I never opened.
+STORY_NPC_BAKER,"He turned the press at every festival. This year it is your turn, Tonty."
+STORY_LETTER_TEO_1,"Tonty,"
+STORY_LETTER_TEO_2,"If you are reading this, you opened the book, which means you are filling jars again. Good."
+STORY_LETTER_TEO_3,"The forest will not give you the same day twice. Go anyway. Take the stick, it knows the way."
+STORY_LETTER_TEO_4,Give the jars away. All of them. This valley keeps its autumn for whoever keeps giving it away.
+STORY_LETTER_TEO_5,Feed the cat. Shake the apple tree before the crows do.
+STORY_LETTER_TEO_6,I was never good with words. I was good with pears. You know the rest.
+STORY_LETTER_TEO_7,Teo
+STORY_LETTER_TEO_TITLE,Inside the back cover
+FAREWELL_LETTER_TEO,Your grandfather said this valley keeps its autumn for whoever gives it away. I gave it all away. Now it is yours to give.

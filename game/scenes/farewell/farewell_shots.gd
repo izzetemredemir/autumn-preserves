@@ -215,7 +215,7 @@ class KitchenShot:
 
 class LetterShot:
 	extends Shot
-	const PAPER_W := 412
+	const PAPER_W := 448
 	const CPS := 32.0
 	const PAUSE := 0.6
 	const START := 1.4

@@ -390,7 +390,7 @@ LET_REQ_RECIPE,biraz %s
 LET_REQ_BOTH,biraz %s %s
 LET_REQ_ANY,senin yaptığın ne olursa
 LET_PS_DISLIKE,Not: Lütfen %s olmasın!
-LET_PS_RECIPE,Not: Annem %s tarifini buldu. Artık yine senin!
+LET_PS_RECIPE,Not: Dedemin defterinin %d. sayfası: %s. Annem artık senin diyor.
 LET_SIGN,"Sevgiler, %s"
 LET_GROUP_FRUIT,meyve
 LET_GROUP_VEGETABLE,sebze
@@ -909,3 +909,21 @@ STORY_LETTER_NORA_5,Bize biraz sonbahar gönder. Başlamak için bir kavanoz yet
 STORY_LETTER_NORA_SIGN,"Sevgiyle, Nora"
 TUT_D1_MAIL,Posta kutusuna bak
 TODO_HINT_D1_MAIL,"Posta kutusunda bir şey var, canım. Kim yazmış bakalım."
+LET_PS_STORY_1,Not: Dedemin armut ağacında hâlâ armut var mı? Annem orman yer değiştiriyor diyor. İnanmıyorum.
+LET_PS_STORY_2,Not: Dedemin şapkasını çizdim. Buzdolabında. Buzdolabı dışarısı gibi soğuk.
+LET_PS_STORY_3,"Not: Annem tavan arasında dedemin defterini buldu. Ağladı, sonra güldü, sonra çorba yaptı."
+LET_PS_STORY_4,"Not: Burada kışken sizin evde hâlâ sonbahar mı? Leo evet diyor, çünkü sen oradasın."
+STORY_NPC_VINTNER,"Bağ Teo'nun fikriydi, biliyorsun. 'Üzüm şişede daha iyi durur,' demişti. Yanılıyordu ama diktik."
+STORY_NPC_POSTMAN,"Her sabah, yağmur olsun olmasın, beni kapıda karşılardı. Posta çayla daha güzel derdi."
+STORY_NPC_LIBRARIAN,"Her sonbahar aynı mantar kitabını alır, bir kez bile okumazdı. Resimleri severdi."
+STORY_NPC_GROCER,Senin Teo otuz yıl hesabını kavanozla ödedi. Hâlâ açmadığım bir tane duruyor.
+STORY_NPC_BAKER,"Her şenlikte presi o çevirirdi. Bu yıl sıra sende, Tonty."
+STORY_LETTER_TEO_1,"Tonty,"
+STORY_LETTER_TEO_2,"Bunu okuyorsan defteri açmışsın, yani yine kavanoz dolduruyorsun. İyi."
+STORY_LETTER_TEO_3,"Orman sana aynı günü iki kez vermez. Yine de git. Bastonu al, yolu bilir."
+STORY_LETTER_TEO_4,"Kavanozları dağıt. Hepsini. Bu vadi, sonbaharını dağıtana sonbahar kalır."
+STORY_LETTER_TEO_5,Kediyi besle. Elma ağacını kargalardan önce silkele.
+STORY_LETTER_TEO_6,Kelimelerle aram hiç iyi olmadı. Armutla iyiydi. Gerisini biliyorsun.
+STORY_LETTER_TEO_7,Teo
+STORY_LETTER_TEO_TITLE,Arka kapağın içi
+FAREWELL_LETTER_TEO,Dedeniz bu vadinin sonbaharını dağıtana kaldığını söylerdi. Hepsini dağıttım. Şimdi dağıtmak size kaldı.
