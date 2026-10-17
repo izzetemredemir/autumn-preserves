@@ -1,0 +1,10 @@
+[
+	{"t": 0.0, "do": "load_demo", "args": [""], "note": "recorded with --scene res://scenes/wild/wild.tscn: the demo save before the forest loads"},
+	{"t": 1.0, "do": "wild_shake_rare", "note": "Granny shakes the rare Sharp Crabapple tree"},
+	{"dt": 3.4, "do": "go", "args": ["kitchen"]},
+	{"dt": 1.3, "do": "kitchen_spot", "args": ["stove"]},
+	{"dt": 0.6, "do": "kitchen_pick", "args": ["jam", "crabapple", "rare"]},
+	{"dt": 0.4, "do": "kitchen_addin", "args": ["cinnamon"]},
+	{"dt": 0.4, "do": "kitchen_cook", "args": [8.0, 32.0, true], "note": "the stir mini-game, fast-forwarded"},
+	{"dt": 6.9, "quit": true, "note": "ends on the result card: Cinnamon Sharp Crabapple Jam, New recipe!"}
+]
