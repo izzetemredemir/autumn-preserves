@@ -10,8 +10,13 @@ const NPC_PANEL_H := 80  # UI-COMPACT: the neighbours tab's panel (names, portra
 const ROWS := 3
 const GROUPS := ["supplies", "seeds", "upgrades"]
 const NPC_IDS := ["grocer", "baker", "postman", "vintner", "librarian"]
+const RV := preload("res://scenes/market/react_view.gd")
+const REACT_AT := Vector2(10, 72)  # FUN-REACT delivery card: over the square, between the tab row and the panel
 
 var _tab := "grocer"
+var _react_card: Control
+var _react_undo: Array[Callable] = []  # what the delivery card changed, undone when it goes
+var _banner: Control  # MARKET's "Market today!" banner (market days only)
 var _sub := "buy"
 var _group := "supplies"
 var _npc := "grocer"
@@ -162,7 +167,8 @@ func _build() -> void:
 	add_child(back)
 	_back_btn = back
 	if Market.can_open(GameState.data):  # MARKET: "Market today!" banner on market days, until the stall opens
-		add_child(load("res://scenes/market/market_banner.gd").new())
+		_banner = load("res://scenes/market/market_banner.gd").new()
+		add_child(_banner)
 	_panel = PanelContainer.new()
 	_panel.clip_contents = true
 	add_child(_panel)
@@ -683,6 +689,8 @@ func _close_picker() -> void:
 
 
 func _do_fulfill(ref: Dictionary) -> void:
+	var npc := String(_order_by_id(int(_picker.id)).get("npc", ""))
+	var item := _item_at(ref)
 	var res := Orders.fulfill(GameState.data, int(_picker.id), ref)
 	_picker = {}
 	if not res.ok:
@@ -690,6 +698,7 @@ func _do_fulfill(ref: Dictionary) -> void:
 		_render()
 		return
 	_save_and_notify(["coins", "inbox", "pantry", "orders", "friendship", "stats", "flags", "unlocks", "cupboard"])
+	show_reaction(npc, item)
 	if int(res.hearts_after) > int(res.hearts_before):
 		Hud.toast("TOWN_DELIVERED_HEART", [int(res.coins)])
 	else:
@@ -699,7 +708,9 @@ func _do_fulfill(ref: Dictionary) -> void:
 
 
 func _do_gift(ref: Dictionary) -> void:
-	var res := Economy.gift(GameState.data, String(_picker.id), ref)
+	var npc := String(_picker.id)
+	var item := _item_at(ref)
+	var res := Economy.gift(GameState.data, npc, ref)
 	_picker = {}
 	if not res.ok:
 		Hud.toast(res.reason)
@@ -707,7 +718,71 @@ func _do_gift(ref: Dictionary) -> void:
 		return
 	_save_and_notify(["inbox", "pantry", "friendship", "flags", "unlocks", "cupboard"])
 	Hud.toast("TOWN_GIFT_LOVED" if int(res.points) > 0 else "TOWN_GIFT_OK")
+	show_reaction(npc, item)
 	_show_rewards(1.6)
+
+
+# ------------------------------------------------------------------ reactions (FUN-REACT)
+
+## The item at `ref` before it leaves the save ({} when the ref is stale).
+func _item_at(ref: Dictionary) -> Dictionary:
+	if not Economy.valid_ref(GameState.data, ref):
+		return {}
+	return (State.get_item(GameState.data, ref) as Dictionary).duplicate()
+
+
+## The neighbour's line about the jar they just got (an order or a gift) on a small card over the square: portrait,
+## the line beside it, a heart pop when the jar meets their likes. While it is up the square's bubbles keep clear and
+## the "Market today!" banner steps aside; it never takes input and goes by itself.
+func show_reaction(npc: String, item: Dictionary) -> void:
+	if item.is_empty() or String(item.get("kind", "")) != "product" or not npc in NPC_IDS:
+		return
+	var d: Dictionary = GameState.data
+	var key := String(item.key)
+	var desc := Reactions.describe(key, d.varieties, int(item.get("q", 2)))
+	var line := Reactions.line(desc, npc, "", Reactions.seed_for(int(d.save_seed), int(d.day), key, npc))
+	if line == "":
+		return
+	_end_reaction()
+	var face := Bust.new()
+	face.npc_id = npc
+	var card := RV.DeliveryCard.new()
+	card.name = "Reaction"
+	card.position = REACT_AT
+	add_child(card)
+	var loved := Reactions.liked(desc, npc) != ""
+	card.setup(face, line, loved)
+	card.gone.connect(_end_reaction)
+	_react_card = card
+	if loved:
+		Audio.play_sfx("sfx_sparkle")
+	var r := Rect2(card.position, card.size).grow(2.0)
+	if is_instance_valid(_banner) and _banner.visible and r.intersects(_banner.get_rect()):
+		_banner.visible = false
+		_react_undo.append(func() -> void:
+			if is_instance_valid(_banner):
+				_banner.visible = true)
+	var bubbles: Node = get_node_or_null("Square/Bubbles")
+	if bubbles != null:
+		var before: Array[Rect2] = bubbles.get("blocked")
+		var keep: Array[Rect2] = before.duplicate()
+		keep.append(r)
+		bubbles.set("blocked", keep)
+		bubbles.call("clear")
+		_react_undo.append(func() -> void:
+			if is_instance_valid(bubbles):
+				bubbles.set("blocked", before))
+
+
+## The delivery card is gone (or replaced): the banner and the square's bubble spots come back.
+func _end_reaction() -> void:
+	if is_instance_valid(_react_card) and _react_card.get_parent() == self:
+		remove_child(_react_card)
+		_react_card.queue_free()
+	_react_card = null
+	for f: Callable in _react_undo:
+		f.call()
+	_react_undo.clear()
 
 
 ## Toasts the heart rewards earned since last time (one by one) with the level jingle; `delay` lets the

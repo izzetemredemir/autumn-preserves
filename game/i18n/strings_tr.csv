@@ -849,6 +849,7 @@ UI_LANG_CHOOSE_EN,Choose your language
 UI_LANG_CHOOSE_TR,Dilini seç
 UI_NEWGAME_LINE,"Yeni bir sonbahar başlıyor: Nine'nin ilk günü."
 UI_NEWGAME_SEED_LINK,Dünya tohumu (isteğe bağlı)
+REACT_GRANNY_SAYS,Nine: %s
 HOWTO_TITLE,Nasıl Oynanır
 HOWTO_NEXT,İleri
 HOWTO_BACK,Geri

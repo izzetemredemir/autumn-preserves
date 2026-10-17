@@ -34,6 +34,7 @@ const C_BAR_BG := Color("b9a697")
 const BAKE_USEC := 4000  ## pose composing per frame (setup and parade)
 const BAKE_FADE_USEC := 12000  ## while the fade still covers the screen
 const SPEC_DELAY := 0.4  ## s the stall stays unchanged before its likely crowd is baked
+const REACT_DUR := 3.0  ## s a buyer's reaction line stays up (FUN-REACT); one at a time
 
 enum Phase { SETUP, PARADE, DONE }
 
@@ -82,6 +83,7 @@ var _wave_until := -1.0
 var _coins_target := 0
 var _coins_shown := 0.0
 var _sold := 0
+var _react_until := -1.0  ## parade time the current reaction line is up until
 # poses composed ahead (QA-FIX)
 var _bake_jobs: Array = []
 var _bake_i := 0
@@ -335,6 +337,7 @@ func start_parade() -> void:
 	_spec_wait = -1.0
 	_sold_ids.clear()
 	_lines_done = 0
+	_react_until = -1.0
 	_t = 0.0
 	_speed = 1.0
 	_speed_btn.text = tr("UI_MARKET_SPEED")
@@ -369,7 +372,40 @@ func _step_parade() -> void:
 			head = _vendor_head.bind(who.substr(1))
 		else:
 			head = _head_of.bind(int(who.substr(1)))
-		_bubbles.call("say", who, String(l.key), head, int(l.prio), float(l.dur))
+		var text := _reaction(who) if who.begins_with("p") else ""
+		var key := "REACT_LINE" if text != "" else String(l.key)  # the tag shown() reports for a reaction
+		_bubbles.call("say", who, key, head, int(l.prio), REACT_DUR if text != "" else float(l.dur), text)
+
+
+## FUN-REACT · Some buyers say a line about the very jar they buy (Reactions; the SpeechBubble wraps it) instead of their
+## stock line: "" for the rest (Reactions.speaks), for lookers and while another reaction line is still up.
+func _reaction(who: String) -> String:
+	if _t < _react_until:
+		return ""
+	var id := int(who.substr(1))
+	for p in _crowd.get("people", []):
+		if int(p.id) != id:
+			continue
+		var vi := int(p.get("visit", -1))
+		if String(p.kind) != "buyer" or vi < 0 or vi >= (_plan.get("visits", []) as Array).size():
+			return ""
+		var v: Dictionary = _plan.visits[vi]
+		var item: Dictionary = v.get("item", {})
+		if item.is_empty():
+			return ""
+		var d := _data()
+		var key := String(item.key)
+		var seed_value := Reactions.seed_for(int(d.save_seed), int(d.day), key, "buyer%d" % vi)
+		if not Reactions.speaks(seed_value):
+			return ""
+		var desc := Reactions.describe(key, d.get("varieties", {}), int(item.get("q", 2)))
+		var wants: Array = (v.get("customer", {}) as Dictionary).get("wants", [])
+		var line := Reactions.line(desc, "buyer", "", seed_value, {"likes": wants})
+		if line == "":
+			return ""
+		_react_until = _t + REACT_DUR
+		return line
+	return ""
 
 
 func _head_of(id: int) -> Vector2:

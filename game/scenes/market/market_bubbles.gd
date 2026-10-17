@@ -38,11 +38,12 @@ func shown() -> Array:
 	return out
 
 
-func say(who: String, key: String, head: Callable, prio := 1, dur := 1.8) -> void:
+## `text`: a line already built (FUN-REACT reactions) shown instead of tr(key); the bubble wraps it.
+func say(who: String, key: String, head: Callable, prio := 1, dur := 1.8, text := "") -> void:
 	for b in _active + _pending:
 		if String(b.who) == who:
 			return
-	_pending.append({"who": who, "key": key, "head": head, "prio": prio, "dur": dur, "age": 0.0})
+	_pending.append({"who": who, "key": key, "head": head, "prio": prio, "dur": dur, "age": 0.0, "text": text})
 
 
 func step(dt: float) -> void:
@@ -79,7 +80,7 @@ func step(dt: float) -> void:
 func _show(p: Dictionary, h: Vector2) -> bool:
 	var node := SpeechBubble.new()
 	add_child(node)
-	node.say(tr(String(p.key)))
+	node.say(String(p.text) if String(p.get("text", "")) != "" else tr(String(p.key)))
 	var bs := node.size
 	var spot := _place(h, bs, null)
 	if spot.is_empty():
@@ -127,6 +128,8 @@ func _place(h: Vector2, bs: Vector2, me: Variant) -> Dictionary:
 		[Vector2(h.x - 9 - bs.x, h.y + 6), "right"],
 		[Vector2(h.x + 9, h.y - 4), "left"],
 		[Vector2(h.x - 9 - bs.x, h.y - 4), "right"],
+		[Vector2(h.x + 9, h.y + 10), "left"],  # FUN-REACT: below a counter edge at the speaker's chin
+		[Vector2(h.x - 9 - bs.x, h.y + 10), "right"],
 	]
 	for c in cands:
 		var pos := _clamp((c[0] as Vector2).round(), bs)

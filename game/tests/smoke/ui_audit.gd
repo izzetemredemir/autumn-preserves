@@ -17,6 +17,7 @@ const BUBBLE_KEYS := ["MARKET_CHAT_", "MARKET_HELLO_", "MARKET_CALL_", "MARKET_P
 	"MARKET_OOH_", "MARKET_RARE", "TOWN_CHAT_", "GARDEN_TRUCK_", "GARDEN_HENS_", "GARDEN_SCARECROW_", "GARDEN_BENCH_",
 	"GARDEN_CLOTHESLINE_", "GARDEN_HIVES_", "GARDEN_COMPOST", "GARDEN_BED_", "GARDEN_NO_", "GARDEN_PLANTED", "CAT_PET_",
 	"FESTIVAL_MIA_", "FESTIVAL_LEO_", "WILD_CANT_REACH", "UI_BAG_FULL", "WILD_SURPRISE_"]
+const RV := preload("res://scenes/market/react_view.gd")
 ## Path fragments (scene file or script) whose findings must be zero; others are only listed.
 const OWNED := ["scenes/garden/", "scenes/pantry/", "scenes/title/", "scenes/seed_lab/", "ui/book/", "ui/letters/", "ui/hud/", "ui/result_card/",
 	"scenes/farewell/", "ui/festival/", "ui/pause/", "ui/howto/"]
@@ -82,6 +83,7 @@ func _run() -> void:
 	await _festival_cards()
 	await _festival_kitchen()
 	await _species()
+	await _reactions()
 	await _bubble_lines()
 	await _drawing_viewer()
 	# Overlays on top of a quiet backdrop
@@ -204,6 +206,113 @@ func _festival_kitchen() -> void:
 	await _cook_panel(k)
 	k.queue_free()
 	await _frames(2)
+
+
+## FUN-REACT: reaction lines about the longest-named jar the demo save can make: the town's delivery card, a market
+## buyer's bubble, Granny's line under the result card and a grandchild's reply naming the jar.
+func _reactions() -> void:
+	_fresh()
+	var d: Dictionary = _gs.data
+	var keys := _long_keys(d)
+	var town := (load("res://scenes/town/town.tscn") as PackedScene).instantiate()
+	root.add_child(town)
+	await _frames(6)
+	var pick := _long_line(d, keys, ["grocer", "baker", "postman", "vintner", "librarian"], 0)
+	town.show_reaction(String(pick.who), State.product(String(pick.key), 3, 0))
+	await create_timer(0.4).timeout
+	await _audit("town/reaction", town)
+	var card: Node = town.get_node_or_null("Reaction")
+	if card != null:
+		_bubble_fits("town/reaction", card.get("bubble"))
+	town.queue_free()
+	await _frames(2)
+	var bg := ColorRect.new()
+	bg.color = Color("747c37")
+	bg.size = SCREEN.size
+	root.add_child(bg)
+	var bubbles: Control = load("res://scenes/market/market_bubbles.gd").new()
+	root.add_child(bubbles)
+	await _frames(1)
+	var buyer := _long_line(d, keys, ["buyer"], 0)
+	bubbles.say("p1", "REACT_LINE", func() -> Vector2: return Vector2(240, 150), 3, 5.0, String(buyer.line))
+	for i in 3:
+		bubbles.step(0.1)
+		await _frames(1)
+	await create_timer(0.3).timeout
+	await _audit("market/reaction_bubble", bubbles)
+	for b in bubbles.get_children():
+		_bubble_fits("market/reaction_bubble", b)
+	bubbles.queue_free()
+	bg.queue_free()
+	var granny := _long_line(d, keys, ["granny"], int(Reactions.table().granny_max_chars))
+	var rc := (load("res://ui/result_card/result_card.tscn") as PackedScene).instantiate()
+	root.add_child(rc)
+	var desc := ProductGen.describe(String(granny.key), d.varieties)
+	desc["value"] = 12
+	rc.show_result(desc, 3, true)
+	for c in rc.get_children():
+		if c is PanelContainer:
+			var gl := RV.GrannyLine.new()
+			rc.add_child(gl)
+			gl.setup(c, tr("REACT_GRANNY_SAYS") % String(granny.line))
+	await create_timer(0.6).timeout
+	await _audit("kitchen/granny_line", rc)
+	rc.queue_free()
+	await _frames(2)
+	print("ui_audit reactions [%s]: town \"%s\", market \"%s\", granny \"%s\"" % [_locale, pick.line, buyer.line, granny.line])
+	var l := Letters.ensure(d)
+	l.sent.append({"letter": 9001, "to": "mia", "day": int(d.day), "reply_day": int(d.day), "keys": [keys[0]],
+		"care": false, "hearts": 1, "unlocked": [], "replied": true})
+	var reply := {"id": int(l.next_id), "kind": "reply", "from": "mia", "day": int(d.day), "note": "LET_REPLY_MIA_1",
+		"re": 9001, "care": false, "hearts": 1, "unlocked": [], "read": false}
+	l.next_id = int(l.next_id) + 1
+	l.inbox.append(reply)
+	var ui := LettersUI.open(int(reply.id))
+	await _frames(10)
+	await _audit("letters/reply_jar", ui)
+	ui.queue_free()
+	await _frames(2)
+
+
+## A reaction's SpeechBubble keeps to UI-COMPACT's limits (LINES lines, MAX_W px).
+func _bubble_fits(state: String, b: Variant) -> void:
+	if not b is SpeechBubble:
+		return
+	var sb := b as SpeechBubble
+	if sb.line_count() > SpeechBubble.LINES or sb.size.x > SpeechBubble.MAX_W:
+		_add(state, "bubble", sb, "%d lines, %d px wide: \"%s\"" % [sb.line_count(), sb.size.x, _clip(sb.label.text)])
+
+
+## Product keys of the save's varieties (every recipe, a few add-ins), longest shown name first.
+func _long_keys(d: Dictionary) -> Array:
+	var keys: Array = []
+	var vids: Array = d.varieties.keys()
+	vids.sort()
+	for rid: String in Data.recipes():
+		for v: String in vids:
+			for a in ["cinnamon", "honey", "chili", ""]:
+				keys.append(ProductGen.make_key(rid, [v], a))
+	var names := {}
+	for k: String in keys:
+		names[k] = ProductGen.product_name(k, d.varieties)
+	keys.sort_custom(func(a: String, b: String) -> bool:
+		return names[a].length() > names[b].length() or (names[a].length() == names[b].length() and a < b))
+	return keys
+
+
+## The first (longest-named) jar whose real line, said by one of `whos`, carries its full name; else the longest line.
+func _long_line(d: Dictionary, keys: Array, whos: Array, max_chars: int) -> Dictionary:
+	var best := {}
+	for k: String in keys.slice(0, 400):
+		var desc := Reactions.describe(k, d.varieties, 3)
+		for who: String in whos:
+			var opts := {"max": max_chars} if max_chars > 0 else {}
+			var line := Reactions.line(desc, who, "", Reactions.seed_for(int(d.save_seed), int(d.day), k, who), opts)
+			if line.contains(String(desc.names[0])):
+				return {"key": k, "who": who, "line": line}
+			if best.is_empty() or line.length() > String(best.line).length():
+				best = {"key": k, "who": who, "line": line}
+	return best
 
 
 ## FIRST-60: the world-grow overlay over the demo forest, half-way through.

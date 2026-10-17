@@ -1,0 +1,54 @@
+{
+  "_doc": "FUN-REACT: what people say about a jar (Reactions.line). Placeholders: {name} the jar's name (shortened like ProductGen's fallbacks to fit), {a}/{b} its top taste words ({A}/{B} capitalised), {noun} the dish word lower case, {noun_c} the Turkish compound form ('reçeli'), {w1}/{w2} an invention's ingredient words ({W1} capitalised), {mi} the Turkish question particle by the vowel harmony of the word before it. '<category>_<who>' (likes_buyer, odd_granny) replaces a category for that speaker. A template with a placeholder the jar has nothing for is skipped. Lines stay within max_chars (bubble: 168 px, at most 3 lines of m5x7 16 px). who: per-person flavour; neighbour likes and dislikes come from npcs.json.",
+  "max_chars": 52,
+  "granny_max_chars": 44,
+  "speak_chance": 0.5,
+  "weights": {"delight": 3, "taste": 3, "who": 2, "stars": 2, "likes": 5, "dislikes": 3, "odd": 10},
+  "weights_of": {"granny": {"who": 6, "stars": 1, "odd": 14}, "buyer": {"delight": 5}},
+  "en": {
+    "axes": {"sweet": "sweet", "sour": "tangy", "spicy": "spicy", "salty": "salty", "earthy": "earthy"},
+    "delight": ["{name}? My favourite!", "Oh, {name}! How lovely.", "{name}! You spoil me."],
+    "taste": ["So {a} and {b}, just right.", "{A} and {b}, what a treat!", "So {a}, just right.", "Lovely and {a}!"],
+    "mild": ["Soft and mellow, how cosy.", "Gentle and mellow, lovely."],
+    "stars": ["Best {noun} in town!", "Prize-winning {noun}, surely!"],
+    "likes": ["{A}! You know me so well.", "Ooh, {a}, just how I like it!", "{name}! Just my taste."],
+    "likes_buyer": ["Ooh, {a}, just how I like it!", "{name}! Just my taste.", "{name}? Just what I came for!"],
+    "dislikes": ["Not my usual, but I'll be brave!", "{A}? For you, I'll try it!"],
+    "odd": ["{W1} and {w2}... brave! I love it.", "{W1} with {w2}? How clever!", "A brand new {noun}? Clever you!"],
+    "odd_granny": ["{W1} and {w2}... brave! I love it.", "Well I never, a new {noun}!", "{W1} with {w2}? Why not!"],
+    "who": {
+      "grocer": ["This goes on my top shelf!", "{name}? I'll sell out by noon!"],
+      "baker": ["Perfect with my morning buns!", "{name}! Into my pastries."],
+      "postman": ["One for my rounds, thank you!", "{name}! Lunch on my rounds."],
+      "vintner": ["Lovely beside a cheese board!", "{name} with bread and cheese!"],
+      "librarian": ["A jar to read by, how nice.", "{name}, like a good book."],
+      "mia": ["The {name} was the best!", "I put {name} on everything!"],
+      "leo": ["{name}? I ate it all at once!", "I hid the {name} from my mum!"],
+      "granny": ["Mmm, this smells like my mother's kitchen.", "{name}, like Mother made.", "Another jar for the shelf!"],
+      "buyer": ["For my Sunday table!", "My grandson will love this!", "{name}! Just what I wanted."]
+    }
+  },
+  "tr": {
+    "axes": {"sweet": "tatlı", "sour": "ekşi", "spicy": "acı", "salty": "tuzlu", "earthy": "topraksı"},
+    "delight": ["{name} {mi}? Bayıldım!", "Aa, {name}! Ne güzel.", "{name}! Beni şımartıyorsun."],
+    "taste": ["Hem {a} hem {b}, tam kararında.", "{A} ve {b}, ne lezzet!", "Tam kararında {a}!", "Çok {a}, tam istediğim gibi!"],
+    "mild": ["Yumuşacık, hafif, ne hoş.", "Hafif ve yumuşak, çok güzel."],
+    "stars": ["Kasabanın en güzel {noun_c}!", "Bu {noun} tam not alır!"],
+    "likes": ["{A}! Beni ne iyi tanıyorsun.", "Ooo, {a}, tam sevdiğim gibi!", "{name}! Tam benim zevkim."],
+    "likes_buyer": ["Ooo, {a}, tam sevdiğim gibi!", "{name}! Tam benim zevkim.", "{name} {mi}? Tam aradığım!"],
+    "dislikes": ["Pek alışık değilim ama denerim!", "{A} {mi}? Senin için denerim!"],
+    "odd": ["{W1} ve {w2}... cesur iş! Bayıldım.", "{W1} ile {w2} {mi}? Ne buluş!", "Yepyeni bir {noun} {mi}? Aferin!"],
+    "odd_granny": ["{W1} ve {w2}... cesur iş! Bayıldım.", "Hiç görmemiştim, yepyeni bir {noun}!", "{W1} ile {w2}, neden olmasın!"],
+    "who": {
+      "grocer": ["Bunu en üst rafa koyacağım!", "{name} {mi}? Öğlene biter!"],
+      "baker": ["Sabah çöreklerime çok yakışır!", "{name}! Hamur işlerime."],
+      "postman": ["Dağıtımda yerim, sağ ol!", "{name}! Yolda öğle yemeğim."],
+      "vintner": ["Peynir tabağının yanına harika!", "{name}, ekmek ve peynirle!"],
+      "librarian": ["Kitap okurken birebir, ne hoş.", "{name}, iyi bir kitap gibi."],
+      "mia": ["{name} çok güzeldi!", "{name} {mi}? En sevdiğim!"],
+      "leo": ["{name} {mi}? Hepsini bir kerede yedim!", "{name} bitti bile!"],
+      "granny": ["Mmm, annemin mutfağı gibi kokuyor.", "{name}, annemin yaptığı gibi.", "Rafa bir kavanoz daha!"],
+      "buyer": ["Pazar soframa!", "Torunum buna bayılacak!", "{name}! Tam istediğim."]
+    }
+  }
+}

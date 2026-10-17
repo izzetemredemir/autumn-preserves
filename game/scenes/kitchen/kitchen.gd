@@ -13,6 +13,7 @@ extends Control
 
 const HUD := "res://ui/hud/hud.tscn"
 const RESULT_CARD := "res://ui/result_card/result_card.tscn"
+const ReactView := preload("res://scenes/market/react_view.gd")
 const NIGHT_GD := "res://ui/transition/night.gd"
 const BOOK_GD := "res://ui/book/book.gd"
 const TRANSITION_GD := "res://ui/transition/transition.gd"
@@ -683,6 +684,28 @@ func _show_result(res: Dictionary) -> void:
 	if res.get("formula", false) and bool(res.is_new):
 		banner = tr("UI_FORMULA_NEW")
 	card.show_result(desc, stars, bool(res.is_new), banner)
+	if bool(res.is_new) or bool(res.get("formula", false)):
+		_granny_line(card, res)
+
+
+## FUN-REACT · Granny's one short line about a new jar or an invention, under the result card's paper.
+func _granny_line(card: Control, res: Dictionary) -> void:
+	var d := GameState.data
+	var key := String(res.item.key)
+	var desc := Reactions.describe(key, d.varieties, int(res.quality))
+	var seed_value := Reactions.seed_for(int(d.save_seed), int(d.day), key, "granny")
+	var line := Reactions.line(desc, "granny", "", seed_value, {"max": int(Reactions.table().get("granny_max_chars", 44))})
+	var panel: Control = null
+	for c in card.get_children():
+		if c is PanelContainer:
+			panel = c
+	if line == "" or panel == null:
+		return
+	var gl := ReactView.GrannyLine.new()
+	gl.name = "GrannyLine"
+	card.add_child(gl)
+	gl.setup(panel, tr("REACT_GRANNY_SAYS") % line)
+	_say("", true)  # the hint bar under it stays quiet while she talks; closing the card says what is next
 
 
 ## Continue on `card`. A stale card (one that was replaced) just goes; the current one gives the room back.

@@ -849,6 +849,7 @@ UI_LANG_CHOOSE_EN,Choose your language
 UI_LANG_CHOOSE_TR,Dilini seç
 UI_NEWGAME_LINE,A new autumn begins: Granny's first day.
 UI_NEWGAME_SEED_LINK,World seed (optional)
+REACT_GRANNY_SAYS,Granny: %s
 HOWTO_TITLE,How to Play
 HOWTO_NEXT,Next
 HOWTO_BACK,Back

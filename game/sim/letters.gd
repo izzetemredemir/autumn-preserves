@@ -394,6 +394,40 @@ static func parcel_for(state: Dictionary, letter_id: int) -> Dictionary:
 	return {}
 
 
+## FUN-REACT · The parcel jar a reply talks about: the one the kid liked best (their strongest liked taste, then the
+## parcel's order). "" for a request letter or when the parcel is gone.
+static func reply_jar(state: Dictionary, letter: Dictionary) -> String:
+	if String(letter.get("kind", "")) != "reply":
+		return ""
+	var kid := String(letter.get("from", ""))
+	var varieties: Dictionary = state.get("varieties", {})
+	var best := ""
+	var best_v := -1
+	for k in parcel_for(state, int(letter.get("re", -1))).get("keys", []):
+		var t := ProductGen.taste(String(k), varieties)
+		var v := 0
+		for axis in kid_info(kid).get("likes", []):
+			var i := ProductGen.AXES.find(String(axis))
+			if i >= 0 and i < t.size():
+				v = maxi(v, int(t[i]))
+		if v > best_v:
+			best = String(k)
+			best_v = v
+	return best
+
+
+## FUN-REACT · The reply's line about that jar in the kid's own words, naming it ("Golden Pear Jam? My favourite!");
+## "" when there is none. Display only (never stored): the name follows the language.
+static func reply_line(state: Dictionary, letter: Dictionary, lang_code: String = "") -> String:
+	var key := reply_jar(state, letter)
+	if key == "":
+		return ""
+	var kid := String(letter.from)
+	var desc := Reactions.describe(key, state.get("varieties", {}), 2, lang_code)
+	var seed_value := Reactions.seed_for(int(state.get("save_seed", 0)), int(letter.get("day", 0)), key, kid)
+	return Reactions.line(desc, kid, lang_code, seed_value, {"named": true})
+
+
 ## Ready products the parcel screen offers: [{"ref", "item"}], inbox first, then the pantry.
 static func parcel_sources(state: Dictionary) -> Array:
 	var out: Array = []

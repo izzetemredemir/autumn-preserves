@@ -208,6 +208,9 @@ func _render_reader() -> void:
 				_status.text = tr("LET_STATUS_SENT") % int(p.day)
 			_status.add_theme_color_override("font_color", Color("b9a697"))
 	else:
+		var jar_line := Letters.reply_line(d, letter)  # FUN-REACT: the kid names a jar from the parcel
+		if jar_line != "":
+			_paper(jar_line)
 		if String(letter.get("care_note", "")) != "":
 			_paper(tr(String(letter.care_note)))
 		var names: Array = []
