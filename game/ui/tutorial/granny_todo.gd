@@ -20,7 +20,7 @@ const CELEBRATE_SEC := 2.5
 const POPUP_LAYERS := Vector2i(12, 60)  # CanvasLayers in this range with visible content hide the note
 const NOTE_W := 150  ## collapsed width (x >= 326); a step needing a third line widens to NOTE_WIDE
 const NOTE_WIDE := 232
-const NOTE_OPEN_W := 232  ## expanded (hover or pinned): long lines wrap inside
+const NOTE_OPEN_W := 210  ## expanded (click to open): long lines wrap inside; human: "açılınca kocaman duruyor"
 const MODAL_GROUP := &"modal_card"  ## modal cards/panels outside the popup layers join this group (visible = note hides)
 const BODY_FONT := preload("res://assets/fonts/m5x7.ttf")
 
@@ -247,9 +247,10 @@ func _last_done(d: Dictionary) -> String:
 	return last
 
 
-## Folded: "n/5 <current step>" on one line. Open (hover or pinned): title, counter, full list.
+## Folded: "n/5 <current step>" on one line. Open (a click on the header, or pinned): title, counter, full list.
+## Hover no longer opens it (human, 18 Oct 03:40: the note should open and close on purpose, never vanish).
 func _apply_fold() -> void:
-	var open := not _collapsed or _hover
+	var open := not _collapsed
 	var d: Dictionary = GameState.data
 	var total := 0
 	var done := 0
@@ -349,14 +350,12 @@ func _on_header_input(event: InputEvent) -> void:
 		_apply_fold()
 
 
+## The cross folds the note back to its one-line form; it never removes the note (the Tutorial setting does).
 func _on_close() -> void:
 	Audio.play_ui("ui_back")
-	var d: Dictionary = GameState.data
-	if not d.has("flags"):
-		d["flags"] = {}
-	_bits = TodoRules.close(TodoRules.bits_of(d))
-	d.flags["tutorial"] = _bits
-	_refresh(false)
+	_auto_pinned = false
+	_collapsed = true
+	_apply_fold()
 
 
 ## 9x9 notebook box: empty, ticked, or with a bobbing pointer for the current step.

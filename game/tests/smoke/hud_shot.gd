@@ -59,7 +59,7 @@ func _run() -> void:
 		await process_frame
 	var open_rect: Rect2 = todo._panel.get_global_rect()
 	_check(Rect2(0, 0, 480, 270).encloses(open_rect), "the expanded note stays on screen (%s)" % open_rect)
-	_check(open_rect.end.y <= 180, "the expanded note ends by y 180 (%s)" % open_rect.end.y)
+	_check(open_rect.end.y <= 215, "the expanded note ends by y 215 (%s)" % open_rect.end.y)
 	_shot("hud_note_expanded")
 	todo._collapsed = true
 	todo._auto_pinned = false
