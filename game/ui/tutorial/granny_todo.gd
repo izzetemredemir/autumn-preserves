@@ -18,7 +18,10 @@ const FRAME := Color("83571e")
 const HIDDEN_IN := ["", "title", "seed_lab"]
 const CELEBRATE_SEC := 2.5
 const POPUP_LAYERS := Vector2i(12, 60)  # CanvasLayers in this range with visible content hide the note
-const NOTE_W := 150
+const NOTE_W := 150  ## collapsed width (x >= 326); a step needing a third line widens to NOTE_WIDE
+const NOTE_WIDE := 200
+const NOTE_OPEN_W := 200  ## expanded (hover or pinned): long lines wrap inside
+const BODY_FONT := preload("res://assets/fonts/m5x7.ttf")
 
 var _panel: PanelContainer
 var _header: Label
@@ -107,8 +110,7 @@ func _build() -> void:
 	box.add_child(head)
 	_header = _label(_title(), FRAME)
 	_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_header.clip_text = true
-	_header.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # HUD-BAR: the whole step shows, on up to 2 lines
 	_header.custom_minimum_size = Vector2(40, 0)
 	_header.mouse_filter = Control.MOUSE_FILTER_STOP
 	_header.gui_input.connect(_on_header_input)
@@ -216,7 +218,11 @@ func _refresh(pop_new: bool) -> void:
 		box.current = s == step
 		row.add_child(box)
 		var color := DONE if box.done else (NOW if box.current else TEXT)
-		row.add_child(_label(tr(TodoRules.key_of(s)), color))
+		var rl := _label(tr(TodoRules.key_of(s)), color)
+		rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # HUD-BAR: long TR lines wrap instead of leaving the screen
+		rl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		rl.custom_minimum_size = Vector2(40, 0)
+		row.add_child(rl)
 		_rows.add_child(row)
 		if pop_new and box.done and s == _last_done(d):
 			box.pop()
@@ -254,7 +260,26 @@ func _apply_fold() -> void:
 		_header.text = "%s %s" % [count, tr("TUT_ALL_DONE")]
 	_rows.visible = open
 	_close.visible = open
+	var w := NOTE_OPEN_W if open else NOTE_W
+	if not open and _lines_at(_header.text, NOTE_W - 14) > 2:
+		w = NOTE_WIDE
+	_panel.custom_minimum_size = Vector2(w, 0)
+	_fit()
+	_fit.call_deferred()  # wrapped labels know their height one frame later
+
+
+## Resizes the note to its content and keeps its right edge at x = 476.
+func _fit() -> void:
+	if _panel == null:
+		return
 	_panel.reset_size()
+	_panel.position.x = _panel.get_viewport_rect().size.x - 4 - _panel.size.x
+
+
+## Lines the folded header needs at `width` px of panel content (the close cross is hidden when folded).
+func _lines_at(text: String, width: int) -> int:
+	var sz := BODY_FONT.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, width, 16)
+	return int(round(sz.y / float(BODY_FONT.get_height(16))))
 
 
 func _process(_delta: float) -> void:
@@ -267,6 +292,8 @@ func _process(_delta: float) -> void:
 		_hover = false
 		return
 	_avoid_hud()
+	if _panel.size.y > _panel.get_combined_minimum_size().y or _panel.position.x + _panel.size.x != 476.0:
+		_fit()  # wrapped labels settle over a couple of frames
 	var over := _panel.get_global_rect().has_point(_panel.get_viewport().get_mouse_position())
 	if over != _hover:
 		_hover = over
@@ -382,12 +409,9 @@ class CloseCross:
 		draw_texture(ICON, Vector2(0, -1 if _hover else 0))
 
 
-## The note sits top right next to the HUD bar; when the bar is wide (week name, many coins) and would run under the
-## note, the note steps down just below the bar instead.
+## HUD-BAR: the note sits right under the full-width bar (bar bottom + 2), right edge at x = 476.
 func _avoid_hud() -> void:
 	var bar := Hud.bar_rect()
-	var top := 4
-	if bar.has_area() and bar.end.x + 2 > _panel.get_global_rect().position.x:
-		top = int(bar.end.y) + 2
+	var top := int(bar.end.y) + 2 if bar.has_area() else 30
 	if int(_panel.offset_top) != top:
 		_panel.offset_top = top

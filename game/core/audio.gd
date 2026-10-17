@@ -4,6 +4,8 @@ extends Node
 ##   sfx_*/ui_*  -> res://assets/audio/sfx/<id>.wav, or variations <id>_01.wav, <id>_02.wav ...
 ## A missing file warns once and plays nothing, so code can call ids before the assets exist.
 
+signal muted_changed(muted: bool)
+
 const SFX_VOICES := 8
 const SILENT_DB := -40.0
 
@@ -33,7 +35,13 @@ func _ready() -> void:
 ## M toggles all sound (Master bus) in any build.
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_M:
-		AudioServer.set_bus_mute(0, not AudioServer.is_bus_mute(0))
+		set_muted(not is_muted())
+
+
+## Mutes or unmutes the Master bus (M key and the HUD's speaker button) and tells listeners.
+func set_muted(on: bool) -> void:
+	AudioServer.set_bus_mute(0, on)
+	muted_changed.emit(on)
 
 
 func is_muted() -> bool:

@@ -898,3 +898,5 @@ WILD_SURPRISE_COIN,A coin in the leaves! +%d
 WILD_SURPRISE_MUSHROOM,A mushroom in the leaves: %s
 WILD_SURPRISE_FOUND,Tucked in the bush: %s
 WILD_SURPRISE_SPARKLE,A lucky sparkle! %s
+UI_TIP_SOUND_ON,Sound on (M)
+UI_TIP_SOUND_OFF,Sound off (M)

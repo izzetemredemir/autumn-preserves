@@ -293,9 +293,17 @@ func _update_arrow(where: Callable, s: String) -> void:
 	if Rect2(2, 10, vp.x - 4, vp.y - 12).has_point(_aim):
 		_dir = "down"
 		_tip = _aim - Vector2(0, bob)
+		# HUD-BAR: never draw over the To-Do note's text; point up from below the target instead
+		var note := _note_rect().grow(2)
+		if note.has_area() and note.intersects(Rect2(_tip.x - 6, _tip.y - 12, 12, 13)):
+			_dir = "up"
+			_tip = _aim + Vector2(0, bob)
 		return
 	var r := Rect2(EDGE, TOP, vp.x - 2 * EDGE, vp.y - TOP - EDGE)
 	var c := Vector2(clampf(_aim.x, r.position.x, r.end.x), clampf(_aim.y, r.position.y, r.end.y))
+	var note_zone := _note_rect().grow(14)  # HUD-BAR: the edge arrow stays outside the To-Do note
+	if note_zone.has_area() and note_zone.has_point(c):
+		c.y = clampf(note_zone.end.y, r.position.y, r.end.y)
 	var away := _aim - c
 	_dir = ("up" if away.y < 0 else "down") if absf(away.y) >= absf(away.x) else ("left" if away.x < 0 else "right")
 	var key := String(EDGE_TAG.get(s, ""))

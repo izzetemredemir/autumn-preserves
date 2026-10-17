@@ -7,6 +7,7 @@ extends CanvasLayer
 ## PAUSE-MENU: a gear at the status bar's right end opens the in-game menu (ui/pause); Esc opens it too.
 
 const TOAST_SECONDS := 2.0
+const BAR_W := 472  ## HUD-BAR: x 4..476 on the 480 px screen
 
 const ICON_DIR := "res://assets/sprites/ui/"
 const CURSOR_HOTSPOT := Vector2(1, 1)
@@ -32,7 +33,8 @@ var _coins_label: Label
 var _day_label: Label
 var _weather: TextureRect
 var _week_label: Label
-var _bar: PanelContainer  ## the top-left status bar (Granny's To-Do note steps below it when they would meet)
+var _bar: PanelContainer  ## the full-width status bar (Granny's To-Do note sits right under it)
+var _sound_btn: TextureButton
 var _toast_holder: Control
 var _toast_tween: Tween
 
@@ -64,6 +66,7 @@ func _build() -> void:
 	var panel := PanelContainer.new()
 	panel.theme_type_variation = &"DarkPanel"
 	panel.position = Vector2(4, 4)
+	panel.custom_minimum_size = Vector2(BAR_W, 0)  # HUD-BAR: the bar spans x 4..476
 	root.add_child(panel)
 	_bar = panel
 	var row := HBoxContainer.new()
@@ -95,6 +98,19 @@ func _build() -> void:
 	_week_label.visible = false
 	_week_label.mouse_filter = Control.MOUSE_FILTER_PASS  # tooltip: the week with its "Autumn N"
 	row.add_child(_week_label)
+	var spacer := Control.new()  # HUD-BAR: pushes the sound toggle and the gear to the bar's right end
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(spacer)
+	_sound_btn = TextureButton.new()
+	_sound_btn.name = "SoundButton"
+	_sound_btn.custom_minimum_size = Vector2(16, 16)
+	_sound_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_sound_btn.focus_mode = Control.FOCUS_NONE
+	_sound_btn.pressed.connect(func() -> void: Audio.set_muted(not Audio.is_muted()))
+	row.add_child(_sound_btn)
+	Audio.muted_changed.connect(func(_m: bool) -> void: _refresh_sound())
+	_refresh_sound()
 	row.add_child(PauseMenu.button())  # PAUSE-MENU: the gear at the bar's right end (Esc opens the same menu)
 
 	var cursor := load(ICON_DIR + "ui_cursor.png") as Texture2D
@@ -105,6 +121,13 @@ func _build() -> void:
 	_toast_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_toast_holder.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(_toast_holder)
+
+
+## The speaker icon and its tooltip follow the Master mute (button click or the M key).
+func _refresh_sound() -> void:
+	var muted: bool = Audio.is_muted()
+	_sound_btn.texture_normal = load(ICON_DIR + ("icon_sound_off" if muted else "icon_sound_on") + ".png")
+	_sound_btn.tooltip_text = tr("UI_TIP_SOUND_OFF" if muted else "UI_TIP_SOUND_ON")
 
 
 func _on_changed(_keys: PackedStringArray) -> void:
