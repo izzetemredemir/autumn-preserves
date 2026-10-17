@@ -7,8 +7,8 @@ extends MiniGame
 ## Never touches GameState: only emits finished({"stars", "rhythm_stars", "trace_stars"}).
 
 const READY_TIME := 1.5
-const KNEAD_TIME := 20.0
-const TRACE_TIME := 10.0
+const KNEAD_TIME := 12.0
+const TRACE_TIME := 7.0
 const BEAT_MS := 800.0
 const FIRST_BEAT_MS := 800.0
 const RESULT_HOLD := 2.0

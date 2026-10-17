@@ -5,7 +5,7 @@ extends MiniGame
 ## FEEL: bubbles swirl and steam rises faster the faster Granny stirs; stirring in the band (perfect) twinkles on
 ## the jam, and the bar sparkles as it passes a star line. All visual (own clocks and generator, never `rng`).
 
-const DURATION := 40.0
+const DURATION := 20.0  ## jurors play minutes, not hours: one stir is short
 const READY_TIME := 3.0
 const RESULT_HOLD := 2.5
 const CENTER := Vector2(171, 120)  ## centre of the pot art in stir_bg.png

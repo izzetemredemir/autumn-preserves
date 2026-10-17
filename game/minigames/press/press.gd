@@ -3,8 +3,8 @@ extends MiniGame
 ## MG-PRESS: fruit press rhythm (design 11.4). Press the lever (click/tap, Space, `stir`) on the beat.
 ## Beats are scheduled on the Time.get_ticks_usec() clock, never frame counts. Only emits finished().
 
-const BEATS := 24
-const INTERVAL := 1.2  ## seconds between beats (24 beats ~ 29 s)
+const BEATS := 14
+const INTERVAL := 1.1  ## seconds between beats (14 beats ~ 18 s)
 const LEAD_IN := 2.5  ## seconds before the first beat
 const RESULT_HOLD := 2.5
 const HIT_X := 110.0

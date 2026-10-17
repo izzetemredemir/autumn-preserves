@@ -43,6 +43,7 @@ func _ready() -> void:
 	if Farewell.is_completed(saved):
 		_show_completed(Farewell.completed_day(saved))
 	%SeedLab.disabled = not Router.exists("seed_lab")
+	%SeedLab.visible = false  # hidden from players (the human: it looks intimidating); L opens it for the talk
 	if %Continue.disabled:
 		%NewGame.grab_focus()
 	else:
@@ -237,6 +238,12 @@ func _after_premise() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# The Forest Lab is a behind-the-scenes view for presenting, not part of the game: no menu button, the L key opens it.
+	if %Menu.visible and event is InputEventKey and event.pressed and not event.echo \
+			and (event as InputEventKey).physical_keycode == KEY_L and Router.exists("seed_lab"):
+		get_viewport().set_input_as_handled()
+		_on_seed_lab()
+		return
 	if _new_panel.visible and event.is_action_pressed("cancel"):
 		get_viewport().set_input_as_handled()
 		Audio.play_ui("ui_back")
