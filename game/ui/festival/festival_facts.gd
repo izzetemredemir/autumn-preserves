@@ -22,17 +22,21 @@ static func load_save(path: String = SAVE) -> Dictionary:
 	return d
 
 
-## {"seed", "day", "tiles", "trees", "found", "new_recipes", "coins", "recipes"} for the end card. Today's map is
+## {"seed", "day", "tiles", "trees", "clearings", "paths", "found", "new_recipes", "coins", "recipes"} for the end card. Today's map is
 ## generated again (same seed, same map), so the numbers are the very forest Granny walked.
 static func summary(state: Dictionary) -> Dictionary:
 	var f := TodoRules.festival(state)
 	var day := int(state.get("day", 1))
 	var map := WildGen.generate(int(state.get("save_seed", 0)), day, String(f.get("biome", "forest")),
-		String(state.get("weather", "sunny")), state.get("varieties", {}))
+		String(state.get("weather", "sunny")), state.get("varieties", {}), true)
 	var tiles := 0
 	var trees := 0
+	var clearings := 0
+	var paths := 0
 	if not map.is_empty():
 		tiles = int(map.w) * int(map.h)
+		clearings = map.get("clearings", []).size()
+		paths = map.get("steps", {}).get("4_paths", {}).get("paths", []).size()
 		trees = map.get("decor_trees", []).size() + map.get("fruit_trees", []).size()
 	var variants: Dictionary = state.get("book", {}).get("variants", {})
 	return {
@@ -40,6 +44,8 @@ static func summary(state: Dictionary) -> Dictionary:
 		"day": day,
 		"tiles": tiles,
 		"trees": trees,
+		"clearings": clearings,
+		"paths": paths,
 		"found": state.get("found_varieties", []).size(),
 		"new_recipes": maxi(variants.size() - int(f.get("book0", variants.size())), 0),
 		"coins": maxi(int(state.get("stats", {}).get("coins_earned", 0)) - int(f.get("coins0", 0)), 0),

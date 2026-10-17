@@ -37,6 +37,22 @@ func test_grow_timing_fits_three_to_four_seconds() -> void:
 	assert_eq(WorldGrow.level_at(WorldGrow.duration()), 0)
 
 
+func test_short_form_is_two_seconds_and_first_entry_is_remembered() -> void:
+	assert_near(WorldGrow.duration(true), 2.0, 0.001)
+	assert_eq(WorldGrow.level_at(WorldGrow.duration(true), WorldGrow.SHORT_PLAY, WorldGrow.SHORT_HOLD, WorldGrow.SHORT_FADE), 0)
+	assert_eq(WorldGrow.line_at(0.0), 0, "Granny's first line")
+	assert_eq(WorldGrow.line_at(WorldGrow.PLAY_SEC), 5, "the last line once the forest is ready")
+	var last := 0
+	for k in 40:
+		var l := WorldGrow.line_at(WorldGrow.PLAY_SEC * k / 40.0)
+		assert_true(l >= last and l <= 4, "lines advance one phase at a time")
+		last = l
+	var s := {"day": 1}
+	assert_true(WorldGrow.is_first(s), "old saves without the flag count as first")
+	WorldGrow.mark(s)
+	assert_false(WorldGrow.is_first(s))
+
+
 func test_grow_map_fits_the_screen() -> void:
 	var rules: Dictionary = Data.rules().wild
 	var w := int(rules.w)

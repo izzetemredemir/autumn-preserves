@@ -78,10 +78,10 @@ BOOK_TAB_RECIPES,Tarifler
 BOOK_TAB_VARIETIES,Çeşitler
 BOOK_CLOSE,X
 BOOK_BASE_RECIPES,Temel tarifler
-BOOK_VARIANTS,Keşfedilen tatlar
+BOOK_VARIANTS,Keşfedilen çeşitler
 BOOK_EMPTY,Defterin boş. Bir şeyler pişir!
 BOOK_UNKNOWN,???
-BOOK_DISCOVERED,%d tat keşfedildi
+BOOK_DISCOVERED,%d çeşit keşfedildi
 BOOK_NEXT_MILESTONE,sonraki ödül: %d
 BOOK_ALL_MILESTONES,bütün ödüller alındı
 BOOK_RARITY_COMMON,Yaygın
@@ -346,35 +346,35 @@ BOOK_HOW_SIZE_LARGE,iri
 BOOK_HOW_SHIFT_DOWN,daha koyu renk
 BOOK_HOW_SHIFT_NONE,olağan renk
 BOOK_HOW_SHIFT_UP,daha açık renk
-BOOK_HOW_DELTA,Tat farkı: %s
+BOOK_HOW_DELTA,Tat kayması: %s
 BOOK_HOW_NONE,yok
-BOOK_HOW_AVERAGE,Ortalama
+BOOK_HOW_AVERAGE,Karışım
 BOOK_HOW_TASTE,Tat
-BOOK_HOW_BASE,Taban
+BOOK_HOW_BASE,Meyve
 BOOK_HOW_NO_ADDIN,yok
 BOOK_HOW_FINAL,Sonuç
-BOOK_HOW_CLAMPED,Her eksen %d-%d arasında
-BOOK_HOW_PROFILE,Profil: %s
+BOOK_HOW_CLAMPED,"%d altına inmez, %d üstüne çıkmaz"
+BOOK_HOW_PROFILE,Genel tat: %s
 BOOK_HOW_HARMONY,Uyum +%d
-BOOK_HOW_PAIR_YES,+1 sevilen ikili: %s %d & %s %d
-BOOK_HOW_PAIR_NO,+0 baştaki ikili: %s %d & %s %d
-BOOK_HOW_BALANCE_YES,"+1 denge: %d eksen %d+, hiçbiri %d+ değil"
-BOOK_HOW_BALANCE_HIGH,"+0 denge: %s %d, %d ya da üstü"
-BOOK_HOW_BALANCE_FEW,+0 denge: yalnız %d eksen %d+
-BOOK_HOW_STARS,Yıldız: kalite %d + uyum %d = %d
-BOOK_HOW_NAME,Ad grameri
-BOOK_HOW_ADJ_ADDIN,Sıfat: %s (katkı)
-BOOK_HOW_ADJ_PROFILE,Sıfat: %s (baskın tat)
-BOOK_HOW_ADJ_MILD,Sıfat: %s (hafif)
-BOOK_HOW_ADJ_DROPPED,%s sıfatı düştü: %d üstü
-BOOK_HOW_FEATURE,Özellik: %s (çeşit)
-BOOK_HOW_FEATURE_NONE,Özellik: yok
-BOOK_HOW_FEATURE_REPEAT,%s düştü: aynı kök
-BOOK_HOW_FEATURE_LONG,%s düştü: %d üstü
-BOOK_HOW_LENGTH,%d / %d harf
+BOOK_HOW_PAIR_YES,%s ile %s birbirine yakışır: +1
+BOOK_HOW_PAIR_NO,%s ile %s pek yakışmaz: +0
+BOOK_HOW_BALANCE_YES,"Dengeli, hiçbiri baskın değil: +1"
+BOOK_HOW_BALANCE_HIGH,%s dengelenemeyecek kadar baskın: +0
+BOOK_HOW_BALANCE_FEW,Yalnız birkaç tat öne çıkıyor: +0
+BOOK_HOW_STARS,Yıldızlar
+BOOK_HOW_NAME,Adı nereden geldi
+BOOK_HOW_ADJ_ADDIN,"%s, katkıdan"
+BOOK_HOW_ADJ_PROFILE,"%s, baskın tattan"
+BOOK_HOW_ADJ_MILD,"%s, çünkü hafif"
+BOOK_HOW_ADJ_DROPPED,"%s, ad kısa kalsın diye çıkarıldı"
+BOOK_HOW_FEATURE,"%s, çeşitten"
+BOOK_HOW_FEATURE_NONE,Çeşitten ek sözcük yok
+BOOK_HOW_FEATURE_REPEAT,%s çıkarıldı: iki kez söylüyordu
+BOOK_HOW_FEATURE_LONG,"%s, ad kısa kalsın diye çıkarıldı"
+BOOK_HOW_LENGTH,%d harf; etikete %d harf sığar
 BOOK_HOW_LOOK,Görünüş
-BOOK_HOW_SEED,Tohum fnv1a31(key) = %d
-BOOK_HOW_PARTS,"Etiket %d, %s, %s kapak"
+BOOK_HOW_SEED,Görünüş tohumu: %d
+BOOK_HOW_PARTS,"%s etiket, %s kapak"
 BOOK_HOW_MOTIF_LEAF,yaprak
 BOOK_HOW_MOTIF_STAR,yıldız
 BOOK_HOW_MOTIF_STRIPE,çizgi
@@ -454,7 +454,7 @@ LET_RECIPE_CHILI_PICKLES,Acılı Turşu
 LET_RECIPE_SALTED_PORCINI,Tuzlu Çörek Mantarı
 UI_NIGHT_LETTER,%s mektup yolladı!
 BOOK_FOUND,%d/%d çeşit bulundu
-BOOK_HOW_KEY,tohum anahtarı
+BOOK_HOW_KEY,tarif anahtarı
 KITCHEN_DAYS_TIP,%d gün
 KITCHEN_PRESS,Meyve presi
 KITCHEN_BOARD,Hamur tahtası
@@ -560,13 +560,13 @@ UI_UPGRADE_NAME_BOOTS,Lastik çizme
 UI_UPGRADE_NAME_PRESS,Meyve presi
 UI_UPGRADE_NAME_BIG_POT,Büyük tencere
 UI_UPGRADE_NAME_CELLAR,Mahzen
-UI_UPGRADE_FX_PANTRY_ROW,Kilere 12 göz daha
+UI_UPGRADE_FX_PANTRY_ROW,Kilere 12 raf yeri daha
 UI_UPGRADE_FX_BAG,%d eşya taşır
 UI_UPGRADE_FX_BEDS,Bahçeye 2 tarh daha
 UI_UPGRADE_FX_BOOTS,Dere kıyısını açar
 UI_UPGRADE_FX_PRESS,Pres tariflerini açar
 UI_UPGRADE_FX_BIG_POT,Tencere tarifleri 2 kavanoz
-UI_UPGRADE_FX_CELLAR,Kilere 12 serin göz
+UI_UPGRADE_FX_CELLAR,Kilere 12 serin raf yeri
 FAREWELL_LETTER_DEAR_TWO,"Canım %s ve %s,"
 FAREWELL_LETTER_DEAR,"Canım torunlarım,"
 FAREWELL_LETTER_DAYS,"Everfall'da %d gün geçti, hiçbiri sıkıcı değildi."
@@ -691,8 +691,8 @@ FESTIVAL_START_1,Everfall'da Hasat Şenliği! Mia ile Leo ziyarete geldi ve bug�
 FESTIVAL_START_2,"Bugün altı küçük iş var, her biri bir iki dakika. Ninenin notu yolu gösterir."
 FESTIVAL_GO,Hadi başlayalım!
 FESTIVAL_END_TITLE,Ne güzel bir şenlik!
-FESTIVAL_END_SEED,Senin Everfall'un %s tohumundan büyüdü:
-FESTIVAL_END_MAP,Bugünkü ormanda %s kare ve %d ağaç.
+FESTIVAL_END_SEED,Senin Everfall'un %s tohumundan büyüdü.
+FESTIVAL_END_MAP,"Bugünün ormanı: %d ağaç, %d açıklık, %d patika"
 FESTIVAL_END_FOUND,%d çeşit bulundu. Bugün yeni tarif: %d.
 FESTIVAL_END_COINS,Pazardan %d altın geldi.
 FESTIVAL_END_BYE,Mia ile Leo gelecek sonbaharı iple çekiyor!
@@ -729,9 +729,9 @@ PREMISE_3,"Bu, Tonty Nine'nin onsuz ilk sonbaharı."
 PREMISE_4,Tepelerin ötesine kış çoktan geldi.
 PREMISE_5,Yeni bir sabah. Posta kutusunda bir şey var.
 PREMISE_SKIP,Geçmek için tıkla ya da bir tuşa bas
-WORLD_GROW_FOREST,"Bugünün ormanı, %d tohumundan büyüdü"
-WORLD_GROW_VINEYARD,"Bugünün bağı, %d tohumundan büyüdü"
-WORLD_GROW_CREEK,"Bugünün deresi, %d tohumundan büyüdü"
+WORLD_GROW_FOREST,Bugünün ormanı
+WORLD_GROW_VINEYARD,Bugünün bağı
+WORLD_GROW_CREEK,Bugünün deresi
 WORLD_GROW_SETTING,Büyümeyi göster
 FAREWELL_CREDIT_MADE_BY,Yapan: İzzet Emre Demir
 TOWN_CALL_GROCER_1,Bugün taze elma var!
@@ -985,3 +985,12 @@ TODO_HINT_D1_PICK,"Kapıdan ormana, canım: üç şey toplayalım, böğürtlen 
 STORY_FIND_KNIFE,Teo'nun çakısı. Bir dalı silkelemek için bırakmış olmalı... Her sonbahar yapardı bunu.
 STORY_OBJ_KNIFE,"Yine şömine rafında. Sapında bir armut, oyduğu her sapta olduğu gibi."
 CAP_KNIFE,Çakı
+GROW_LINE_1,Orman her sabah yeniden büyür.
+GROW_LINE_2,Dere yolunu bulur...
+GROW_LINE_3,Ağaçlar yerlerini seçer...
+GROW_LINE_4,Patikalar açılır...
+GROW_LINE_5,Mantarlar ve meyveler yerleşir...
+GROW_LINE_6,Bugünün ormanı hazır.
+GROW_FIRST_TEO,Teo derdi ki: orman aynı günü iki kez vermez.
+GROW_DAY,Gün %d
+GROW_SEED,tohum %d

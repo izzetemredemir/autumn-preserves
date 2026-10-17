@@ -1,8 +1,9 @@
 class_name HowMadeCard
 extends PanelContainer
 ## P1-SEEDLAB · "How it was made" card of the recipe book (spec §7.9, §7.3): one variant's generation, step by step.
-## Variety (traits, taste delta) -> base + method effect + add-in effect = final taste (5 bars each) -> harmony and
-## why -> the name grammar and the rule that fired -> the appearance seed fnv1a31(key).
+## PLAIN-WORDS: written as Granny's notebook. Variety (size, colour, taste shift) -> fruit + method + add-in = result
+## (5 bars each) -> harmony and why -> where the name came from -> the look (label and lid). The appearance seed
+## and the raw recipe key show only with Settings > Show seed; the Forest Lab keeps the engineering view.
 ## Values come from ProductGen, VarietyGen and the data tables. The explanations (chutney average, the sum before
 ## clamping, harmony reasons, which name fallback fired) are display-only re-derivations; each is checked against
 ## ProductGen's own answer and left out when they disagree.
@@ -66,10 +67,11 @@ func build(book: Book, p_key: String, varieties: Dictionary, rec: Dictionary) ->
 	_taste_lines(right, p, desc, mains)
 	_harmony_lines(right, desc, rec)
 	_look_lines(right, desc)
-	var foot := _book._label(Book.FONT_BODY, 18, Book.FRAME)  # the raw recipe key, small, at the bottom
-	foot.text = "%s: %s" % [tr("BOOK_HOW_KEY"), key]
-	foot.clip_text = true
-	vb.add_child(foot)
+	if GameSettings.show_seed():
+		var foot := _book._label(Book.FONT_BODY, 18, Book.FRAME)  # the raw recipe key, small, at the bottom
+		foot.text = "%s: %s" % [tr("BOOK_HOW_KEY"), key]
+		foot.clip_text = true
+		vb.add_child(foot)
 	_close.grab_focus()
 
 
@@ -145,13 +147,13 @@ func _name_lines(box: VBoxContainer, np: Dictionary, desc: Dictionary) -> void:
 		_:
 			adj_line = tr("BOOK_HOW_ADJ_PROFILE") % adjective
 	if bool(np.adjective_long):
-		adj_line = tr("BOOK_HOW_ADJ_DROPPED") % [adjective, max_len]
+		adj_line = tr("BOOK_HOW_ADJ_DROPPED") % adjective
 	var feature := String(np.feature)
 	var feature_line := tr("BOOK_HOW_FEATURE_NONE")
 	if feature != "" and bool(np.repeat):
 		feature_line = tr("BOOK_HOW_FEATURE_REPEAT") % feature
 	elif feature != "" and bool(np.feature_long):
-		feature_line = tr("BOOK_HOW_FEATURE_LONG") % [feature, max_len]
+		feature_line = tr("BOOK_HOW_FEATURE_LONG") % feature
 	elif feature != "":
 		feature_line = tr("BOOK_HOW_FEATURE") % feature
 	var final_name := String(desc.name)
@@ -163,10 +165,11 @@ func _name_lines(box: VBoxContainer, np: Dictionary, desc: Dictionary) -> void:
 
 func _look_lines(box: VBoxContainer, desc: Dictionary) -> void:
 	_head(box, tr("BOOK_HOW_LOOK"))
-	_line(box, tr("BOOK_HOW_SEED") % ProductGen.appearance_seed(key))
 	var ap: Dictionary = desc.appearance
-	_line(box, tr("BOOK_HOW_PARTS") % [int(ap.get("label_shape", 0)) + 1, tr("BOOK_HOW_MOTIF_" + String(ap.get("motif", "leaf")).to_upper()),
+	_line(box, tr("BOOK_HOW_PARTS") % [tr("BOOK_HOW_MOTIF_" + String(ap.get("motif", "leaf")).to_upper()),
 		tr("BOOK_HOW_LID_" + String(ap.get("lid", "metal")).to_upper())])
+	if GameSettings.show_seed():
+		_line(box, tr("BOOK_HOW_SEED") % ProductGen.appearance_seed(key), Book.GOLD_DK)
 
 
 ## Base + method effect + add-in effect = final, five bars each.
@@ -231,16 +234,24 @@ func _harmony_lines(box: VBoxContainer, desc: Dictionary, rec: Dictionary) -> vo
 	var calm := top < int(cfg.balance_max_exclusive)
 	var bal_ok := calm and high >= int(cfg.balance_axes_min_count)
 	if int(pair_ok) + int(bal_ok) == h:
-		_line(box, (tr("BOOK_HOW_PAIR_YES") if pair_ok else tr("BOOK_HOW_PAIR_NO")) % [_axis(a), int(t[a]), _axis(b), int(t[b])])
+		_line(box, (tr("BOOK_HOW_PAIR_YES") if pair_ok else tr("BOOK_HOW_PAIR_NO")) % [_axis(a), _axis(b)])
 		if bal_ok:
-			_line(box, tr("BOOK_HOW_BALANCE_YES") % [high, int(cfg.balance_axis_min), int(cfg.balance_max_exclusive)])
+			_line(box, tr("BOOK_HOW_BALANCE_YES"))
 		elif not calm:
-			_line(box, tr("BOOK_HOW_BALANCE_HIGH") % [_axis(a), top, int(cfg.balance_max_exclusive)])
+			_line(box, tr("BOOK_HOW_BALANCE_HIGH") % _axis(a))
 		else:
-			_line(box, tr("BOOK_HOW_BALANCE_FEW") % [high, int(cfg.balance_axis_min)])
-	if not rec.is_empty():
+			_line(box, tr("BOOK_HOW_BALANCE_FEW"))
+	if not rec.is_empty():  # the best jar's stars, drawn as stars: quality first, then harmony
 		var q := clampi(int(rec.get("best_q", 0)), 0, 3)
-		_line(box, tr("BOOK_HOW_STARS") % [q, h, ProductGen.total_stars(q, h)])
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 4)
+		var lab := _book._label(Book.FONT_BODY, 18, Book.TEXT)
+		lab.text = tr("BOOK_HOW_STARS")
+		row.add_child(lab)
+		var sr := ResultCard.StarRow.new()
+		sr.set_stars(q, h)
+		row.add_child(sr)
+		box.add_child(row)
 
 
 # ---------- widgets ----------

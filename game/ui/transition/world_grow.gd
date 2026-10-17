@@ -2,8 +2,10 @@ class_name WorldGrow
 extends CanvasLayer
 ## FIRST-60 · "The world grows from your seed". The first time a wild opens each day (always on the first visit of a
 ## save, after that while Settings > Show the forest grow is on), the map's generation replays over the whole screen
-## with GrowView, sped up to about 3 s (noise -> stream -> trees -> paths -> pickups), under "Today's forest, grown
-## from seed N"; then the overlay dithers away into the real map. Any key, click or tap skips to the fade.
+## with GrowView, sped up to about 3 s (noise -> stream -> trees -> paths -> pickups), in a notebook frame with one
+## line of Granny's per phase (PLAIN-WORDS: no seed, no algorithm names; "Day N" in the corner, the seed only with
+## Show seed). The first forest entry of a save also opens with Teo's line and runs in full (~4 s); later entries
+## are a 2 s short form (the last line). Then the overlay dithers away into the real map. Any key, click or tap skips.
 ## Wild hook: `WorldGrow.open_if_due(self, map, biome)` once the map is drawn. Router.params "grow" (bool) forces it on
 ## or off (demo timelines); demo runs (--demo) and wild scenes not opened through the Router (smoke scripts) skip it.
 ## The day it last played is kept in the save as flags.wild_grow_day (old saves: missing = never played).
@@ -14,6 +16,11 @@ const LAYER := 20  ## over the HUD (10), under scene transitions (90)
 const PLAY_SEC := 3.0
 const HOLD_SEC := 0.45
 const FADE_SEC := 0.45
+const SHORT_PLAY := 1.2  ## later entries: 1.2 + 0.4 + 0.4 = 2 s
+const SHORT_HOLD := 0.4
+const SHORT_FADE := 0.4
+const LINE_KEYS := ["GROW_LINE_1", "GROW_LINE_2", "GROW_LINE_3", "GROW_LINE_4", "GROW_LINE_5", "GROW_LINE_6"]
+const SEEN_FLAG := "grow_seen"  ## flags.story.grow_seen: the first forest entry has been narrated
 const BG := Color("23282a")
 const CAPTION := Color("f2d9c5")
 const STEP := Color("e5bd7f")
@@ -27,7 +34,12 @@ var _t := 0.0
 var _view: GrowView
 var _root: Control
 var _caption: Label
+var _day: Label
 var _step: Label
+var _first := true
+var _play := PLAY_SEC
+var _hold := HOLD_SEC
+var _fade := FADE_SEC
 var _mat := ShaderMaterial.new()
 var _finished := false
 
@@ -41,26 +53,39 @@ static func is_due(state: Dictionary, setting_on: bool) -> bool:
 	return setting_on and int(flags[FLAG]) != int(state.get("day", 1))
 
 
+## Whether this save has not yet seen the narrated first entry (flags.story.grow_seen, read with a default).
+static func is_first(state: Dictionary) -> bool:
+	return not bool(Story.flags(state).get(SEEN_FLAG, false))
+
+
 static func mark(state: Dictionary) -> void:
 	if typeof(state.get("flags")) != TYPE_DICTIONARY:
 		state["flags"] = {}
 	state.flags[FLAG] = int(state.get("day", 1))
+	Story.flags(state)[SEEN_FLAG] = true
 
 
-## Seconds from the start until the map is fully back.
-static func duration() -> float:
-	return PLAY_SEC + HOLD_SEC + FADE_SEC
+## Seconds from the start until the map is fully back (`short`: the 2 s form of later entries).
+static func duration(short := false) -> float:
+	return (SHORT_PLAY + SHORT_HOLD + SHORT_FADE) if short else (PLAY_SEC + HOLD_SEC + FADE_SEC)
 
 
-## GrowView time at overlay time `t`: noise..pickups squeezed into PLAY_SEC, then held (the flood check is left out).
-static func view_time(t: float) -> float:
-	return clampf(t / PLAY_SEC, 0.0, 1.0) * GrowView.start(GrowView.PHASES.size() - 1)
+## GrowView time at overlay time `t`: noise..pickups squeezed into `play` s, then held (the flood check is left out).
+static func view_time(t: float, play := PLAY_SEC) -> float:
+	return clampf(t / play, 0.0, 1.0) * GrowView.start(GrowView.PHASES.size() - 1)
 
 
-## Dither level of the overlay at `t`: whole until the fade, then gone over FADE_SEC.
-static func level_at(t: float) -> int:
-	var f := t - PLAY_SEC - HOLD_SEC
-	return 16 if f <= 0.0 else clampi(16 - int(16.0 * f / FADE_SEC), 0, 16)
+## Dither level of the overlay at `t`: whole until the fade, then gone over `fade` s.
+static func level_at(t: float, play := PLAY_SEC, hold := HOLD_SEC, fade := FADE_SEC) -> int:
+	var f := t - play - hold
+	return 16 if f <= 0.0 else clampi(16 - int(16.0 * f / fade), 0, 16)
+
+
+## Index (0..5) of Granny's line at overlay time `t`: one per phase, the last once the map is grown.
+static func line_at(t: float, play := PLAY_SEC) -> int:
+	if t >= play:
+		return LINE_KEYS.size() - 1
+	return mini(GrowView.phase_at(view_time(t, play)), LINE_KEYS.size() - 2)
 
 
 ## Tile size that fits a w x h map (and its paper frame) on a screen of `screen` px with a caption row above and a
@@ -87,16 +112,22 @@ static func open_if_due(host: Node, map: Dictionary, biome: String) -> WorldGrow
 		return null
 	elif not is_due(state, GameSettings.show_grow()):
 		return null
+	var first := is_first(state)
 	mark(state)
 	var g := WorldGrow.new()
-	g.setup(map, state, biome)
+	g.setup(map, state, biome, first)
 	host.add_child(g)
 	return g
 
 
 ## Builds the overlay for `map` (generated again with its steps when the map has none, as in release builds).
-func setup(map: Dictionary, state: Dictionary, biome: String) -> void:
+func setup(map: Dictionary, state: Dictionary, biome: String, first := true) -> void:
 	layer = LAYER
+	_first = first
+	if not first:
+		_play = SHORT_PLAY
+		_hold = SHORT_HOLD
+		_fade = SHORT_FADE
 	var m := map
 	if typeof(map.get("steps")) != TYPE_DICTIONARY or (map.get("steps") as Dictionary).is_empty():
 		m = WildGen.generate(int(state.get("save_seed", 0)), int(state.get("day", 1)), biome,
@@ -116,6 +147,7 @@ func setup(map: Dictionary, state: Dictionary, biome: String) -> void:
 	var w := int(m.get("w", 0))
 	var h := int(m.get("h", 0))
 	var ts := tile_px(w, h, screen)
+	_view.plain = true
 	_view.setup(m, state.get("varieties", {}), ts)
 	var frame_y := floori((screen.y - h * ts - FRAME_PX * 2) / 2.0)
 	_view.position = Vector2(floori((screen.x - w * ts) / 2.0), frame_y + FRAME_PX)
@@ -128,11 +160,19 @@ func setup(map: Dictionary, state: Dictionary, biome: String) -> void:
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_adopt(frame)
 	_adopt(_view)
-	_caption = _label(CAPTION)
-	_caption.text = tr(String(CAPTION_KEYS.get(biome, "WORLD_GROW_FOREST"))) % int(m.get("seed", 0))
-	_caption.offset_top = frame_y - 22
+	_caption = _label(CAPTION)  # Teo's line on the first entry, else the place's name
+	_caption.text = tr("GROW_FIRST_TEO") if first else tr(String(CAPTION_KEYS.get(biome, "WORLD_GROW_FOREST")))
+	_caption.offset_top = frame_y - 20
 	_caption.offset_bottom = frame_y - 4
-	_step = _label(STEP)
+	_day = _label(STEP)  # "Day N" in the corner; the seed too only with Show seed
+	_day.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_day.offset_right = -8
+	_day.offset_top = 4
+	_day.offset_bottom = 20
+	_day.text = tr("GROW_DAY") % int(state.get("day", 1))
+	if GameSettings.show_seed():
+		_day.text += "  " + tr("GROW_SEED") % int(m.get("seed", 0))
+	_step = _label(CAPTION)
 	_step.offset_top = frame_y + h * ts + FRAME_PX * 2 + 4
 	_step.offset_bottom = _step.offset_top + 18
 	_apply()
@@ -143,6 +183,7 @@ func _label(color: Color) -> Label:
 	l.anchor_right = 1.0
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED  # set already translated
+	l.theme_type_variation = &"Body"  # the theme's body font (m5x7 16)
 	l.add_theme_color_override("font_color", color)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_adopt(l)
@@ -157,7 +198,7 @@ func _adopt(n: CanvasItem) -> void:
 func _process(delta: float) -> void:
 	_t += delta
 	_apply()
-	if _t >= duration() and not _finished:
+	if _t >= duration(not _first) and not _finished:
 		_finished = true
 		done.emit()
 		queue_free()
@@ -171,18 +212,16 @@ func seek(t: float) -> void:
 
 ## Jumps to the finished map and its fade.
 func skip() -> void:
-	_t = maxf(_t, PLAY_SEC + HOLD_SEC)
+	_t = maxf(_t, _play + _hold)
 	_apply()
 
 
 func _apply() -> void:
 	if _view == null:
 		return
-	var vt := view_time(_t)
-	_view.set_time(vt)
-	var phase := mini(GrowView.phase_at(vt), GrowView.PHASES.size() - 2)
-	_step.text = tr(String(GrowView.STEP_KEYS[phase]))
-	_mat.set_shader_parameter("level", level_at(_t))
+	_view.set_time(view_time(_t, _play))
+	_step.text = tr(LINE_KEYS[LINE_KEYS.size() - 1 if not _first else line_at(_t, _play)])
+	_mat.set_shader_parameter("level", level_at(_t, _play, _hold, _fade))
 
 
 func _input(event: InputEvent) -> void:

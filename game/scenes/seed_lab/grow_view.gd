@@ -66,6 +66,7 @@ var _max_d := 1
 var _entrance := Vector2i.ZERO
 var _ring_r := 3
 var _notes: Array = ["", "", "", "", "", ""]
+var plain := false  ## PLAIN-WORDS: the play overlay sets it; no step notes (the Forest Lab keeps them)
 
 
 static func start(phase: int) -> float:
@@ -93,6 +94,8 @@ func size_px() -> Vector2i:
 
 ## A short fact for the caption under the map while `phase` runs ("" when there is none).
 func note(phase: int) -> String:
+	if plain:
+		return ""
 	return String(_notes[phase]) if phase >= 0 and phase < _notes.size() else ""
 
 
@@ -328,7 +331,7 @@ func _draw() -> void:
 	var ring := _ring_tex(_ring_r * ts)
 	var half := floori(ts * 0.5)
 	for d in _decor:
-		if t >= d.pop and t - d.pop < RING_T:
+		if not plain and t >= d.pop and t - d.pop < RING_T:
 			draw_texture(ring, Vector2(d.c * ts + Vector2i(half, half) - Vector2i(_ring_r * ts, _ring_r * ts)), C_CREAM)
 	_draw_items()
 

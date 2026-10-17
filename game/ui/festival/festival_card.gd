@@ -52,8 +52,9 @@ func show_end(facts: Dictionary) -> void:
 	_build("end")
 	_title(tr("FESTIVAL_END_TITLE"))
 	var sep := tr("FESTIVAL_THOUSANDS")
-	_text(tr("FESTIVAL_END_SEED") % FestivalFacts.thousands(int(facts.get("seed", 0)), sep))
-	_text(tr("FESTIVAL_END_MAP") % [FestivalFacts.thousands(int(facts.get("tiles", 0)), sep), int(facts.get("trees", 0))])
+	_text(tr("FESTIVAL_END_MAP") % [int(facts.get("trees", 0)), int(facts.get("clearings", 0)), int(facts.get("paths", 0))])
+	if GameSettings.show_seed():
+		_text(tr("FESTIVAL_END_SEED") % FestivalFacts.thousands(int(facts.get("seed", 0)), sep), SOFT)
 	_text(tr("FESTIVAL_END_FOUND") % [int(facts.get("found", 0)), int(facts.get("new_recipes", 0))])
 	_text(tr("FESTIVAL_END_COINS") % int(facts.get("coins", 0)))
 	_text(tr("FESTIVAL_END_BYE"), SOFT)

@@ -78,10 +78,10 @@ BOOK_TAB_RECIPES,Recipes
 BOOK_TAB_VARIETIES,Varieties
 BOOK_CLOSE,X
 BOOK_BASE_RECIPES,Base recipes
-BOOK_VARIANTS,Discovered variants
+BOOK_VARIANTS,Discovered varieties
 BOOK_EMPTY,Your book is empty. Cook something!
 BOOK_UNKNOWN,???
-BOOK_DISCOVERED,%d variants discovered
+BOOK_DISCOVERED,%d varieties discovered
 BOOK_NEXT_MILESTONE,next reward at %d
 BOOK_ALL_MILESTONES,all milestones reached
 BOOK_RARITY_COMMON,Common
@@ -346,35 +346,35 @@ BOOK_HOW_SIZE_LARGE,large
 BOOK_HOW_SHIFT_DOWN,darker colour
 BOOK_HOW_SHIFT_NONE,usual colour
 BOOK_HOW_SHIFT_UP,brighter colour
-BOOK_HOW_DELTA,Taste delta: %s
+BOOK_HOW_DELTA,Taste shift: %s
 BOOK_HOW_NONE,none
-BOOK_HOW_AVERAGE,Average
+BOOK_HOW_AVERAGE,Mixed
 BOOK_HOW_TASTE,Taste
-BOOK_HOW_BASE,Base
+BOOK_HOW_BASE,Fruit
 BOOK_HOW_NO_ADDIN,none
-BOOK_HOW_FINAL,Final
-BOOK_HOW_CLAMPED,Each axis kept in %d-%d
-BOOK_HOW_PROFILE,Profile: %s
+BOOK_HOW_FINAL,Result
+BOOK_HOW_CLAMPED,Never below %d or above %d
+BOOK_HOW_PROFILE,Tastes mostly: %s
 BOOK_HOW_HARMONY,Harmony +%d
-BOOK_HOW_PAIR_YES,+1 liked pair: %s %d & %s %d
-BOOK_HOW_PAIR_NO,+0 top pair: %s %d & %s %d
-BOOK_HOW_BALANCE_YES,"+1 balance: %d axes %d+, none %d+"
-BOOK_HOW_BALANCE_HIGH,+0 balance: %s %d is %d+
-BOOK_HOW_BALANCE_FEW,+0 balance: only %d axes %d+
-BOOK_HOW_STARS,Stars: quality %d + harmony %d = %d
-BOOK_HOW_NAME,Name grammar
-BOOK_HOW_ADJ_ADDIN,Adjective: %s (add-in)
-BOOK_HOW_ADJ_PROFILE,Adjective: %s (top taste)
-BOOK_HOW_ADJ_MILD,Adjective: %s (mild)
-BOOK_HOW_ADJ_DROPPED,Adjective %s dropped: over %d
-BOOK_HOW_FEATURE,Feature: %s (variety)
-BOOK_HOW_FEATURE_NONE,Feature: none
-BOOK_HOW_FEATURE_REPEAT,Feature %s dropped: same root
-BOOK_HOW_FEATURE_LONG,Feature %s dropped: over %d
-BOOK_HOW_LENGTH,%d of %d letters
+BOOK_HOW_PAIR_YES,%s and %s go well together: +1
+BOOK_HOW_PAIR_NO,%s and %s don't quite pair: +0
+BOOK_HOW_BALANCE_YES,"Well balanced, nothing too loud: +1"
+BOOK_HOW_BALANCE_HIGH,%s is too strong to balance: +0
+BOOK_HOW_BALANCE_FEW,Only a few tastes come through: +0
+BOOK_HOW_STARS,Stars
+BOOK_HOW_NAME,Where the name came from
+BOOK_HOW_ADJ_ADDIN,%s from the add-in
+BOOK_HOW_ADJ_PROFILE,%s from the main taste
+BOOK_HOW_ADJ_MILD,"%s, because it is mild"
+BOOK_HOW_ADJ_DROPPED,%s left out to keep the name short
+BOOK_HOW_FEATURE,%s from the variety
+BOOK_HOW_FEATURE_NONE,No extra word from the variety
+BOOK_HOW_FEATURE_REPEAT,%s left out: it says it twice
+BOOK_HOW_FEATURE_LONG,%s left out to keep the name short
+BOOK_HOW_LENGTH,%d letters; the label holds %d
 BOOK_HOW_LOOK,Look
-BOOK_HOW_SEED,Seed fnv1a31(key) = %d
-BOOK_HOW_PARTS,"Label %d, %s, %s lid"
+BOOK_HOW_SEED,Look seed: %d
+BOOK_HOW_PARTS,"%s label, %s lid"
 BOOK_HOW_MOTIF_LEAF,leaf
 BOOK_HOW_MOTIF_STAR,star
 BOOK_HOW_MOTIF_STRIPE,stripe
@@ -454,7 +454,7 @@ LET_RECIPE_CHILI_PICKLES,Chili Pickles
 LET_RECIPE_SALTED_PORCINI,Salted Porcini
 UI_NIGHT_LETTER,A letter from %s arrived!
 BOOK_FOUND,%d/%d varieties found
-BOOK_HOW_KEY,seed key
+BOOK_HOW_KEY,recipe key
 KITCHEN_DAYS_TIP,%d days
 KITCHEN_PRESS,Fruit press
 KITCHEN_BOARD,Dough board
@@ -560,13 +560,13 @@ UI_UPGRADE_NAME_BOOTS,Rubber boots
 UI_UPGRADE_NAME_PRESS,Fruit press
 UI_UPGRADE_NAME_BIG_POT,Big pot
 UI_UPGRADE_NAME_CELLAR,Cellar
-UI_UPGRADE_FX_PANTRY_ROW,12 more pantry cells
+UI_UPGRADE_FX_PANTRY_ROW,12 more pantry shelf spaces
 UI_UPGRADE_FX_BAG,Carry %d items
 UI_UPGRADE_FX_BEDS,2 more garden beds
 UI_UPGRADE_FX_BOOTS,Opens the creek bank
 UI_UPGRADE_FX_PRESS,Opens the press recipes
 UI_UPGRADE_FX_BIG_POT,Stir-pot recipes fill 2 jars
-UI_UPGRADE_FX_CELLAR,12 cool pantry cells
+UI_UPGRADE_FX_CELLAR,12 cool pantry shelf spaces
 FAREWELL_LETTER_DEAR_TWO,"My dear %s and %s,"
 FAREWELL_LETTER_DEAR,"My dear grandchildren,"
 FAREWELL_LETTER_DAYS,"%d days in Everfall, and not one of them was dull."
@@ -691,8 +691,8 @@ FESTIVAL_START_1,Everfall's Harvest Festival! Mia and Leo came to visit and the 
 FESTIVAL_START_2,"Six little jobs today, a minute or two each. Granny's note shows the way."
 FESTIVAL_GO,Let's go!
 FESTIVAL_END_TITLE,What a festival!
-FESTIVAL_END_SEED,Your Everfall was grown from seed %s:
-FESTIVAL_END_MAP,%s tiles and %d trees in today's forest.
+FESTIVAL_END_SEED,Your Everfall grew from seed %s.
+FESTIVAL_END_MAP,"Today's forest: %d trees, %d clearings, %d paths"
 FESTIVAL_END_FOUND,%d varieties found. New recipes today: %d.
 FESTIVAL_END_COINS,The market paid %d coins.
 FESTIVAL_END_BYE,Mia and Leo can't wait for next autumn!
@@ -729,9 +729,9 @@ PREMISE_3,This is Granny Tonty's first autumn without him.
 PREMISE_4,"Beyond the hills, winter has already come."
 PREMISE_5,A new morning. Something is in the mailbox.
 PREMISE_SKIP,Click or press a key to skip
-WORLD_GROW_FOREST,"Today's forest, grown from seed %d"
-WORLD_GROW_VINEYARD,"Today's vineyard, grown from seed %d"
-WORLD_GROW_CREEK,"Today's creek, grown from seed %d"
+WORLD_GROW_FOREST,Today's forest
+WORLD_GROW_VINEYARD,Today's vineyard
+WORLD_GROW_CREEK,Today's creek
 WORLD_GROW_SETTING,Show the forest grow
 FAREWELL_CREDIT_MADE_BY,Made by İzzet Emre Demir
 TOWN_CALL_GROCER_1,Apples fresh today!
@@ -985,3 +985,12 @@ TODO_HINT_D1_PICK,"Through the gate to the forest, dear: let's pick three things
 STORY_FIND_KNIFE,Teo's knife. He must have set it down to shake a branch... He did that every autumn.
 STORY_OBJ_KNIFE,"Back on the mantel. A pear on the handle, like every handle he ever carved."
 CAP_KNIFE,Knife
+GROW_LINE_1,Every morning the forest grows back new.
+GROW_LINE_2,The stream finds its way...
+GROW_LINE_3,The trees pick their places...
+GROW_LINE_4,Paths wear in...
+GROW_LINE_5,Mushrooms and berries settle...
+GROW_LINE_6,Today's forest is ready.
+GROW_FIRST_TEO,Teo always said: it never gives the same day twice.
+GROW_DAY,Day %d
+GROW_SEED,seed %d

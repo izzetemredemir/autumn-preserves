@@ -51,7 +51,7 @@ func open(state: Dictionary) -> void:
 			b.icon = load(path)
 		var biome_name := tr("WILD_BIOME_" + id.to_upper())
 		if bool(c.open):
-			b.text = "%s  -  %s %d" % [biome_name, tr("UI_SEED"), int(c.seed)]
+			b.text = "%s  -  %s" % [biome_name, tr("UI_WEATHER_" + String(state.get("weather", "sunny")).to_upper())]
 			b.pressed.connect(choose.bind(id))
 			if _first == null:
 				_first = b
