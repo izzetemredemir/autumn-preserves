@@ -51,6 +51,11 @@ func _ready() -> void:
 	demo.tooltip_text = tr("TITLE_DEMO_DAY_TIP")
 	demo.pressed.connect(_play_demo_day)
 	row.add_child(demo)
+	var market := Button.new()  # the same save on its first market day (day 7), straight to the stall
+	market.text = tr("TITLE_MARKET_DAY")
+	market.tooltip_text = tr("TITLE_MARKET_DAY_TIP")
+	market.pressed.connect(_play_market_day)
+	row.add_child(market)
 	var back := Button.new()
 	back.text = tr("UI_BACK")
 	back.pressed.connect(_close)
@@ -170,15 +175,36 @@ func _grabber(c: Color) -> ImageTexture:
 ## The jury demo save (seed 452, day 3, rainy, the rare crabapple) as a temporary game: it is never written to disk,
 ## so it cannot overwrite the player's own save. Works in release builds (the F1 dev panel is debug only).
 func _play_demo_day() -> void:
+	if _load_demo_temp():
+		_leave_to("garden")
+
+
+## The demo save moved to its first market day (day 7, sunny) and straight to the market stall: the weekly market
+## can be shown live without playing four days first. Same temporary game, the player's save stays untouched.
+func _play_market_day() -> void:
+	if not _load_demo_temp():
+		return
+	var d: Dictionary = GameState.data
+	d.day = Market.EVERY
+	d.weather = "sunny"
+	GameState.notify(PackedStringArray(["day", "weather"]))
+	_leave_to("market")
+
+
+func _load_demo_temp() -> bool:
 	var d := DevTools.load_demo()
 	if d.is_empty():
-		return
+		return false
 	if typeof(d.get("flags")) != TYPE_DICTIONARY:
 		d["flags"] = {}
 	d.flags["temp"] = true
 	GameState.data = d
 	GameState.notify(PackedStringArray(["*"]))
 	load("res://ui/tutorial/granny_todo.gd").ensure()
+	return true
+
+
+func _leave_to(scene_id: String) -> void:
 	Audio.play_ui("ui_confirm")
 	visible = false
-	Transition.go("garden")
+	Transition.go(scene_id)

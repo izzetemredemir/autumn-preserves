@@ -675,3 +675,5 @@ MARKET_HELLO_1,Merhaba!
 MARKET_HELLO_2,Ne güzel bir pazar!
 MARKET_HELLO_3,Reçel mi turşu mu?
 MARKET_HELLO_4,"Güzel gün, değil mi?"
+TITLE_MARKET_DAY,Pazar günü
+TITLE_MARKET_DAY_TIP,"Demo gününün ilk haftalık pazarı, doğrudan ninenin tezgâhına. Kendi kaydına dokunmaz."
