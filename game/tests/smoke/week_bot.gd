@@ -12,7 +12,7 @@ extends SceneTree
 ## high-severity problem was found. The player's save is backed up first and restored at the end.
 ## Mini-games run on the kitchen's QA autoplay (Kitchen.debug_ctx). The jar packer has none: its own demo packer stacks
 ## the pieces, the bot pours the brine by holding the mouse and twists the lid with three clicks.
-##   perl -e 'alarm shift; exec @ARGV' 900 godot --path game --audio-driver Dummy -s res://tests/smoke/week_bot.gd
+##   perl -e 'alarm shift; exec @ARGV' 900 godot --path game --audio-driver Dummy -s res://tests/smoke/week_bot.gd -- --locale=en
 ##   [-- --speed 1]   default 2 (Engine.time_scale, so the week fits in 10 minutes). Windowed, not headless.
 ## QA-02 soak run: `-- --days N` plays N whole days (the bed every night) and stops on the morning of day N + 1. On top
 ## of the week it buys upgrades as coins allow (the press instead of the dev panel), batch-cooks Mastered variants,
@@ -26,6 +26,7 @@ const SEED := 452
 const LAST_DAY := 8
 const DIR := "user://week_bot"
 const SAVE_PATH := "user://save.json"  ## Save.PATH
+const BAK_PATH := "user://save.bak"  ## the atomic save's backup: restored too, the user's profile is never touched
 const REPORT := "../docs/qa/week_bot.md"  ## next to res://
 const NOTES := "## Triage notes"
 const STALL_MS := 10000  ## no progress this long = soft-lock
@@ -78,6 +79,8 @@ var _t0 := 0
 var _dt := 0.016
 var _had_save := false
 var _backup := ""
+var _had_bak := false
+var _backup_bak := ""
 var _aborted := ""
 var _problems: Array = []
 var _keys := {}
@@ -213,6 +216,9 @@ func _run() -> void:
 	_had_save = FileAccess.file_exists(SAVE_PATH)
 	if _had_save:
 		_backup = FileAccess.get_file_as_string(SAVE_PATH)
+	_had_bak = FileAccess.file_exists(BAK_PATH)
+	if _had_bak:
+		_backup_bak = FileAccess.get_file_as_string(BAK_PATH)
 	if await _new_game():
 		for n in range(1, (_soak_days + 1 if _soak_days > 0 else LAST_DAY) + 1):
 			if _aborted != "":
@@ -229,6 +235,11 @@ func _play_day(n: int) -> void:
 	_days.append({"day": n, "weather": String(d.get("weather", "")), "coins": int(d.coins), "energy": int(d.energy),
 		"energy_max": int(d.get("energy_max", 0)), "cooked": [], "orders": 0, "sold": 0, "notes": []})
 	_act("morning of day %d in the %s" % [n, _router.current])
+	if _router.current == "parlor" and current_scene != null:  # waking up: the bed is in the parlor, the day starts in the kitchen
+		_act("parlor: click the door to the kitchen")
+		await _click_ctrl((current_scene.get("_spots") as Dictionary).door)
+		if not await _arrive("kitchen"):
+			return
 	if _soak_days > 0:
 		await _sample()
 		if n > _soak_days:  # the morning after the last day: the overnight checks ran, the run ends here
@@ -291,9 +302,25 @@ func _new_game() -> bool:
 	if not await _arrive("title"):
 		return false
 	var title := current_scene
-	_act("title: click New Game")
+	# first launch / clean profile: the language card covers the menu; pick English (the title reloads)
+	var layer: Variant = title.get("_lang_layer")
+	if layer is Control and is_instance_valid(layer) and (layer as Control).is_visible_in_tree():
+		_act("title: pick English on the language card")
+		var en := (layer as Control).find_child("Lang_en", true, false) as Control
+		await _click_ctrl(en)
+		await _frames(10)
+		if not await _arrive("title"):
+			return false
+		title = current_scene
+	_act("title: click New Game (a save exists: %s)" % str(_had_save))
 	await _click_ctrl(title.get_node("%NewGame") as Control)
 	var edit: LineEdit = title.get("_seed_edit")
+	# the seed field sits behind a small link on the New Game panel (with or without a save under it)
+	var link: Variant = title.get("_seed_link")
+	if link is Button and not await _wait(func() -> bool: return (link as Button).is_visible_in_tree(), "the New Game panel"):
+		return false
+	_act("title: open the seed field")
+	await _click_ctrl(link as Control)
 	if not await _wait(func() -> bool: return edit.is_visible_in_tree() and edit.has_focus(), "the New Game panel"):
 		return false
 	_act("title: type the seed %d and press Enter" % SEED)
@@ -656,11 +683,12 @@ func _next_object(view: Node, granny: Node, tried: Dictionary) -> Node2D:
 		if not is_instance_valid(o) or not o.has_method("usable") or tried.has(o.get_instance_id()):
 			continue
 		var kind := String(o.get("kind"))
-		if not USE_COST.has(kind) or bool(o.get("done")) or not bool(o.usable()):
+		if not USE_COST.has(kind) or o.get("done") == true or o.usable() != true:
 			continue
 		var c: Vector2i = o.get("cell")
 		var score := float(absi(c.x - from.x) + absi(c.y - from.y))
-		var type := String((o.get("info") as Dictionary).get("type", ""))
+		var info: Variant = o.get("info")
+		var type := String((info as Dictionary).get("type", "")) if info is Dictionary else ""
 		if String(ingredients.get(type, {}).get("group", "")) == "mushroom":
 			score -= 25.0
 		if kind == "fruit_tree":
@@ -1282,14 +1310,19 @@ func _market() -> bool:
 
 func _sleep() -> bool:
 	var k := current_scene
-	if _router.current != "kitchen" or k == null or not k.has_method("_on_sleep"):
-		_problem("high", "night", "not in the kitchen at bedtime (%s)" % _router.current)
+	if _router.current == "kitchen" and k != null:
+		# the bed lives in the parlor (PARLOR): walk through the door next to the stove
+		if not await _kitchen_door("parlor"):
+			return await _force_night()
+		k = current_scene
+	if _router.current != "parlor" or k == null or not k.has_method("_on_sleep"):
+		_problem("high", "night", "not in the parlor at bedtime (%s)" % _router.current)
 		return await _force_night()
 	var d: Dictionary = _gs.data
 	var day0 := int(d.day)
 	var c0 := int(d.coins)
 	var spots: Dictionary = k.get("_spots")
-	_act("kitchen: click the bed")
+	_act("parlor: click the bed")
 	await _click_ctrl(spots.bed)
 	if not await _wait(func() -> bool: return (k.get("_dialog") as Control).visible, "the bed dialog"):
 		return await _force_night()
@@ -1884,6 +1917,12 @@ func _finish() -> void:
 		f.close()
 	elif FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+	if _had_bak:
+		var fb := FileAccess.open(BAK_PATH, FileAccess.WRITE)
+		fb.store_string(_backup_bak)
+		fb.close()
+	elif FileAccess.file_exists(BAK_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(BAK_PATH))
 	var md := _soak_report() if _soak_days > 0 else _report()
 	var path := ProjectSettings.globalize_path("res://").path_join(SOAK_REPORT if _soak_days > 0 else REPORT).simplify_path()
 	var keep := ""
