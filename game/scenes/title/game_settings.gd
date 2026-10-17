@@ -57,7 +57,8 @@ static func tutorial_enabled() -> bool:
 
 ## ONBOARD-TITLE: true once the player picked a language (first-launch card or Settings). `--skip-lang` pretends so.
 static func lang_chosen() -> bool:
-	return bool(get_value("game", "lang_chosen")) or OS.get_cmdline_user_args().has("--skip-lang")
+	var args := OS.get_cmdline_user_args()  # scripted demos and recordings (--demo) never stop at the picker
+	return bool(get_value("game", "lang_chosen")) or args.has("--skip-lang") or args.has("--demo")
 
 
 ## Stores `lang` as the language (and that one was chosen), then applies the locale.
