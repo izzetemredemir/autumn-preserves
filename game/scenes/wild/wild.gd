@@ -12,6 +12,7 @@ const AMBIENT := {"forest": ["amb_forest"], "vineyard": ["amb_forest"], "creek":
 var biome := "forest"
 var map: Dictionary = {}
 var granny: Granny
+var surprises: ForestSurpriseLayer  ## FUN-FOREST: bushes, leaf piles and the lucky sparkle (forest only)
 var _leaving := false
 
 @onready var view: WildMapView = $Map
@@ -49,6 +50,7 @@ func _ready() -> void:
 	camera.snap()
 	GuideArrow.attach(self, _guide_at)  # ONBOARD-GUIDE: arrow, Granny's hint, first-time key caps
 	add_child(WildWeather.make(String(s.weather), granny))  # windy leaves / fog around Granny (P1 weather)
+	surprises = ForestSurpriseLayer.attach(view, granny, map, s, _species_card, GameState.notify)  # FUN-FOREST
 	CritterLayer.attach(view.objects, CritterRules.wild(map, int(s.save_seed), int(s.day), String(s.weather)), granny,
 		String(s.weather), map)  # WILD-LIFE: ambient critters
 	seed_label.text = "%s %d" % [tr("UI_SEED"), int(map.seed)]
@@ -76,6 +78,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _tap(p: Vector2) -> void:
+	var sur := surprises.at_point(p) if surprises != null else null
+	if sur != null and view.object_at_point(p) == null:  # FUN-FOREST
+		if not granny.approach(sur.cell, surprises.use.bind(sur)):
+			Fx.bubble(view.fx, sur.top(), tr("WILD_CANT_REACH"))
+		return
 	var o := view.object_at_point(p)
 	if o != null:
 		if o.kind == "exit":
@@ -88,16 +95,22 @@ func _tap(p: Vector2) -> void:
 
 func _on_interact(cell: Vector2i) -> void:
 	var o := view.object_at_cell(cell)
+	if o == null and surprises != null and surprises.interact(cell):  # FUN-FOREST
+		return
 	if o == null:
 		o = view.object_at_cell(granny.current_cell())  # standing on a ground pickup
 	if o != null:
 		_use(o)
+	elif surprises != null:
+		surprises.interact(granny.current_cell())
 
 
 func _on_stepped(cell: Vector2i) -> void:
 	if cell == map.entrance:
 		_exit()
 		return
+	if surprises != null:
+		surprises.stepped(cell)  # FUN-FOREST: a pile bursts, a sparkle is picked up
 	var t := int(map.ground[cell.y * int(map.w) + cell.x])
 	Audio.play_sfx("sfx_step_leaves" if t == WildGen.T_LEAVES else "sfx_step_grass")
 	if t == WildGen.T_LEAVES and Juice.rng().randf() < 0.45:  # FEEL: now and then a leaf kicks up

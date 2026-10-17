@@ -890,3 +890,10 @@ TODO_HINT_F_PANTRY,Yeni reçeli kilere koyup boşluğu dolduralım: üç yıldı
 TODO_HINT_F_MARKET,"Pazar günü! Kasabaya gidip tezgahı dolduralım ve açalım."
 TODO_HINT_F_LETTER,"Mia'dan bir mektup var, bahçedeki posta kutusunda."
 MG_COMBO,x%d
+WILD_SURPRISE_SQUIRREL,Bir sincap fırladı!
+WILD_SURPRISE_HEDGEHOG,Bir kirpi tıpışlayıp gitti!
+WILD_SURPRISE_NUTS,Çalıda kuruyemiş var! +%d
+WILD_SURPRISE_COIN,Yaprakların arasında bozuk para! +%d
+WILD_SURPRISE_MUSHROOM,Yaprakların arasında bir mantar: %s
+WILD_SURPRISE_FOUND,Çalının içinde: %s
+WILD_SURPRISE_SPARKLE,Şanslı bir parıltı! %s

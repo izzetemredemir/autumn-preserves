@@ -890,3 +890,10 @@ TODO_HINT_F_PANTRY,Let's put the new jam in the pantry and fill the gap: three s
 TODO_HINT_F_MARKET,"Market day! Let's go to town, fill the stall and open it."
 TODO_HINT_F_LETTER,A letter from Mia waits in the garden mailbox.
 MG_COMBO,x%d
+WILD_SURPRISE_SQUIRREL,A squirrel hops out!
+WILD_SURPRISE_HEDGEHOG,A hedgehog trundles off!
+WILD_SURPRISE_NUTS,Nuts in the bush! +%d
+WILD_SURPRISE_COIN,A coin in the leaves! +%d
+WILD_SURPRISE_MUSHROOM,A mushroom in the leaves: %s
+WILD_SURPRISE_FOUND,Tucked in the bush: %s
+WILD_SURPRISE_SPARKLE,A lucky sparkle! %s
