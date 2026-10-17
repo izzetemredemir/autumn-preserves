@@ -809,7 +809,7 @@ func _add(kind: String, index: int, cells: Array) -> void:
 			_blocked[c] = true
 
 
-## Pulls the garden state into the spots (fruit, beds, compost, today's wild seed on the gate sign).
+## Pulls the garden state into the spots (fruit, beds, compost, the signs; the wild seed only with "Show seed").
 func _refresh() -> void:
 	var d: Dictionary = GameState.data
 	var g: Dictionary = d.garden
@@ -828,9 +828,12 @@ func _refresh() -> void:
 				s.set_compost(int(g.compost), _compost_per(), int(g.fertilizer))
 			"mailbox":
 				s.set_mail(Letters.unread_count(d))
-			"gate_sign":
-				var wild_seed := Seeds.seed_for(int(d.save_seed), "wild:" + BIOME, int(d.day))
-				s.set_label(tr("GARDEN_GATE_SIGN") % [tr("WILD_BIOME_FOREST"), wild_seed])
+			"gate_sign":  # GARDEN-GROUND: where the gate goes; today's wild seed only with settings "Show seed"
+				if GameSettings.show_seed():
+					var wild_seed := Seeds.seed_for(int(d.save_seed), "wild:" + BIOME, int(d.day))
+					s.set_label(tr("GARDEN_GATE_SIGN") % [tr("WILD_BIOME_FOREST"), wild_seed])
+				else:
+					s.set_label(tr("WILD_BIOME_FOREST"))
 			"town_sign":
 				s.set_label(tr("GARDEN_TO_TOWN"))
 

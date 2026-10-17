@@ -42,6 +42,9 @@ const SIGN_POST := 12
 const POST_SRC := Rect2(0, 0, 4, 14)
 const BOARD_SRC := Rect2(12, 0, 12, 12)
 const TIP_SRC := Rect2(24, 0, 6, 11)
+## Board shift that leaves room for the arrow tip: the town sign points right along the road, the gate sign
+## (right of the gate) points left at it (GARDEN-GROUND).
+const TIP_ROOM := {"town_sign": -3, "gate_sign": 3}
 
 const C_INK := Color("111010")
 const C_CREAM := Color("f2d9c5")
@@ -219,12 +222,21 @@ func set_label(text: String) -> void:
 	_label.text = text
 	_label.reset_size()
 	var sz := _label.size
-	var x := -floori(sz.x * 0.5) + (-3 if kind == "town_sign" else 0)
+	var x := -floori(sz.x * 0.5) + int(TIP_ROOM.get(kind, 0))
 	_label.position = Vector2(x, -SIGN_POST - 3 - floori(sz.y))
 	var b := _board_rect().grow(1)
 	_board.position = b.position
 	_board.size = b.size
 	queue_redraw()
+
+
+## The sign's text as shown ("" without a board), and the board's size (smokes: the board fits the text).
+func label_text() -> String:
+	return _label.text if _label != null else ""
+
+
+func board_size() -> Vector2:
+	return _board.size if _board != null else Vector2.ZERO
 
 
 func pop() -> void:
@@ -446,11 +458,16 @@ func _crop(tex: Texture2D, f: int, at: Vector2, flip: bool) -> void:
 
 func _draw_sign() -> void:
 	draw_texture_rect_region(SIGN, Rect2(-2, -SIGN_POST - 2, POST_SRC.size.x, POST_SRC.size.y), POST_SRC)
-	if _label == null or kind != "town_sign":
+	if _label == null:
 		return
-	var b := _board_rect().grow(1)  # arrow tip pointing along the road
-	var tip := Vector2(b.end.x - 1, b.position.y + floorf((b.size.y - TIP_SRC.size.y) * 0.5))
-	draw_texture_rect_region(SIGN, Rect2(tip, TIP_SRC.size), TIP_SRC)
+	var b := _board_rect().grow(1)  # arrow tip: along the road (town), mirrored towards the gate (forest)
+	var y := b.position.y + floorf((b.size.y - TIP_SRC.size.y) * 0.5)
+	if kind == "town_sign":
+		draw_texture_rect_region(SIGN, Rect2(Vector2(b.end.x - 1, y), TIP_SRC.size), TIP_SRC)
+	elif kind == "gate_sign":
+		draw_set_transform(Vector2(b.position.x + 1, y), 0.0, Vector2(-1, 1))
+		draw_texture_rect_region(SIGN, Rect2(Vector2.ZERO, TIP_SRC.size), TIP_SRC)
+		draw_set_transform(Vector2.ZERO)
 
 
 func _frame(r: Rect2, c: Color) -> void:

@@ -4,6 +4,7 @@ extends SceneTree
 ## Taps the apple tree (energy -3, bag +2..3), buys a cucumber seed and plants it in an empty bed through the
 ## plant menu, makes a letter arrive (mailbox flag up), ripens two beds for the shot, opens and closes the
 ## letters overlay from the mailbox, then taps the door and checks the bag went to the inbox and the kitchen opened.
+## GARDEN-GROUND: the gate sign shows the wild's name, its seed only with "Show seed" on.
 ## GARDEN-LIFE: checks the props block their cells, walks Granny to the truck (a line) and to the hens (they scatter).
 ## ONBOARD-GUIDE: Granny's guide arrow over the apple tree with her hint, over the house door after the shake (the jam
 ## step is in the kitchen), then over the stove in the kitchen with the first-time key cap; the tree's key cap is spent
@@ -54,6 +55,7 @@ func _run() -> void:
 	current_scene = _scene
 	await _frames_wait(10)
 	_shot("garden_start")
+	await _check_gate_sign()
 
 	# 0. ONBOARD-GUIDE: the arrow over the apple tree, Granny's hint over her head
 	var apple: Node = _tree("apple")
@@ -191,6 +193,31 @@ func _run() -> void:
 	_shot("guide_d1_stove")
 	print("GARDEN SMOKE OK")
 	quit(0)
+
+
+## GARDEN-GROUND: the gate sign names the wild it leads to; today's seed only with settings "Show seed" on, and
+## the board follows the text both ways. The setting is flipped in memory only (the player's settings.cfg stays).
+func _check_gate_sign() -> void:
+	var post: Node = _scene.find_spot("gate_sign")
+	var forest := TranslationServer.translate("WILD_BIOME_FOREST")
+	var cfg: ConfigFile = GameSettings._file()
+	var was: Variant = cfg.get_value("game", "show_seed_corner", false)
+	cfg.set_value("game", "show_seed_corner", false)
+	_scene._refresh()
+	var plain: Vector2 = post.board_size()
+	_check(String(post.label_text()) == forest, "the gate sign says only \"%s\" (%s)" % [forest, post.label_text()])
+	cfg.set_value("game", "show_seed_corner", true)
+	_scene._refresh()
+	var lines := String(post.label_text()).split("\n")
+	_check(lines.size() == 2 and lines[0] == forest and lines[1].right(1).is_valid_int(),
+		"with Show seed on the sign adds the seed (%s)" % " / ".join(lines))
+	_check(post.board_size().y > plain.y, "the board grows for the seed line")
+	cfg.set_value("game", "show_seed_corner", false)
+	_scene._refresh()
+	_check(post.board_size() == plain, "the board shrinks back to the name (%s)" % post.board_size())
+	cfg.set_value("game", "show_seed_corner", was)
+	_scene._refresh()
+	await process_frame
 
 
 ## Speech bubbles (UI-COMPACT: SpeechBubble) showing in the garden's fx layer.
