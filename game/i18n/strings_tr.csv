@@ -978,3 +978,6 @@ STORY_OBJ_CAP_JAR,Kavanoz
 STORY_OBJ_HINT,Yakından bak.
 TUT_D1_PICK,Ormanda 3 şey topla
 TODO_HINT_D1_PICK,"Kapıdan ormana, canım: üç şey toplayalım, böğürtlen ya da mantar."
+STORY_FIND_KNIFE,Teo'nun çakısı. Bir dalı silkelemek için bırakmış olmalı... Her sonbahar yapardı bunu.
+STORY_OBJ_KNIFE,"Yine şömine rafında. Sapında bir armut, oyduğu her sapta olduğu gibi."
+CAP_KNIFE,Çakı

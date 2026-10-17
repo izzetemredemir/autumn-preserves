@@ -126,6 +126,23 @@ func _run() -> void:
 	_shot("story02_jar_" + _locale)
 	d.pantry.items.clear()
 
+	# --- STORY-04: the knife is the 8th memory, hidden until it is found in the forest
+	_check(not _p._spots.knife.visible and not _p._props.knife.visible, "no knife on the ledge before the find")
+	Story.mark_knife_found(d)
+	gs.notify(PackedStringArray(["flags"]))
+	await _frames(2)
+	_check(_p._spots.knife.visible and _p._spots.knife.caption.text == tr("CAP_KNIFE"), "the found knife: captioned hotspot")
+	_check(_p._spots.knife.size.x >= 16 and _p._spots.knife.size.y >= 16, "knife hotspot >= 16 px")
+	_p._story_chunks.clear()
+	_p._on_spot("knife")
+	await _frames(14)
+	_check(Story.seen(d, "knife"), "the first look at the knife is recorded")
+	_check(_p._room.get_children().any(func(n: Node) -> bool: return n is SpeechBubble and n.label.text.begins_with(tr("STORY_OBJ_KNIFE").substr(0, 12))), "the knife's line")
+	_p._spots.knife._on_state()
+	_p._reveal_captions(false)  # the captions would cover the little knife
+	await _frames(2)
+	_shot("story04_knife_" + _locale)
+
 	# --- the bed: ask, Night, day 2
 	var day0 := int(d.day)
 	_p._on_spot("bed")

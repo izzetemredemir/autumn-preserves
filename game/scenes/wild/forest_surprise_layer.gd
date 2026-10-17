@@ -14,6 +14,9 @@ const SHEETS := {
 	"hedgehog": [preload("res://assets/sprites/critters/critter_hedgehog.png"), 3, Vector2i(12, 8)],
 }
 
+const KNIFE_ID := 1000
+const HEART := preload("res://assets/sprites/cat/cat_heart.png")
+
 var view: WildMapView
 var granny: Node2D  ## the Granny (untyped: her script reaches the autoloads, see Fx)
 var species_cb := Callable()
@@ -39,6 +42,13 @@ static func attach(view_: WildMapView, granny_: Node2D, map: Dictionary, state: 
 		n.setup(e)
 		view_.objects.add_child(n)
 		layer.nodes.append(n)
+	if Story.knife_due(state):  # STORY-04: Teo's knife, derived from the map (no RNG), not part of the day's plan
+		var kc := Story.knife_cell(map)
+		if kc.x >= 0:
+			var kn := ForestSurprise.new()
+			kn.setup({"id": KNIFE_ID, "kind": "knife", "x": kc.x, "y": kc.y, "reward": {"t": "none"}})
+			view_.objects.add_child(kn)
+			layer.nodes.append(kn)
 	return layer
 
 
@@ -86,6 +96,9 @@ func stepped(cell: Vector2i) -> void:
 func use(n: ForestSurprise) -> void:
 	if not is_instance_valid(n) or not n.usable():
 		return
+	if n.kind == "knife":
+		_find_knife(n)
+		return
 	var res := ForestSurprises.collect(state, n.entry)
 	if not bool(res.ok):
 		if String(res.reason) == "UI_BAG_FULL":
@@ -113,6 +126,38 @@ func use(n: ForestSurprise) -> void:
 	_reward_fx(n, res)
 	if notify_cb.is_valid():
 		notify_cb.call(PackedStringArray(["bag", "coins", "wild_today", "found_varieties", "species_seen", "stats"]))
+
+
+## STORY-04: Granny's two small bubbles, a chime and a heart. Nothing enters the bag; no coins, no energy.
+func _find_knife(n: ForestSurprise) -> void:
+	if not Story.mark_knife_found(state):
+		n.take()
+		return
+	n.take()
+	_sfx("sfx_sparkle")
+	Juice.sparkle(view.fx, Rect2(n.position + Vector2(-14, -26), Vector2(28, 24)), 8)
+	var h := Sprite2D.new()
+	h.texture = HEART
+	h.region_enabled = true
+	h.region_rect = Rect2(8, 0, 8, 8)
+	h.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	h.position = (n.position + Vector2(0, -22)).round()
+	h.z_index = 40
+	view.fx.add_child(h)
+	var tw := h.create_tween()
+	tw.tween_property(h, "position:y", h.position.y - 12.0, 0.7)
+	tw.tween_callback(h.queue_free)
+	var text := tr("STORY_FIND_KNIFE")
+	var cut := text.find(". ")
+	var parts: Array = [text] if cut < 0 else [text.substr(0, cut + 1), text.substr(cut + 2)]
+	for i in parts.size():
+		if i > 0:
+			await get_tree().create_timer(2.2).timeout
+			if not is_inside_tree():
+				return
+		Fx.bubble(view.fx, n.top() + Vector2(0, -6), String(parts[i]), 2.4, "granny")
+	if notify_cb.is_valid():
+		notify_cb.call(PackedStringArray(["flags"]))
 
 
 func _reward_fx(n: ForestSurprise, res: Dictionary) -> void:

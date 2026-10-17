@@ -73,3 +73,84 @@ func test_teo_letter_opens_with_the_first_family_recipe_once() -> void:
 	assert_true(Story.teo_letter_new(s))
 	assert_false(Story.teo_letter_new(s), "shown once")
 	assert_true(Story.teo_letter_open(s), "still readable from the back cover")
+
+
+# ---------------------------------------------------------------- STORY-04: Teo's knife
+
+func _knife_map(sd: int, day: int, s: Dictionary) -> Dictionary:
+	var m := WildGen.generate(sd, day, "forest", "sunny", s.varieties)
+	SpeciesGen.add_pickups(m, sd, day)
+	return m
+
+
+func _knife_state(sd: int, day: int) -> Dictionary:
+	var s := State.new_game(sd)
+	VarietyGen.ensure_types(s.varieties, sd)
+	s.day = day
+	SpeciesGen.sync(s)
+	return s
+
+
+func test_knife_due_from_day_2_once_per_save() -> void:
+	var s := State.new_game(5)
+	s.day = 1
+	assert_false(Story.knife_due(s), "not on day 1")
+	s.day = 2
+	assert_true(Story.knife_due(s), "from day 2")
+	s.flags.erase("story")  # an old save without the flag
+	assert_false(Story.knife_found(s))
+	assert_true(Story.mark_knife_found(s))
+	assert_false(Story.mark_knife_found(s), "only once")
+	assert_false(Story.knife_due(s))
+	assert_true("knife" in Story.OBJECTS and Story.mark_seen(s, "knife"), "the 8th memory can be seen")
+	assert_eq(Story.object_key(s, "knife"), "STORY_OBJ_KNIFE")
+
+
+func test_knife_cell_adds_no_draw_and_is_safe() -> void:
+	var cases: Array = [[1, 14], [452, 14], [24, 14], [7, 2], [99, 20]]
+	for i in 30:
+		cases.append([500 + i * 37, 2 + i % 19])
+	for c in cases:
+		var s := _knife_state(c[0], c[1])
+		var m := _knife_map(c[0], c[1], s)
+		var before := var_to_str(m)
+		var cell := Story.knife_cell(m)
+		assert_eq(var_to_str(m), before, "the map is untouched (seed %d)" % c[0])
+		assert_eq(Story.knife_cell(m), cell, "deterministic")
+		assert_true(cell.x >= 0, "a cell exists (seed %d day %d)" % c)
+		if cell.x < 0:
+			continue
+		assert_true(WildGen.is_walkable(m, cell), "walkable")
+		assert_eq(int(SpeciesGen.reach_map(m)[cell.y * int(m.w) + cell.x]), 1, "reachable")
+		for key in ["decor_trees", "fruit_trees", "pickups"]:
+			for t in m[key]:
+				assert_ne(Vector2i(int(t.x), int(t.y)), cell, "off every tree and pickup")
+		for e: Dictionary in ForestSurprises.plan(m, c[0], c[1], s.varieties):
+			assert_ne(Vector2i(int(e.x), int(e.y)), cell, "not on a surprise")
+
+
+func test_knife_leaves_the_pickup_lists_a_prefix() -> void:
+	for c in [[1, 14], [452, 14], [24, 14]]:
+		var s := _knife_state(c[0], c[1])
+		var plain := WildGen.generate(c[0], c[1], "forest", "sunny", s.varieties)
+		var n_plain := (plain.pickups as Array).size()
+		SpeciesGen.add_pickups(plain, c[0], c[1])
+		var picks := var_to_str(plain.pickups)
+		var plan_before := var_to_str(ForestSurprises.plan(plain, c[0], c[1], s.varieties))
+		Story.knife_cell(plain)
+		assert_eq(var_to_str(plain.pickups), picks, "wild_gen + species lists unchanged (seed %d)" % c[0])
+		assert_eq(var_to_str(ForestSurprises.plan(plain, c[0], c[1], s.varieties)), plan_before, "surprises unchanged")
+		var again := WildGen.generate(c[0], c[1], "forest", "sunny", s.varieties)
+		assert_eq(var_to_str((plain.pickups as Array).slice(0, n_plain)), var_to_str(again.pickups), "WildGen first")
+	var fs := FestivalFacts.load_save()
+	if not fs.is_empty():
+		VarietyGen.ensure_types(fs.varieties, int(fs.save_seed))
+		var m := _knife_map(int(fs.save_seed), int(fs.day), fs)
+		var cell := Story.knife_cell(m)
+		assert_true(cell.x >= 0, "festival forest has a spot")
+		assert_true(WildGen.is_walkable(m, cell), "and it is walkable")
+
+
+func test_knife_only_in_the_forest() -> void:
+	var s := _knife_state(3, 5)
+	assert_eq(Story.knife_cell(WildGen.generate(3, 5, "vineyard", "sunny", s.varieties)).x, -1)

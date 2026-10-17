@@ -72,7 +72,7 @@ static func teo_letter_new(state: Dictionary) -> bool:
 
 ## STORY-02 · The seven things the parlour remembers (docs/story.md §4.3). `flags.story.seen` lists those looked at
 ## once (the first look gets a small heart); `jar_filled` latches once the first jar stood on the shelf.
-const OBJECTS := ["teo", "hat", "chair", "nora", "toys", "window", "jar"]
+const OBJECTS := ["teo", "hat", "chair", "nora", "toys", "window", "jar", "knife"]
 
 
 static func seen(state: Dictionary, id: String) -> bool:
@@ -107,3 +107,63 @@ static func object_key(state: Dictionary, id: String) -> String:
 	if id == "jar" and jar_filled(state):
 		return "STORY_OBJ_JAR_FILLED"
 	return "STORY_OBJ_" + id.to_upper()
+
+
+## STORY-04 · Teo's knife in the forest (docs/story.md §7). Once per save (`flags.story.knife_found`, read with get so
+## older saves load): from day 2 on, the first forest visit finds a sparkle at the foot of the map's first fruit tree.
+## No RNG: the cell is derived from the finished map, so no pickup list or surprise plan shifts. Picking it up puts
+## nothing in the bag (no coins, no energy); it becomes the parlour's 8th memory object.
+const KNIFE_FIRST_DAY := 2
+## The 8 cells around a tree foot, nearest the viewer first.
+const _KNIFE_RING := [Vector2i(0, 1), Vector2i(-1, 1), Vector2i(1, 1), Vector2i(-1, 0), Vector2i(1, 0),
+	Vector2i(0, -1), Vector2i(-1, -1), Vector2i(1, -1)]
+
+
+static func knife_found(state: Dictionary) -> bool:
+	return bool(flags(state).get("knife_found", false))
+
+
+## True while the knife still waits for this save (forest, day 2 or later).
+static func knife_due(state: Dictionary) -> bool:
+	return int(state.get("day", 1)) >= KNIFE_FIRST_DAY and not knife_found(state)
+
+
+## Records the find; true only the first time.
+static func mark_knife_found(state: Dictionary) -> bool:
+	if knife_found(state):
+		return false
+	flags(state)["knife_found"] = true
+	return true
+
+
+## The knife's cell on a finished forest map, (-1, -1) when there is none. Plain walkable ground that the entrance
+## reaches, beside the first fruit tree that is not part of the special place, off every tree and pickup.
+static func knife_cell(map: Dictionary) -> Vector2i:
+	if map.is_empty() or String(map.get("biome", "")) != "forest":
+		return Vector2i(-1, -1)
+	var w := int(map.w)
+	var h := int(map.h)
+	var taken := {}
+	for key in ["decor_trees", "fruit_trees", "pickups"]:
+		for t in map.get(key, []):
+			taken[Vector2i(int(t.x), int(t.y))] = true
+	var sp_rect := Rect2i()
+	var special: Dictionary = map.get("special", {})
+	if special.has("x"):
+		sp_rect = Rect2i(int(special.x), int(special.y), int(special.get("w", 1)), int(special.get("h", 1))).grow(1)
+	var reach := SpeciesGen.reach_map(map)
+	for tree: Dictionary in map.get("fruit_trees", []):
+		if tree.get("special", false):
+			continue
+		var base := Vector2i(int(tree.x), int(tree.y))
+		for d: Vector2i in _KNIFE_RING:
+			var c := base + d
+			if c.x < 1 or c.y < 1 or c.x >= w - 1 or c.y >= h - 1 or taken.has(c):
+				continue
+			var g := int(map.ground[c.y * w + c.x])
+			if g != WildGen.T_GRASS and g != WildGen.T_LEAVES and g != WildGen.T_DIRT:
+				continue
+			if reach[c.y * w + c.x] != 1 or (sp_rect.size != Vector2i.ZERO and sp_rect.has_point(c)):
+				continue
+			return c
+	return Vector2i(-1, -1)

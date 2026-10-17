@@ -22,12 +22,15 @@ const OBJECTS := {
 	"toys": Rect2i(104, 198, 44, 26),  # the wooden train and the cloth rabbit on the floor left of the rug
 	"window": Rect2i(214, 8, 68, 38),  # the window with the falling leaves
 	"jar": Rect2i(240, 48, 18, 22),  # the empty jar on the sill; full once the first jar is shelved
+	# STORY-04: the 8th memory, Teo's knife, on a small wall ledge (the painting has no mantel; Granny and, on days 1-2, the To-Do note cover other places).
+	# Hidden until the knife is found in the forest.
+	"knife": Rect2i(100, 126, 28, 16),
 }
 ## Memory objects: hotspot kind -> caption key (the story line is STORY_OBJ_<kind>).
 const MEMORY_CAPTIONS := {
 	"teo": "STORY_OBJ_CAP_PHOTO", "nora": "STORY_OBJ_CAP_PHOTO", "hat": "STORY_OBJ_CAP_HAT",
 	"chair": "STORY_OBJ_CAP_CHAIR", "toys": "STORY_OBJ_CAP_TOYS", "window": "STORY_OBJ_CAP_WINDOW",
-	"jar": "STORY_OBJ_CAP_JAR",
+	"jar": "STORY_OBJ_CAP_JAR", "knife": "CAP_KNIFE",
 }
 ## Granny at the painting's scale (granny_kitchen.png, 44x88) just in from the kitchen door, feet at (70, 186),
 ## left of the bookshelf's caption.
@@ -126,6 +129,8 @@ class Prop extends Control:
 				_toys()
 			"jar":
 				_jar()
+			"knife":
+				_knife()
 
 	## 14x18 frame at (2,2): gold edge, plum mat, a small portrait.
 	func _photo(girl: bool) -> void:
@@ -201,3 +206,17 @@ class Prop extends Control:
 			_r(7, 11, 1, 6, KArt.PEACH)
 			_r(8, 14, 5, 3, KArt.CREAM)  # label
 			_r(9, 15, 3, 1, KArt.CREAM_LO)
+
+	## Teo's knife on a wall ledge, 28x16: folded blade, a tan handle with a pear-coloured dot, a plum shadow.
+	func _knife() -> void:
+		_r(2, 14, 24, 2, KArt.PLUM)  # shadow under the ledge
+		_r(1, 11, 26, 3, KArt.BROWN)  # ledge
+		_r(1, 11, 26, 1, KArt.TAN)
+		_r(3, 7, 9, 3, KArt.MUTED)  # blade
+		_r(3, 7, 9, 1, KArt.CREAM)
+		_r(11, 6, 2, 5, KArt.IRON)  # bolster
+		_r(13, 6, 11, 5, KArt.TAN)  # handle
+		_r(13, 6, 11, 1, KArt.GOLD)
+		_r(13, 10, 11, 1, KArt.BROWN)
+		_r(17, 7, 3, 3, KArt.GOLD_PALE)  # the carved pear
+		_r(18, 8, 1, 1, KArt.OLIVE)

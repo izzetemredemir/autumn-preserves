@@ -114,7 +114,7 @@ func _build_room() -> void:
 	_room.add_child(_cat)
 	_cat.setup(int(GameState.data.get("save_seed", 1)), Vector2i.ZERO)  # home = its cell: it naps there
 	_cat.position = PArt.CAT_AT
-	for kind: String in ["teo", "nora", "hat", "toys", "jar"]:  # STORY-02 props under the hotspots
+	for kind: String in ["teo", "nora", "hat", "toys", "jar", "knife"]:  # STORY-02/04 props under the hotspots
 		var p := PArt.Prop.new(kind)
 		p.position = Vector2(PArt.OBJECTS[kind].position)
 		p.size = Vector2(PArt.OBJECTS[kind].size)
@@ -202,6 +202,11 @@ func _refresh() -> void:
 	_tag.count = Letters.unread_count(GameState.data)
 	if _props.has("jar"):
 		_props.jar.filled = Story.jar_filled(GameState.data)
+	var kf := Story.knife_found(GameState.data)  # STORY-04: the 8th memory shows once found
+	if _props.has("knife"):
+		_props.knife.visible = kf
+	if _spots.has("knife"):
+		_spots.knife.visible = kf
 	_update_glow()
 
 

@@ -1,7 +1,7 @@
 class_name ForestSurprise
 extends Node2D
 ## FUN-FOREST · One little forest surprise on the map (rules: ForestSurprises). Drawn from palette rects, no sprites:
-## a shrub that shivers now and then ("bush"), a heap of leaves ("pile") or a twinkling spot ("sparkle").
+## (kind "knife", STORY-04: Teo's knife, drawn as a twinkle too) a shrub that shivers now and then ("bush"), a heap of leaves ("pile") or a twinkling spot ("sparkle").
 ## Position is the feet (bottom-centre of `cell`) so the y-sorted objects layer orders it with Granny and trees.
 ## None of them blocks a tile. A taken one is `gone`: invisible and no longer usable.
 
@@ -55,7 +55,7 @@ func hit_rect() -> Rect2:
 	var r := Rect2(-10, -16, 20, 16)
 	if kind == "pile":
 		r = Rect2(-9, -10, 18, 10)
-	elif kind == "sparkle":
+	elif kind == "sparkle" or kind == "knife":
 		r = Rect2(-10, -14, 20, 18)
 	return Rect2(position + r.position, r.size)
 
@@ -72,7 +72,7 @@ func _process(_delta: float) -> void:
 		if dx != _dx:
 			_dx = dx
 			queue_redraw()
-	elif kind == "sparkle":
+	elif kind == "sparkle" or kind == "knife":
 		var f := (floori(ms / 170.0) + id) % 6
 		if f != _frame:
 			_frame = f
@@ -99,7 +99,7 @@ func _draw() -> void:
 			_draw_bush()
 		"pile":
 			_draw_pile()
-		"sparkle":
+		"sparkle", "knife":
 			_draw_sparkle()
 	if highlighted:
 		var r := hit_rect()
