@@ -1,6 +1,6 @@
 class_name SettingsPanel
 extends PanelContainer
-## Settings (spec §10): music / effects / ambience sliders, fullscreen, show seed, Granny's To-Do, language.
+## Settings (spec §10): music / effects / ambience volume steps, fullscreen, show seed, Granny's To-Do, language.
 ## Every change is applied at once and written to user://settings.cfg (GameSettings). Emits `closed`, and
 ## `language_changed` after the locale switched (the title rebuilds itself in the new language).
 ## PAUSE-MENU: the in-game menu reuses it with `in_game = true` (set before adding it): no Demo day / Market day
@@ -42,7 +42,7 @@ func _ready() -> void:
 		var slider := _slider(String(s[1]))
 		left.append([_label(tr(s[0])), slider])
 		if _first == null:
-			_first = slider
+			_first = slider.get_child(1)
 	left.append([_label(tr("TITLE_SET_LANGUAGE")), _language_button()])
 	var right: Array = []
 	for t in TOGGLES:
@@ -96,20 +96,72 @@ func _label(text: String) -> Label:
 	return l
 
 
-func _slider(key: String) -> HSlider:
-	var s := HSlider.new()
-	s.min_value = 0.0
-	s.max_value = 1.0
-	s.step = 0.1
-	s.custom_minimum_size = Vector2(100, 16)
-	s.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	s.value = float(GameSettings.get_value("audio", key))
-	_style_slider(s)
-	s.value_changed.connect(func(v: float) -> void:
-		GameSettings.set_value("audio", key, snappedf(v, 0.1))
+## SETTINGS-STEPS · A volume row: "-", a 10-segment bar, "+". One press = one step (10 %); Left / Right on the
+## focused bar do the same. Stored as 0.0-1.0 (an old file's value is rounded to the nearest step on display).
+func _slider(key: String) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 2)
+	var bar := StepBar.new()
+	bar.name = "Bar_" + key
+	bar.steps = roundi(clampf(float(GameSettings.get_value("audio", key)), 0.0, 1.0) * StepBar.COUNT)
+	bar.changed_to.connect(func(n: int) -> void:
+		GameSettings.set_value("audio", key, snappedf(n / float(StepBar.COUNT), 0.1))
 		GameSettings.apply()
 		Audio.play_ui("ui_click"))
-	return s
+	row.add_child(_step_button("-", bar, -1))
+	row.add_child(bar)
+	row.add_child(_step_button("+", bar, 1))
+	return row
+
+
+func _step_button(text: String, bar: StepBar, dir: int) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(16, 16)
+	b.focus_mode = Control.FOCUS_NONE
+	b.pressed.connect(func() -> void: bar.step(dir))
+	return b
+
+
+## The bar: ten 6x8 segments with 1 px ink edges (gold when filled, stone when empty), drawn in whole pixels.
+class StepBar extends Control:
+	signal changed_to(steps: int)
+	const COUNT := 10
+	const SEG := 6
+	const GOLD := Color("e5bd7f")
+	const STONE := Color("b4b3a0")
+	const INK := Color("111010")
+	var steps := 0:
+		set(v):
+			steps = clampi(v, 0, COUNT)
+			queue_redraw()
+
+	func _init() -> void:
+		focus_mode = Control.FOCUS_ALL
+		custom_minimum_size = Vector2(COUNT * (SEG + 1) + 1, 16)
+		size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+	func step(dir: int) -> void:
+		var n := clampi(steps + dir, 0, COUNT)
+		if n != steps:
+			steps = n
+			changed_to.emit(n)
+
+	func _gui_input(event: InputEvent) -> void:
+		if event.is_action_pressed("ui_left"):
+			accept_event()
+			step(-1)
+		elif event.is_action_pressed("ui_right"):
+			accept_event()
+			step(1)
+
+	func _draw() -> void:
+		var w := COUNT * (SEG + 1) + 1
+		draw_rect(Rect2(0, 4, w, 10), INK)
+		for i in COUNT:
+			draw_rect(Rect2(1 + i * (SEG + 1), 5, SEG, 8), GOLD if i < steps else STONE)
+		if has_focus():
+			draw_rect(Rect2(-1, 3, w + 2, 12), GOLD, false, 1.0)
 
 
 ## A plain button whose label shows the state (a pressed-looking "On" would read as disabled).
@@ -142,43 +194,6 @@ func _language_button() -> Button:
 		Audio.play_ui("ui_click")
 		language_changed.emit())
 	return b
-
-
-## Pixel slider look: flat 6 px track, amber fill, 6x10 grabber, no anti-aliasing.
-func _style_slider(s: HSlider) -> void:
-	var track := _box(Color("3d1f29"), Color("111010"))
-	var fill := _box(Color("b66813"), Color("111010"))
-	var focus := StyleBoxFlat.new()
-	focus.draw_center = false
-	focus.anti_aliasing = false
-	focus.set_border_width_all(1)
-	focus.border_color = Color("e5bd7f")
-	s.add_theme_stylebox_override("slider", track)
-	s.add_theme_stylebox_override("grabber_area", fill)
-	s.add_theme_stylebox_override("grabber_area_highlight", fill)
-	s.add_theme_stylebox_override("focus", focus)
-	s.add_theme_icon_override("grabber", _grabber(Color("e5bd7f")))
-	s.add_theme_icon_override("grabber_highlight", _grabber(Color("f2d9c5")))
-	s.add_theme_icon_override("grabber_disabled", _grabber(Color("81746a")))
-
-
-func _box(bg: Color, border: Color) -> StyleBoxFlat:
-	var b := StyleBoxFlat.new()
-	b.bg_color = bg
-	b.border_color = border
-	b.set_border_width_all(1)
-	b.anti_aliasing = false
-	b.content_margin_top = 3
-	b.content_margin_bottom = 3
-	return b
-
-
-func _grabber(c: Color) -> ImageTexture:
-	var img := Image.create(6, 10, false, Image.FORMAT_RGBA8)
-	img.fill(Color("111010"))
-	img.fill_rect(Rect2i(1, 1, 4, 8), c)
-	img.fill_rect(Rect2i(1, 8, 4, 1), Color("b66813"))
-	return ImageTexture.create_from_image(img)
 
 
 ## The jury demo save (seed 452, day 3, rainy, the rare crabapple) as a temporary game: it is never written to disk,
