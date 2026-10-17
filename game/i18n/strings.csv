@@ -955,3 +955,5 @@ STORY_OBJ_CAP_TOYS,Toys
 STORY_OBJ_CAP_WINDOW,Window
 STORY_OBJ_CAP_JAR,Jar
 STORY_OBJ_HINT,Look closer.
+TUT_D1_PICK,Pick 3 things in the forest
+TODO_HINT_D1_PICK,"Through the gate to the forest, dear: let's pick three things, berries or mushrooms."

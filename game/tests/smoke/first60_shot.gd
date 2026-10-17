@@ -81,7 +81,7 @@ func _intro() -> void:
 	premise.seek(beats.start(1) + beats.FADE * 0.5)
 	await _frames(2)
 	_shot("intro_fade")
-	_check(absf(beats.total() - 19.8) < 0.01, "intro lasts about 20 s (%.1f)" % beats.total())
+	_check(absf(beats.total() - 12.0) < 0.01, "intro lasts about 12 s (%.1f)" % beats.total())
 	premise.queue_free()
 	await _frames(2)
 

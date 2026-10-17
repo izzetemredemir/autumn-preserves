@@ -340,9 +340,9 @@ func _start() -> void:
 	premise.finished.connect(_after_premise, CONNECT_ONE_SHOT)
 
 
-## ONBOARD-HOWTO: the How to Play book once, over the intro's last picture, then the garden.
+## FIRST-60B: the intro goes straight to the garden; How to Play stays in the title and Esc menus.
 func _after_premise() -> void:
-	HowToPlay.open(self).closed.connect(_go_home, CONNECT_ONE_SHOT)
+	_go_home()
 
 
 func _go_home() -> void:

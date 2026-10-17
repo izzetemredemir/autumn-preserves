@@ -955,3 +955,5 @@ STORY_OBJ_CAP_TOYS,Oyuncaklar
 STORY_OBJ_CAP_WINDOW,Pencere
 STORY_OBJ_CAP_JAR,Kavanoz
 STORY_OBJ_HINT,Yakından bak.
+TUT_D1_PICK,Ormanda 3 şey topla
+TODO_HINT_D1_PICK,"Kapıdan ormana, canım: üç şey toplayalım, böğürtlen ya da mantar."

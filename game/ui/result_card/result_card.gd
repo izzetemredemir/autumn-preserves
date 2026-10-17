@@ -50,6 +50,7 @@ var _value: Label
 var _button: Button
 var _sparkles: Sparkles
 var _tween: Tween
+var _type: Tween
 var _closing := false
 
 
@@ -74,6 +75,10 @@ func show_result(desc: Dictionary, quality: int, is_new: bool, banner := "") -> 
 	_value.visible = has_value
 	if has_value:
 		_value.text = "%s: %d" % [tr("UI_VALUE"), int(desc["value"])]
+	if _type != null:
+		_type.kill()
+	_name.visible_characters = -1
+	_name.custom_minimum_size.y = 0.0
 	_banner.text = banner if banner != "" else tr("UI_NEW_RECIPE")
 	_banner.visible = is_new or banner != ""
 	_button.grab_focus()
@@ -206,7 +211,7 @@ func _on_close() -> void:
 	if _closing:
 		return
 	_closing = true
-	for t: Tween in [_tween, _feel]:
+	for t: Tween in [_tween, _feel, _type]:
 		if t != null:
 			t.kill()
 	visible = false
@@ -261,6 +266,51 @@ func _play_in(is_new: bool) -> void:
 	for k in earned:
 		_feel.tween_callback(_pop_star.bind(k))
 		_feel.tween_interval(0.13)
+	if is_new:
+		_celebrate()
+
+
+## FIRST-60B: a new jar's name types in letter by letter with a soft tick, leaves burst from the card, the jar
+## glints, and the banner pops. Purely visual.
+func _celebrate() -> void:
+	var n := _name.text.length()
+	# Reserve the full name's height so the card does not grow line by line while it types.
+	_name.custom_minimum_size.y = FONT_TITLE.get_multiline_string_size(_name.text, HORIZONTAL_ALIGNMENT_LEFT, 170.0, 18).y
+	_name.visible_characters = 0
+	_type = create_tween()
+	_type.set_parallel(true)
+	for k in n:
+		_type.tween_callback(_type_letter.bind(k + 1)).set_delay(0.4 + 0.045 * k)
+	_type.tween_callback(_leaf_confetti).set_delay(0.38)
+	_type.tween_callback(_glint).set_delay(0.5)
+	_type.tween_callback(_pop_banner).set_delay(0.12)
+
+
+func _type_letter(count: int) -> void:
+	_name.visible_characters = count
+	if count % 2 == 1:
+		Juice.sfx_pitched(self, "ui_click", 7.0 + float(count % 3), -14.0)
+
+
+func _leaf_confetti() -> void:
+	if not is_inside_tree():
+		return
+	var r := _panel.get_global_rect()
+	Juice.leaf_burst(self, Vector2(r.get_center().x, r.end.y) - global_position, int(r.size.x), 22)
+	Juice.leaf_burst(self, Vector2(r.get_center().x, r.position.y + 20.0) - global_position, int(r.size.x), 12)
+
+
+func _glint() -> void:
+	if not is_inside_tree():
+		return
+	var r := _jar_holder.get_global_rect() if _jar_holder.size.x > 0 else _jar.get_global_rect()
+	Juice.sparkle(self, Rect2(r.position - global_position, r.size), 8)
+	Juice.sfx_pitched(self, "sfx_sparkle", 5.0, -8.0)
+
+
+func _pop_banner() -> void:
+	if _banner.visible and is_inside_tree():
+		Juice.pop(_banner, 2.0, 0.3)
 
 
 func _on_jar_landed() -> void:

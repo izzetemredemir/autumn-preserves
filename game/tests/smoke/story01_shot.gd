@@ -26,7 +26,7 @@ func _run() -> void:
 	root.add_child(premise)
 	premise.set_process(false)
 	await _frames(3)
-	premise.seek(beats.start(2) + float(beats.BEATS[2][2]) * 0.8)
+	premise.seek(beats.start(1) + float(beats.BEATS[1][2]) * 0.8)
 	await _frames(2)
 	_shot("story01_premise3")
 	premise.queue_free()

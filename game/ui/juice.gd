@@ -88,6 +88,20 @@ static func ribbons(parent: Node, at: Vector2, width := 40, count := 16, z := 60
 	return b
 
 
+## FIRST-60B · Autumn leaves bursting up from `at` (spread over `width` px) and drifting down: the jar-name celebration.
+const LEAF_COLORS := ["c94d2e", "e19064", "b66813", "e5bd7f", "c58845"]
+
+
+static func leaf_burst(parent: Node, at: Vector2, width := 60, count := 18, z := 60) -> Node2D:
+	var b := Burst.make(parent, at, z)
+	var r := rng()
+	for i in (maxi(1, count / 3) if calm else count):
+		var x := r.randf_range(-width * 0.5, width * 0.5)
+		b.add(RIBBON, Vector2(x, 0), Vector2(x * 1.2 + r.randf_range(-24.0, 24.0), -r.randf_range(50.0, 120.0)), 170.0,
+			r.randf_range(0.9, 1.4), Color(LEAF_COLORS[r.randi_range(0, LEAF_COLORS.size() - 1)]))
+	return b
+
+
 ## Plus-shaped twinkles scattered in `area` (local to `parent`), each living a moment.
 static func sparkle(parent: Node, area: Rect2, count := 6, z := 60) -> Node2D:
 	var b := Burst.make(parent, area.position, z)

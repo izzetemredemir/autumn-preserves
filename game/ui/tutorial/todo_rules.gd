@@ -8,19 +8,20 @@ extends RefCounted
 ## different system, ticked by the same bits machinery (bits 16-21).
 
 const DAYS := {
-	1: ["d1_mail", "d1_shake", "d1_jam", "d1_pantry", "d1_order", "d1_bed"],
-	2: ["d2_forest", "d2_mushroom", "d2_brine", "d2_sell"],
+	1: ["d1_mail", "d1_shake", "d1_pick", "d1_jam", "d1_pantry", "d1_order", "d1_bed"],
+	2: ["d2_mushroom", "d2_brine", "d2_sell"],
 }
 const FESTIVAL := ["f_shake", "f_jam", "f_juice", "f_pantry", "f_market", "f_letter"]
 const BITS := {
-	"d1_shake": 0, "d1_mail": 5, "d1_jam": 1, "d1_pantry": 2, "d1_order": 3, "d1_bed": 4,
+	"d1_shake": 0, "d1_mail": 5, "d1_pick": 6, "d1_jam": 1, "d1_pantry": 2, "d1_order": 3, "d1_bed": 4,
 	"d2_forest": 8, "d2_mushroom": 9, "d2_brine": 10, "d2_sell": 11,
 	"f_shake": 16, "f_jam": 17, "f_juice": 18, "f_pantry": 19, "f_market": 20, "f_letter": 21,
 }
 const CLOSED_BIT := 15
+const PICK_GOAL := 3  ## FIRST-60B: things picked or shaken in the forest on day 1
 ## Scene each step happens in, so scenes can make the step's object glow (spec §8.5).
 const SCENE_OF := {
-	"d1_mail": "garden", "d1_shake": "garden", "d1_jam": "kitchen", "d1_pantry": "pantry", "d1_order": "town", "d1_bed": "parlor",
+	"d1_mail": "garden", "d1_shake": "garden", "d1_pick": "wild", "d1_jam": "kitchen", "d1_pantry": "pantry", "d1_order": "town", "d1_bed": "parlor",
 	"d2_forest": "wild", "d2_mushroom": "wild", "d2_brine": "kitchen", "d2_sell": "town",
 	"f_shake": "wild", "f_jam": "kitchen", "f_juice": "kitchen", "f_pantry": "pantry", "f_market": "town",
 	"f_letter": "garden",
@@ -111,6 +112,8 @@ static func step_done(state: Dictionary, step: String, ctx: Dictionary = {}) -> 
 				if t.get("type", "") == "apple" and not bool(t.get("fruit", true)):
 					return true
 			return false
+		"d1_pick":
+			return _picked(state) >= PICK_GOAL
 		"d1_jam":
 			return _made(state, ["jam"])
 		"d1_pantry":
@@ -189,6 +192,16 @@ static func _festival_done(state: Dictionary, step: String) -> bool:
 static func is_jam(key: String) -> bool:
 	var rid := key.split("|")[0]
 	return rid == "jam" or String(Data.recipes().get(rid, {}).get("family_of", "")) == "jam"
+
+
+## Pickups collected plus trees shaken across today's wild trips.
+static func _picked(state: Dictionary) -> int:
+	var n := 0
+	for biome in state.get("wild_today", {}):
+		var t: Variant = state.wild_today[biome]
+		if typeof(t) == TYPE_DICTIONARY:
+			n += (t.get("collected", []) as Array).size() + (t.get("shaken", []) as Array).size()
+	return n
 
 
 static func _made(state: Dictionary, recipes: Array) -> bool:

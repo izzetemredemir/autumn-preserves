@@ -13,6 +13,14 @@ func test_todo_day1_steps_tick_from_state() -> void:
 	s.book.variants["jam|apple_1|-"] = {"best_q": 2}
 	var bits := TodoRules.evaluate(s, 0)
 	assert_true(TodoRules.is_done(bits, "d1_shake"))
+	assert_false(TodoRules.is_done(bits, "d1_pick"))
+	assert_eq(TodoRules.current_step(s, bits), "d1_pick", "the forest comes right after the apple tree")
+	s.wild_today = {"forest": {"collected": [1, 2], "shaken": []}}
+	bits = TodoRules.evaluate(s, bits)
+	assert_false(TodoRules.is_done(bits, "d1_pick"), "two things are not enough")
+	s.wild_today.forest.shaken.append(5)
+	bits = TodoRules.evaluate(s, bits)
+	assert_true(TodoRules.is_done(bits, "d1_pick"))
 	assert_true(TodoRules.is_done(bits, "d1_jam"))
 	assert_false(TodoRules.is_done(bits, "d1_pantry"))
 	assert_eq(TodoRules.current_step(s, bits), "d1_pantry")
@@ -22,14 +30,19 @@ func test_todo_day1_steps_tick_from_state() -> void:
 	assert_eq(TodoRules.current_step(s, bits), "d1_bed")
 
 
+## FIRST-60B: a new game reaches the forest within the first 3 To-Do steps.
+func test_forest_within_first_three_steps() -> void:
+	var steps := TodoRules.steps_for(State.new_game(7))
+	assert_true(steps.find("d1_pick") <= 2, "forest step is in the first 3")
+
+
 func test_todo_day2_steps_and_bits_stay_on() -> void:
 	var s := State.new_game(7)
 	s.day = 2.0  # JSON-loaded saves carry floats
 	var bits := TodoRules.evaluate(s, 0, {"scene": "wild"})
-	assert_true(TodoRules.is_done(bits, "d2_forest"))
+	assert_false(TodoRules.steps_for(s).has("d2_forest"), "day 2 does not repeat the forest step")
 	s.bag.append(State.fresh("chanterelle_1", 2, 2))
 	bits = TodoRules.evaluate(s, bits, {"scene": "garden"})
-	assert_true(TodoRules.is_done(bits, "d2_forest"), "bits never switch off")
 	assert_true(TodoRules.is_done(bits, "d2_mushroom"))
 	s.book.variants["brined_mushroom|chanterelle_1|-"] = {}
 	bits = TodoRules.evaluate(s, bits, {"sold": true})

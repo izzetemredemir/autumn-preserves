@@ -633,9 +633,6 @@ func _wild_trip(day8: bool) -> bool:
 			_expect(cost == Economy.energy_cost(rule), "medium", "energy anomaly", "using a %s cost %d energy (rule %d)" % [kind, cost, Economy.energy_cost(rule)])
 	await _frames(4)
 	_shot("wild_foraged")
-	if not day8:
-		var d2: Dictionary = _gs.data
-		_expect(TodoRules.is_done(TodoRules.bits_of(d2), "d2_forest") or _day() != 2, "medium", "tutorial", "To-Do step 'go to the forest' did not tick in the wild")
 	var exit: Node2D = null
 	for o in view.get("objects").get_children():
 		if is_instance_valid(o) and o.get("kind") == "exit":

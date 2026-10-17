@@ -46,9 +46,9 @@ func test_grow_map_fits_the_screen() -> void:
 	assert_true(w * ts + 2 * WorldGrow.FRAME_PX <= 480 and h * ts + 2 * WorldGrow.FRAME_PX + 44 <= 270, "map, frame and rows fit")
 
 
-func test_intro_lasts_fifteen_to_twenty_seconds_in_four_or_five_beats() -> void:
-	assert_true(Beats.total() >= 15.0 and Beats.total() <= 20.0, "%.1f s" % Beats.total())
-	assert_true(Beats.count() >= 4 and Beats.count() <= 5)
+func test_intro_lasts_about_twelve_seconds_in_three_beats() -> void:
+	assert_true(Beats.total() >= 10.0 and Beats.total() <= 14.0, "%.1f s" % Beats.total())
+	assert_true(Beats.count() == 3)
 	assert_eq(String(Beats.BEATS[Beats.count() - 1][0]), "garden", "ends on the garden")
 
 

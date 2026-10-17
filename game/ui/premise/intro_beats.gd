@@ -1,5 +1,5 @@
 extends RefCounted
-## FIRST-60 · The premise intro's timeline and its painted beats, made from the game's own art:
+## FIRST-60B · Three beats (valley, cottage, garden; the jar and snow beats stay as classes). FIRST-60 · The premise intro's timeline and its painted beats, made from the game's own art:
 ##   valley   the title painting at 2x, panning over the river and the hills (glints, birds, leaves)
 ##   cottage  the same painting at 2x, tilting up Granny's cottage to the chimney smoke
 ##   jar      the pantry at 2x: three of her jars on the shelf (JarIcon), one catching the light
@@ -23,10 +23,8 @@ const GLASS := Color("b4b3a0")
 ## [id, line key, seconds on screen]. The first FADE seconds of a beat overlap the end of the one before.
 const BEATS := [
 	["valley", "PREMISE_1", 4.0],
-	["cottage", "PREMISE_2", 4.2],
-	["jar", "PREMISE_3", 3.8],
-	["snow", "PREMISE_4", 4.4],
-	["garden", "PREMISE_5", 3.4],
+	["cottage", "PREMISE_3", 4.2],
+	["garden", "PREMISE_5", 3.8],
 ]
 const FADE := 0.5
 
