@@ -503,6 +503,8 @@ func _render_orders() -> void:
 		first = false
 		row.add_child(col)
 		_content.add_child(row)
+	if pager.get_parent() == null:  # one page: the pager stayed empty and out of the tree (QA-FIX: it leaked)
+		pager.free()
 
 
 func _order_by_id(id: int) -> Dictionary:

@@ -611,15 +611,20 @@ func _wild_trip(day8: bool) -> bool:
 		else:  # another object is drawn over it: walk up to it the way a tap on its free part would
 			granny.approach(o.get("cell"), Callable(w, "_use").bind(o))
 		var t_tap := Time.get_ticks_msec()
+		var cell: Vector2i = o.get("cell")
+		var oid := o.get_instance_id()  # a picked ground thing vanishes (FEEL): never hold the freed node in the lambda
+		var used := func() -> bool:
+			var obj := instance_from_id(oid)
+			return obj == null or bool(obj.get("done"))
 		var cond := func() -> bool:
-			return bool(o.get("done")) or (Time.get_ticks_msec() - t_tap > 700 and not granny.is_moving())
+			return bool(used.call()) or (Time.get_ticks_msec() - t_tap > 700 and not granny.is_moving())
 		var ok: bool = await _wait(cond, "Granny to reach a %s" % kind)
 		await _frames(2)
 		_allow_energy = false
 		if not ok:
 			return false
-		if not bool(o.get("done")):
-			_problem("low", "wild", "Granny could not use a %s at %s (map seed %d)" % [kind, o.get("cell"), int(w.get("map").get("seed", 0))])
+		if not bool(used.call()):
+			_problem("low", "wild", "Granny could not use a %s at %s (map seed %d)" % [kind, cell, int(w.get("map").get("seed", 0))])
 			continue
 		uses += 1
 		var rule := String(USE_COST.get(kind, ""))

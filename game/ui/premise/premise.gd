@@ -59,6 +59,7 @@ func _ready() -> void:
 	_hint.offset_top = 4
 	_hint.offset_right = -6
 	_hint.offset_bottom = 22
+	_hint.grow_horizontal = Control.GROW_DIRECTION_BEGIN  # a longer line (Turkish) grows left, not off the screen
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_hint.visible = false
 	add_child(_hint)

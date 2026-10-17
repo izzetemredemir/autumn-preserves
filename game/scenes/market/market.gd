@@ -7,6 +7,9 @@ extends Control
 ## stalls, stop at Granny's counter where their jar hops into their basket, strollers chat and kids chase the pigeons.
 ## An end card sums it up and goes back to town. Keyboard: Tab/arrows + Enter on the buttons, Esc = back (setup) /
 ## skip (parade). A click on a passer-by during the parade gets a hello.
+## QA-FIX: the villagers' poses are composed ahead, a few ms a frame: the vendors' and a likely crowd's (the stall as it
+## stands, or as Fill stall would set it) from the first frames behind the fade and while the stall is set up, then the
+## real crowd's in arrival order when the parade starts, so parade frames don't compose people.
 
 const InboxView := preload("res://scenes/pantry/inbox_view.gd")
 const Villager := preload("res://scenes/market/villager.gd")
@@ -27,6 +30,9 @@ const C_PAPER_INK := Color("50361e")
 const C_GOLD := Color("e5bd7f")
 const C_BAR := Color("747c37")
 const C_BAR_BG := Color("b9a697")
+const BAKE_USEC := 4000  ## pose composing per frame (setup and parade)
+const BAKE_FADE_USEC := 12000  ## while the fade still covers the screen
+const SPEC_DELAY := 0.4  ## s the stall stays unchanged before its likely crowd is baked
 
 enum Phase { SETUP, PARADE, DONE }
 
@@ -75,6 +81,10 @@ var _wave_until := -1.0
 var _coins_target := 0
 var _coins_shown := 0.0
 var _sold := 0
+# poses composed ahead (QA-FIX)
+var _bake_jobs: Array = []
+var _bake_i := 0
+var _spec_wait := -1.0  ## s since the stall last changed; -1 = its likely crowd is queued already
 
 
 func _ready() -> void:
@@ -101,6 +111,8 @@ func _ready() -> void:
 	_board.position = Vector2(_counter.position)
 	_source_view.setup(_source, _board, _make_view)
 	_refresh()
+	_bake_vendors()
+	_spec_wait = SPEC_DELAY  # the first likely crowd goes into the queue on the first frame, behind the fade
 	if _rainy() and ResourceLoader.exists(RAIN):
 		add_child((load(RAIN) as PackedScene).instantiate())
 	Audio.play_music("mus_town")
@@ -129,6 +141,7 @@ func _rainy() -> bool:
 
 func _exit_tree() -> void:
 	Audio.stop_ambient("amb_market")
+	Villager.clear_baked()
 
 
 func _process(delta: float) -> void:
@@ -147,6 +160,12 @@ func _process(delta: float) -> void:
 	_step_granny()
 	_life.call("step", dt, _crowd_view.call("positions"))
 	_bubbles.call("step", dt)
+	if _phase == Phase.SETUP and _spec_wait >= 0.0:
+		_spec_wait += delta
+		if _spec_wait >= SPEC_DELAY and not _board.is_holding():
+			_spec_wait = -1.0
+			_queue_likely_crowd()
+	_bake(BAKE_FADE_USEC if _fading() else BAKE_USEC)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -175,6 +194,8 @@ func _unhandled_input(event: InputEvent) -> void:
 # --- setup -------------------------------------------------------------------------------------------------------
 
 func _refresh() -> void:
+	if _phase == Phase.SETUP:
+		_spec_wait = 0.0
 	var d := _data()
 	var parts := Market.stall_parts(_entries, d.varieties)
 	_mult.text = tr("UI_MARKET_MULT") % ("%.2f" % float(parts.mult))
@@ -299,6 +320,8 @@ func start_parade() -> void:
 		_jar_layer.add_child(v)
 		_jar_views[i] = v
 	_crowd_view.call("setup", _world, _crowd, _rainy())
+	_queue_poses(CrowdView.pose_jobs(_crowd, _rainy()))
+	_spec_wait = -1.0
 	_sold_ids.clear()
 	_lines_done = 0
 	_t = 0.0
@@ -426,6 +449,61 @@ func _finish() -> void:
 	_end_card.create_tween().tween_property(_end_card, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	(box.get_node("ToTown") as Button).grab_focus.call_deferred()
 	Audio.play_jingle("jgl_order_done")
+
+
+# --- poses composed ahead (QA-FIX) -------------------------------------------------------------------------------------
+
+## The crowd the stall would draw as it stands (or as Fill stall would set it while it is empty), queued for baking.
+func _queue_likely_crowd() -> void:
+	var d := _data()
+	if not Market.can_open(d):
+		return
+	var stall: Array = _entries
+	if stall.is_empty():
+		stall = Market.auto_stall(_source.duplicate(), d.get("varieties", {}))
+	if stall.is_empty():
+		return
+	var plan := Market.plan(d, stall)
+	var crowd := MarketCrowd.build(int(d.save_seed), int(d.day), plan.get("visits", []), _layout,
+		int(Market.info(d).reputation), _rainy())
+	_queue_poses(CrowdView.pose_jobs(crowd, _rainy()))
+
+
+## Replaces what is left to bake with `jobs` (CrowdView.pose_jobs); poses baked already are skipped as they come.
+func _queue_poses(jobs: Array) -> void:
+	_bake_jobs = jobs
+	_bake_i = 0
+
+
+## Composes queued poses for up to `budget` microseconds.
+func _bake(budget: int) -> void:
+	if _bake_i >= _bake_jobs.size():
+		return
+	var t0 := Time.get_ticks_usec()
+	while _bake_i < _bake_jobs.size() and Time.get_ticks_usec() - t0 < budget:
+		var j: Dictionary = _bake_jobs[_bake_i]
+		_bake_i += 1
+		var pose: Array = j.pose
+		Villager.bake(j.look, String(pose[0]), String(pose[1]), int(pose[2]), bool(pose[3]), String(j.lk))
+	if _bake_i >= _bake_jobs.size():
+		_bake_jobs = []
+		_bake_i = 0
+
+
+## Every pose the vendors play (idle with blinks, wipe, wave, look), composed now: we are behind the fade.
+func _bake_vendors() -> void:
+	for id: String in _vendors:
+		var l: Dictionary = (_vendors[id] as Object).get("look")
+		var lk := Villager.look_key(l)
+		for f in 2:
+			for anim in ["wave", "wipe", "look"]:
+				Villager.bake(l, "front", anim, f, false, lk)
+			for b in [false, true]:
+				Villager.bake(l, "front", "idle", f, b, lk)
+
+
+func _fading() -> bool:
+	return Transition.is_busy()
 
 
 func _save(keys: Array) -> void:

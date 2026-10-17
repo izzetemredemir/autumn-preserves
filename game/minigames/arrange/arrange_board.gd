@@ -14,6 +14,8 @@ extends Control
 ## Input: press an entry to pick it up, drag, release to drop. A tap keeps it in hand until the next press.
 ## Turn with R, right click or a second finger; Esc puts it back. Items from outside (an inbox) enter with
 ## begin_hold(); a drop off the board emits released_outside and the host decides (e.g. back to the inbox).
+## Views (view_factory) are kept across refreshes while their item, turn and footprint stay the same (QA-FIX: a drop
+## rebuilt every view); setup() makes them all again.
 
 signal changed
 signal entry_added(index: int, from: Dictionary)
@@ -41,6 +43,7 @@ const C_LIKED := Color("e5bd7f")
 const C_ORIGIN := Color("b4b3a0")
 const C_FILL := Color("49423d")
 const C_LINE := Color("23282a")
+const VIEW_KEY := &"arrange_view_key"
 
 var board: Dictionary = {}
 var entries: Array = []
@@ -103,7 +106,7 @@ func setup(p_board: Dictionary, p_entries: Array, p_rules: Dictionary, layout: D
 	size = custom_minimum_size
 	_overlay.size = size
 	_stars = {}
-	refresh()
+	refresh(true)
 	_update_stars()
 
 
@@ -190,23 +193,63 @@ func entry_index_at(local: Vector2) -> int:
 # --- changes ---------------------------------------------------------------------------------------------------
 
 ## Rebuilds every item view from `entries` (call after editing entries from outside).
-func refresh() -> void:
+## Places a view on every entry. Views whose item, turn and footprint did not change are moved, not rebuilt;
+## `rebuild` makes them all new (setup, or a host whose view_factory now draws differently).
+func refresh(rebuild := false) -> void:
+	var spare := {}  # view key -> views free to reuse
 	for v in _views:
-		if is_instance_valid(v):
-			remove_child(v)
-			v.queue_free()
+		if not is_instance_valid(v):
+			continue
+		if rebuild or v.is_queued_for_deletion():
+			_drop_view(v)
+			continue
+		var k := String(v.get_meta(VIEW_KEY, ""))
+		if not spare.has(k):
+			spare[k] = []
+		(spare[k] as Array).append(v)
 	_views.clear()
 	for i in entries.size():
 		var e: Dictionary = entries[i]
 		var r := entry_rect(i)
-		var v := _make_view(e.item, _rot_of(e), r.size)
+		var rot := _rot_of(e)
+		var k := view_key(e.item, rot, r.size)
+		var v := _take_view(spare.get(k, []), e.item)
+		if v == null:
+			v = _make_view(e.item, rot, r.size)
+			v.set_meta(VIEW_KEY, k)
+			add_child(v)
 		v.position = Vector2(r.position)
 		v.visible = not (_holding and i == _h_index)
-		add_child(v)
 		_views.append(v)
+	for k in spare:
+		for v: Control in spare[k]:
+			_drop_view(v)
 	move_child(_overlay, -1)
 	queue_redraw()
 	_overlay.queue_redraw()
+
+
+## What a view shows: the item's content, its turn and its footprint in px.
+static func view_key(item: Dictionary, rot: int, px: Vector2i) -> String:
+	return "%d|%d|%d|%d" % [item.hash(), rot, px.x, px.y]
+
+
+## A spare view for `item`: the one made for this very item when there is one, else any of the same look.
+func _take_view(pool: Array, item: Dictionary) -> Control:
+	if pool.is_empty():
+		return null
+	for j in pool.size():
+		var v: Control = pool[j]
+		if is_same(v.get("item"), item):
+			pool.remove_at(j)
+			return v
+	return pool.pop_back()
+
+
+func _drop_view(v: Control) -> void:
+	if v.get_parent() == self:
+		remove_child(v)
+	v.queue_free()
 
 
 ## For hosts that edit `entries` in bulk (auto-arrange): redraw, emit changed, re-run the stars hook.

@@ -1,7 +1,7 @@
 extends Button
 ## "Market today!" hotspot for the town square (MARKET): a striped cloth banner with bunting, pinned over the notice
 ## board on market days until the stall has opened (Market.can_open). A Button, so mouse, touch and keyboard focus
-## (Tab + Enter) all open the market scene.
+## (Tab + Enter) all open the market scene, through the dither fade (QA-FIX: a hard cut froze on the market's build).
 
 const C_INK := Color("111010")
 const C_RED := Color("c94d2e")
@@ -12,6 +12,7 @@ const C_OLIVE := Color("747c37")
 const C_WOOD_DK := Color("50361e")
 const C_HOVER := Color("dbcc83")
 const RECT := Rect2i(184, 64, 112, 40)
+const TRANSITION := "res://ui/transition/transition.gd"
 
 var _bob: Tween
 var _label: Label
@@ -51,6 +52,9 @@ func _on_hot() -> void:
 
 
 func _on_pressed() -> void:
+	if ResourceLoader.exists(TRANSITION):
+		load(TRANSITION).go("market")
+		return
 	var router := get_node_or_null("/root/Router")
 	if router != null:
 		router.goto("market")

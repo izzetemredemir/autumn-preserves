@@ -48,8 +48,14 @@ func _run() -> void:
 	_move(banner.get_global_rect().get_center())
 	_button(banner.get_global_rect().get_center(), true)
 	_button(banner.get_global_rect().get_center(), false)
-	await _frames(6)
-	town.queue_free()
+	await _frames(2)
+	var transition: GDScript = load("res://ui/transition/transition.gd")
+	_check("the banner fades out to the market (no hard cut)", bool(transition.call("is_busy")))
+	var t0 := Time.get_ticks_msec()
+	while (bool(transition.call("is_busy")) or root.get_node("Router").get("current") != "market") and Time.get_ticks_msec() - t0 < 5000:
+		await process_frame
+	if is_instance_valid(town):
+		town.queue_free()
 	_scene = current_scene as Control
 	_check("the banner opens the market", root.get_node("Router").get("current") == "market" and _scene != null and _scene.name == "Market")
 	if _scene == null:

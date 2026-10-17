@@ -217,11 +217,9 @@ func _shake(s: GardenSpot) -> void:
 	var n := _count(r.get("items", []))
 	s.pop()
 	granny.act("shake")
-	camera.shake(2, 0.25)
-	Fx.leaf_burst(fx, s.canopy(), 14)
-	Fx.fruit_to_bag(fx, s.canopy(), s.position.y, granny, s.color, n)
+	# FEEL's whole tree-shake moment (wiggle, leaves, fruit bouncing into the HUD bag, camera shake, the thump)
+	Fx.shake_tree(fx, s, s.canopy(), s.position.y, granny, s.color, n, camera, WildObject.icon_for(s.tree_type))
 	Audio.play_sfx("sfx_tree_shake")
-	Audio.play_sfx("sfx_fruit_drop")
 	Audio.play_sfx("sfx_bag_add")
 	Fx.bubble(fx, s.top(), "+%d" % n, 0.6)
 	GameState.notify(PackedStringArray(["energy", "bag", "garden"]))
@@ -452,6 +450,7 @@ func _build_cat() -> void:
 		cat.z_index = 1
 	else:
 		cat.wander_walkable = _cat_may_walk
+		cat.may_enter = _cat_clear_of_granny
 
 
 ## WILD-LIFE: a robin on the fence and a sparrow or two on the lawn; GARDEN-LIFE: squirrels at the apple and walnut
@@ -792,7 +791,12 @@ func cat_cell() -> Vector2i:
 
 
 func _cat_may_walk(c: Vector2i) -> bool:
-	return _walkable(c) and c != granny.current_cell() and c != granny.dest_cell()
+	return _walkable(c) and _cat_clear_of_granny(c)
+
+
+## The cat keeps off Granny's cell, the one she steps into and every cell still ahead on her tapped walk (QA-FIX).
+func _cat_clear_of_granny(c: Vector2i) -> bool:
+	return c != granny.current_cell() and c != granny.dest_cell() and not granny.on_path(c)
 
 
 ## Pets the cat: purr, a heart and a short line. Nothing else happens (no needs, no reward).

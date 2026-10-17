@@ -4,6 +4,8 @@ extends Control
 ## from a ProductGen.describe() dict, using only Vintage Autumn 31 colours.
 ## view "shelf": 24x24 (bottle 24x48). view "icon": 16x16. `zoom` multiplies by whole numbers only.
 ## All pixel work lives in render(); _draw() just blits the cached image (nearest, integer scale).
+## QA-FIX: the composed texture is cached per look and view (a jar's look is fixed by its description), so the
+## pantry, parcel and market views that are rebuilt on every change don't compose an Image each time (~1.5 ms a jar).
 
 const PALETTE := [
 	"111010", "a22512", "c94d2e", "e19064", "49423d", "81746a", "b9a697", "f2d9c5", "50361e", "b66813",
@@ -34,8 +36,11 @@ const PEACH := "e19064"
 		zoom = maxi(v, 1)
 		_refresh()
 
+const TEX_CACHE_MAX := 512  ## looks kept (a full save shows far fewer); the cache starts over past this
+
 static var _snap_cache := {}
 static var _supply_cache := {}
+static var _tex_cache := {}  ## look key (look_key) -> ImageTexture
 
 var _desc: Dictionary = {}
 var _tex: Texture2D
@@ -57,13 +62,30 @@ func _refresh() -> void:
 	size = custom_minimum_size
 	_tex = null
 	if not _desc.is_empty():
-		var img: Image = null
-		if use_textures:
-			img = _compose_textures(_desc, view)
-		if img == null:
-			img = render(_desc, view)
-		_tex = ImageTexture.create_from_image(img)
+		var key := look_key(_desc, view, use_textures)
+		_tex = _tex_cache.get(key)
+		if _tex == null:
+			var img: Image = null
+			if use_textures:
+				img = _compose_textures(_desc, view)
+			if img == null:
+				img = render(_desc, view)
+			_tex = ImageTexture.create_from_image(img)
+			if _tex_cache.size() >= TEX_CACHE_MAX:
+				_tex_cache.clear()
+			_tex_cache[key] = _tex
 	queue_redraw()
+
+
+## What fixes a product's picture: the view, its key and vessel, and every appearance value render() reads.
+static func look_key(desc: Dictionary, v: String, textures := false) -> String:
+	var a: Variant = desc.get("appearance", {})
+	return "%s|%s|%s|%d|%d" % [v, str(desc.get("key", "")), _vessel(desc), (a as Dictionary).hash() if a is Dictionary else 0, int(textures)]
+
+
+## The texture a view of `desc` shows (shared by every view of the same look; never edit it).
+func texture() -> Texture2D:
+	return _tex
 
 
 func _draw() -> void:

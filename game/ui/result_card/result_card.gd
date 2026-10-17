@@ -5,6 +5,8 @@ extends Control
 ## Emits `closed` when the player confirms.
 ## FEEL: every card plays in (never blocking the button): the jar drops in with a squash, its label stamps on, the
 ## earned stars pop in one by one with rising notes, and a "New recipe!" (or Mastered) banner gets a ribbon burst.
+## QA-FIX: Continue always closes the card: it hides at once, emits `closed` once, and frees itself when nobody
+## listens. A host's banner line (Mastered) comes in through show_result, before the play-in lays the card out.
 
 signal closed
 
@@ -48,14 +50,19 @@ var _value: Label
 var _button: Button
 var _sparkles: Sparkles
 var _tween: Tween
+var _closing := false
 
 
 func _ready() -> void:
 	_build()
 
 
-func show_result(desc: Dictionary, quality: int, is_new: bool) -> void:
+## `banner`: a host's own banner line (the kitchen's "Mastered!"); "" shows "New recipe!" when `is_new`.
+func show_result(desc: Dictionary, quality: int, is_new: bool, banner := "") -> void:
 	_build()
+	_closing = false
+	visible = true
+	mouse_filter = Control.MOUSE_FILTER_STOP
 	_jar.show_product(desc)
 	_jar_holder.custom_minimum_size = _jar.custom_minimum_size
 	_stamp.setup(desc, _jar.zoom)
@@ -67,7 +74,8 @@ func show_result(desc: Dictionary, quality: int, is_new: bool) -> void:
 	_value.visible = has_value
 	if has_value:
 		_value.text = "%s: %d" % [tr("UI_VALUE"), int(desc["value"])]
-	_banner.visible = is_new
+	_banner.text = banner if banner != "" else tr("UI_NEW_RECIPE")
+	_banner.visible = is_new or banner != ""
 	_button.grab_focus()
 	if _tween:
 		_tween.kill()
@@ -200,13 +208,28 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_on_close()
 
 
+## Continue, Enter or Esc (hosts and bots call it too). Once only; the card is gone from sight and input at once,
+## whatever the host does with the signal, and frees itself when nobody listens.
 func _on_close() -> void:
+	if _closing:
+		return
+	_closing = true
+	for t: Tween in [_tween, _feel]:
+		if t != null:
+			t.kill()
+	visible = false
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var heard := not closed.get_connections().is_empty()
 	closed.emit()
+	if not heard and is_inside_tree():
+		queue_free()
 
 
 func _pop_in() -> void:
 	_panel.modulate.a = 0.0
 	await get_tree().process_frame
+	if _closing or not is_inside_tree():
+		return
 	var base := _panel.position
 	var banner_c := GOLD_DK
 	_tween = create_tween()

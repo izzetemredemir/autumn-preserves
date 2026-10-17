@@ -1,6 +1,8 @@
 extends Control
 ## Inbox column of the pantry (spec §7.4): new items wait here and are never lost. Press an item to put it in the
 ## board's hand (ArrangeBoard.begin_hold); dropping a board item here sends it back (handled by pantry.gd).
+## QA-FIX: refresh() keeps the views of items that did not change and only makes the new ones (it ran after every
+## drop and rebuilt every jar). The letters' parcel page and the market's jar column use it too.
 
 const SLOT := 24
 ## 5 columns (40 slots, more than a full bag) leave the middle column room for the 18 px rule texts.
@@ -37,19 +39,48 @@ func slot_rect(i: int) -> Rect2i:
 	return Rect2i(PAD + (i % COLS) * SLOT, PAD + floori(i / float(COLS)) * SLOT, SLOT, SLOT)
 
 
-func refresh() -> void:
+func refresh(rebuild := false) -> void:
+	var spare := {}  # view key -> views free to reuse
 	for v in _views:
-		remove_child(v)
-		v.queue_free()
+		if not is_instance_valid(v):
+			continue
+		if rebuild or v.is_queued_for_deletion():
+			_drop_view(v)
+			continue
+		var k := String(v.get_meta(ArrangeBoard.VIEW_KEY, ""))
+		if not spare.has(k):
+			spare[k] = []
+		(spare[k] as Array).append(v)
 	_views.clear()
 	for i in mini(items.size(), capacity()):
-		var v: Control = make_view.call(items[i], 0, Vector2i(SLOT, SLOT))
+		var k := ArrangeBoard.view_key(items[i], 0, Vector2i(SLOT, SLOT))
+		var pool: Array = spare.get(k, [])
+		var v: Control = null
+		for j in pool.size():
+			if is_same((pool[j] as Control).get("item"), items[i]):
+				v = pool[j]
+				pool.remove_at(j)
+				break
+		if v == null and not pool.is_empty():
+			v = pool.pop_back()
+		if v == null:
+			v = make_view.call(items[i], 0, Vector2i(SLOT, SLOT))
+			v.set_meta(ArrangeBoard.VIEW_KEY, k)
+			ArrangeBoard.ignore_mouse(v)
+			add_child(v)
 		v.position = Vector2(slot_rect(i).position)
 		v.visible = i != _hidden
-		ArrangeBoard.ignore_mouse(v)
-		add_child(v)
 		_views.append(v)
+	for k in spare:
+		for v: Control in spare[k]:
+			_drop_view(v)
 	queue_redraw()
+
+
+func _drop_view(v: Control) -> void:
+	if v.get_parent() == self:
+		remove_child(v)
+	v.queue_free()
 
 
 func _gui_input(event: InputEvent) -> void:

@@ -8,12 +8,18 @@ extends Node2D
 ##   granny.approach(object_cell, on_arrive)   # walk next to a thing, face it, then on_arrive.call()
 ## Position is the feet: bottom-centre of the current tile (sprite pivot 8,31, art-bible §3.2).
 ## The look lives in the Body child (granny_body.gd): ART-02 strips, or a gray box until they exist.
+## QA-FIX: a tapped walk survives something stepping into the way (the cat): she re-plans round it to the same goal
+## (walks up to the same thing, from another side if need be) and keeps the action; she waits a moment when there is
+## no way yet, and gives up only after BLOCKED_WAIT_MS.
 
 signal stepped(cell: Vector2i)  ## entered a new tile
 signal interact_requested(cell: Vector2i)  ## `interact` pressed; `cell` is the tile she faces
 
 const TILE := 16
 const DIRS: Array[Vector2i] = [Vector2i.DOWN, Vector2i.UP, Vector2i.LEFT, Vector2i.RIGHT]
+const NO_CELL := Vector2i(-1, -1)
+const BLOCKED_WAIT_MS := 2500  ## how long a blocked tapped walk waits for a way before it is dropped
+const RETRY_MS := 150  ## a blocked walk looks for a way again this often
 
 @export var speed := 72.0  ## world px per second
 
@@ -28,6 +34,10 @@ var _moving := false
 var _exact := Vector2.ZERO
 var _path: Array[Vector2i] = []
 var _on_arrive := Callable()
+var _goal_target := NO_CELL  ## approach(): the thing she walks up to, so a re-plan can pick another side
+var _goal_cb := Callable()
+var _blocked_ms := -1  ## when the tapped walk found its next cell taken and no way round (-1: not blocked)
+var _retry_ms := 0
 var _astar := AStarGrid2D.new()
 var _bump: Tween
 
@@ -35,9 +45,11 @@ var _bump: Tween
 
 
 ## Days 90-99 (spec §7.12): she walks and steps a little slower. Looks only: energy and rules never change.
+## (GameState by path, so pure tests can make a Granny without the autoloads.)
 func _ready() -> void:
-	if GameState.has_game():
-		var k := Farewell.walk_scale(int(GameState.data.get("day", 1)))
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and bool(gs.call("has_game")):
+		var k := Farewell.walk_scale(int((gs.get("data") as Dictionary).get("day", 1)))
 		speed *= k
 		body.set("anim_scale", k)
 
@@ -77,6 +89,9 @@ func teleport(cell: Vector2i, face := Vector2i.DOWN) -> void:
 func stop() -> void:
 	_path.clear()
 	_on_arrive = Callable()
+	_goal_target = NO_CELL
+	_goal_cb = Callable()
+	_blocked_ms = -1
 
 
 func current_cell() -> Vector2i:
@@ -96,6 +111,11 @@ func is_moving() -> bool:
 	return _moving or not _path.is_empty()
 
 
+## True when `cell` is still ahead on her tapped walk (the cat keeps off these).
+func on_path(cell: Vector2i) -> bool:
+	return _path.has(cell)
+
+
 func can_stand(cell: Vector2i) -> bool:
 	return Rect2i(Vector2i.ZERO, _size).has_point(cell) and _walkable.is_valid() and bool(_walkable.call(cell))
 
@@ -106,6 +126,8 @@ func walk_to(cell: Vector2i, on_arrive := Callable()) -> bool:
 	if path.is_empty():
 		return false
 	_follow(path, on_arrive)
+	_goal_target = NO_CELL
+	_goal_cb = Callable()
 	return true
 
 
@@ -130,6 +152,8 @@ func approach(target: Vector2i, on_arrive := Callable()) -> bool:
 		if best.is_empty():
 			return false
 	_follow(best, _arrive_facing.bind(target, on_arrive))
+	_goal_target = target
+	_goal_cb = on_arrive
 	return true
 
 
@@ -209,10 +233,47 @@ func _start_step() -> bool:
 		stop()
 		return false
 	_face(step)
-	if not _try_step(step):
-		stop()  # something appeared in the way
+	if _try_step(step):
+		_blocked_ms = -1
+		return true
+	# something stepped into the way (the cat): go round it to the same goal, keeping the tapped action
+	_path.push_front(next)
+	if not _replan():
 		return false
+	if _path.is_empty():
+		return false  # already where she wanted to be: _process runs the arrive callback
+	next = _path.pop_front()
+	step = next - _cell
+	if absi(step.x) + absi(step.y) != 1 or not _try_step(step):
+		_path.push_front(next)
+		return false
+	_face(step)
 	return true
+
+
+## A new path from where she stands to the same goal (the same thing approached, maybe from another side). False when
+## there is none yet: the walk waits with its plan kept (a try every RETRY_MS) and is dropped after BLOCKED_WAIT_MS.
+func _replan() -> bool:
+	var now := Time.get_ticks_msec()
+	if _blocked_ms >= 0 and now - _retry_ms < RETRY_MS:
+		return false
+	_retry_ms = now
+	var ok := false
+	if _goal_target != NO_CELL:
+		ok = approach(_goal_target, _goal_cb)  # leaves the plan as it was when no side is free
+	else:
+		var p := find_path(_cell, _path.back())
+		if not p.is_empty():
+			_follow(p, _on_arrive)
+			ok = true
+	if ok:
+		_blocked_ms = -1
+		return true
+	if _blocked_ms < 0:
+		_blocked_ms = now
+	elif now - _blocked_ms > BLOCKED_WAIT_MS:
+		stop()
+	return false
 
 
 func _try_step(dir: Vector2i) -> bool:

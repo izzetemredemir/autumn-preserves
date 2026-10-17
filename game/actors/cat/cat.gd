@@ -17,12 +17,14 @@ const HEART := preload("res://assets/sprites/cat/cat_heart.png")
 const FRAME := 24
 const WALK_SEC_PER_CELL := 0.3
 const PURR_SEC := 2.2
+const HOME_RETRY_SEC := 2.0
 
 var cell := Vector2i.ZERO  ## the cell it sits on (its end cell while walking)
 var home := Vector2i.ZERO
 var pose := ""
 var near_granny := false
 var wander_walkable := Callable()  ## (cell) -> bool, set by the garden
+var may_enter := Callable()  ## (cell) -> bool: false while Granny is on it or walking through it (QA-FIX)
 
 var _sprite := Sprite2D.new()
 var _heart := Sprite2D.new()
@@ -127,6 +129,9 @@ func _wander() -> void:
 	var target := home
 	if cell == home:
 		target = CatRules.wander_cell(home, _rng, wander_walkable)
+	elif may_enter.is_valid() and not bool(may_enter.call(home)):
+		_wander_in = HOME_RETRY_SEC  # Granny is on her way through: go home a little later
+		return
 	if target == cell:
 		return
 	var dist := maxi(absi(target.x - cell.x), absi(target.y - cell.y))

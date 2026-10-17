@@ -2,7 +2,8 @@ extends Node
 ## MARKET-LIVE · Plays a MarketCrowd back: one villager v2 per person, created when they enter and freed when they
 ## leave, placed and posed for parade time t (walk cycle at their own cadence, browsing with their back to the stall,
 ## looking around, turning to say their line, chatting in pairs, a kid waving at the pigeons). Rules stay in
-## MarketCrowd; this only reads the steps.
+## MarketCrowd; this only reads the steps. pose_jobs() lists every pose a crowd will show, so the market can compose
+## them ahead (QA-FIX) instead of in the parade's frames.
 
 const Villager := preload("res://scenes/market/villager.gd")
 const TALK := 1.3
@@ -100,6 +101,59 @@ func _node(p: Dictionary) -> Node2D:
 	world.add_child(v)
 	_nodes[id] = v
 	return v
+
+
+## Every pose the parade asks of `crowd`'s people (as _pose picks them), people in order of arrival:
+## [{"look": Villager look, "lk": its look_key, "pose": [view, anim, frame, blink]}], no pose twice for one look.
+static func pose_jobs(crowd: Dictionary, is_rainy: bool) -> Array:
+	var people: Array = (crowd.get("people", []) as Array).duplicate()
+	people.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.spawn) < float(b.spawn))
+	var out: Array = []
+	for p: Dictionary in people:
+		var l: Dictionary = Villager.look_for(int(p.look), bool(p.fancy), is_rainy, String(p.arch))
+		var lk: String = Villager.look_key(l)
+		var seen := {}
+		for pose: Array in poses_of(p):
+			var k := "%s|%s|%d|%s" % pose
+			if not seen.has(k):
+				seen[k] = true
+				out.append({"look": l, "lk": lk, "pose": pose})
+	return out
+
+
+## The [view, anim, frame, blink] poses `_pose` can pick for person `p` over all their steps.
+static func poses_of(p: Dictionary) -> Array:
+	var out: Array = [["front", "idle", 0, false]]  # Villager.setup shows this one first
+	var line := float(p.get("line_t", -1.0)) >= 0.0
+	var both: Array[bool] = [false, true]
+	for st: Dictionary in p.get("steps", []):
+		var face := String(st.get("face", "front"))
+		match String(st.get("do", "")):
+			"walk":
+				for f in 4:
+					out.append([face, "walk", f, false])
+			"look":
+				for f in 2:
+					out.append(["front", "look", f, false])
+			"chat":
+				var side := "left" if int(p.get("partner", -1)) >= 0 and int(p.get("partner", -1)) < int(p.id) else "right"
+				for b in both:
+					out.append([side, "idle", 0, b])
+					for f in 2:
+						out.append([side, "talk", f, b])
+			"play":
+				for f in 2:
+					out.append(["front", "talk", f, false])
+			var what:
+				if line:
+					for f in 2:
+						out.append(["front", "talk", f, false])
+				var views: Array = [face, "front"] if line and what == "buy" else [face]
+				for vw in views:
+					for f in 2:
+						for b in both:
+							out.append([vw, "idle", f, b])
+	return out
 
 
 func _step_at(p: Dictionary, t: float) -> Dictionary:

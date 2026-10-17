@@ -6,6 +6,8 @@ extends Node2D
 ## Views: front, back, side (drawn facing left, flipped for right). Poses: walk 4, idle 2 (breath), look 1 (head
 ## turned), talk 2, wave 2, wipe 2 (vendors). Poses are composed on first use and cached per villager. The node origin
 ## is the feet (pivot PIVOT); never scaled. Same look -> same pixels, every run.
+## QA-FIX: the market composes the day's poses ahead with bake() (a few per frame while the stall is set up, behind
+## the fade and ahead of the parade clock); show_pose() takes a baked one before composing its own.
 
 const DIR := "res://assets/sprites/villagers/"
 const W := 24
@@ -102,11 +104,14 @@ const UMBRELLA_AT := Vector2i(-3, -6)
 
 static var _sheets: Dictionary = {}
 static var _solids: Dictionary = {}
+static var _baked: Dictionary = {}  ## "<look_key>#<pose key>" -> ImageTexture, made ahead by bake()
+static var composed_live := 0  ## poses show_pose had to compose itself (not baked): the probes count them
 
 var look: Dictionary = {}
 var _sprite: Sprite2D
 var _cache: Dictionary = {}
 var _key := ""
+var _look_id := ""
 
 
 # --- looks ----------------------------------------------------------------------------------------------------------
@@ -212,6 +217,7 @@ static func vendor_look(id: String) -> Dictionary:
 
 func setup(l: Dictionary) -> void:
 	look = l
+	_look_id = look_key(l)
 	_cache.clear()
 	_key = ""
 	if _sprite == null:
@@ -239,10 +245,39 @@ func show_pose(view: String, anim: String, frame: int, blink := false) -> void:
 		return
 	_key = key + str(flip)
 	if not _cache.has(key):
-		_cache[key] = ImageTexture.create_from_image(compose(look, v, anim, frame, blink))
+		var baked: Variant = _baked.get(_look_id + "#" + key)
+		if baked == null:
+			composed_live += 1
+			baked = ImageTexture.create_from_image(compose(look, v, anim, frame, blink))
+		_cache[key] = baked
 	_sprite.texture = _cache[key]
 	_sprite.flip_h = flip
 	_sprite.offset = Vector2(-PIVOT.x if not flip else -(W - PIVOT.x), -PIVOT.y)
+
+
+## Same look, same key (the bake cache's half of a pose key).
+static func look_key(l: Dictionary) -> String:
+	return str(l.hash())
+
+
+## Composes one pose of a look ahead of show_pose (view: front | back | left | right | side). False when it was
+## baked already (nothing done). `lk` = look_key(l) when the caller has it.
+static func bake(l: Dictionary, view: String, anim: String, frame: int, blink := false, lk := "") -> bool:
+	var v := "side" if view in ["left", "right"] else view
+	var k := "%s#%s|%s|%d|%d" % [lk if lk != "" else look_key(l), v, anim, frame, int(blink)]
+	if _baked.has(k):
+		return false
+	_baked[k] = ImageTexture.create_from_image(compose(l, v, anim, frame, blink))
+	return true
+
+
+static func baked_count() -> int:
+	return _baked.size()
+
+
+## Lets the baked poses go (the market does when it closes; villagers keep the ones they show).
+static func clear_baked() -> void:
+	_baked.clear()
 
 
 ## Height of the figure's head top above the feet (for bubbles), in pixels.

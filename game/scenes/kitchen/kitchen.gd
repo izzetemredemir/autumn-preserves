@@ -61,6 +61,7 @@ var _todo: CanvasLayer
 var _todo_was_visible := false
 var _mg: Node = null
 var _card: Node = null
+var _card_up := false  ## a result card was shown and has not given the room back yet (QA-FIX watchdog)
 var _cooking: Dictionary = {}
 var _after_card := "KITCHEN_JAR_INBOX"  ## message-bar key once the result card closes
 var _last_spot := "stove"
@@ -481,7 +482,7 @@ func _close_panel() -> void:
 
 
 func _on_cook_requested(recipe_id: String, main_v: String, second_v: String, addin_id: String) -> void:
-	if _mg != null:
+	if _mg != null or _card != null:
 		return
 	var d := GameState.data
 	var mult: int = _panel.mult
@@ -529,12 +530,15 @@ func _set_world_visible(on: bool) -> void:
 
 
 func _on_minigame_done(result: Dictionary) -> void:
+	if _cooking.is_empty():  # QA-FIX: a second result for the same cook; the first one already made the jar
+		return
 	if is_instance_valid(_mg):
 		_mg.queue_free()
 	_mg = null
 	_set_world_visible(true)
 	var stars := clampi(int(result.get("stars", 1)), 1, 3)
 	var c := _cooking
+	_cooking = {}
 	var res := Kitchen.cook_n(GameState.data, c.recipe, c.main, c.second, c.addin, stars, int(c.get("mult", 1)))
 	_show_result(res)
 
@@ -572,23 +576,40 @@ func _show_result(res: Dictionary) -> void:
 	if mastered:
 		Audio.play_jingle("jgl_level")
 	if not ResourceLoader.exists(RESULT_CARD):
-		_on_card_closed()
+		_finish_card()
 		return
-	_card = load(RESULT_CARD).instantiate()
-	_overlay.add_child(_card)
-	_card.show_result(desc, stars, bool(res.is_new))
-	if mastered:  # the card's "New recipe!" line announces mastery instead
-		var banner: Variant = _card.get("_banner")
-		if banner is Label:
-			(banner as Label).text = tr("UI_MASTERY_BANNER")
-			(banner as Label).visible = true
-	_card.closed.connect(_on_card_closed, CONNECT_ONE_SHOT)
+	_drop_card()  # QA-FIX: never two cards; an older one would sit under this one with nobody listening
+	var card: ResultCard = load(RESULT_CARD).instantiate()
+	_card = card
+	_card_up = true
+	card.closed.connect(_on_card_closed.bind(card), CONNECT_ONE_SHOT)
+	_overlay.add_child(card)
+	# the card's "New recipe!" line announces mastery instead (set before the play-in lays the card out)
+	card.show_result(desc, stars, bool(res.is_new), tr("UI_MASTERY_BANNER") if mastered else "")
 
 
-func _on_card_closed() -> void:
+## Continue on `card`. A stale card (one that was replaced) just goes; the current one gives the room back.
+func _on_card_closed(card: Variant = null) -> void:
+	if card == null:
+		card = _card
+	if is_instance_valid(card):
+		(card as Node).queue_free()
+	if is_instance_valid(_card) and card != _card:
+		return
+	_finish_card()
+
+
+func _drop_card() -> void:
 	if is_instance_valid(_card):
 		_card.queue_free()
 	_card = null
+	_card_up = false
+
+
+## The card is gone: the room, its focus and the message bar come back.
+func _finish_card() -> void:
+	_card = null
+	_card_up = false
 	Audio.play_ui("ui_click")
 	_set_room_active(true)
 	_focus_spot()
@@ -627,6 +648,8 @@ func _can_doze() -> bool:
 
 
 func _process(delta: float) -> void:
+	if _card_up and not (is_instance_valid(_card) and (_card as CanvasItem).visible):
+		_finish_card()  # QA-FIX: a card that closed or went without telling the kitchen never keeps the room locked
 	if _doze == null:
 		return
 	if not _can_doze():
