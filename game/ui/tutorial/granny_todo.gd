@@ -252,6 +252,7 @@ func _process(_delta: float) -> void:
 	if hide_now:
 		_hover = false
 		return
+	_avoid_hud()
 	var over := _panel.get_global_rect().has_point(_panel.get_viewport().get_mouse_position())
 	if over != _hover:
 		_hover = over
@@ -365,3 +366,14 @@ class CloseCross:
 
 	func _draw() -> void:
 		draw_texture(ICON, Vector2(0, -1 if _hover else 0))
+
+
+## The note sits top right next to the HUD bar; when the bar is wide (week name, many coins) and would run under the
+## note, the note steps down just below the bar instead.
+func _avoid_hud() -> void:
+	var bar := Hud.bar_rect()
+	var top := 4
+	if bar.has_area() and bar.end.x + 2 > _panel.get_global_rect().position.x:
+		top = int(bar.end.y) + 2
+	if int(_panel.offset_top) != top:
+		_panel.offset_top = top

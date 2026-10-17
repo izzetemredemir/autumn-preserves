@@ -31,6 +31,7 @@ var _coins_label: Label
 var _day_label: Label
 var _weather: TextureRect
 var _week_label: Label
+var _bar: PanelContainer  ## the top-left status bar (Granny's To-Do note steps below it when they would meet)
 var _toast_holder: Control
 var _toast_tween: Tween
 
@@ -63,6 +64,7 @@ func _build() -> void:
 	panel.theme_type_variation = &"DarkPanel"
 	panel.position = Vector2(4, 4)
 	root.add_child(panel)
+	_bar = panel
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	panel.add_child(row)
@@ -172,6 +174,16 @@ static func bag_point() -> Vector2:
 	if hud == null or hud._bag_icon == null or not hud._bag_icon.is_visible_in_tree():
 		return Vector2(-1, -1)
 	return hud._bag_icon.get_global_rect().get_center().floor()
+
+
+## The status bar's screen rect (HUD canvas), or an empty rect when no HUD is showing. The To-Do note reads it
+## so it never covers the week name on a wide bar.
+static func bar_rect() -> Rect2:
+	var tree := Engine.get_main_loop() as SceneTree
+	var hud := tree.get_first_node_in_group("hud") as Hud if tree != null else null
+	if hud == null or hud._bar == null or not hud._bar.is_visible_in_tree():
+		return Rect2()
+	return hud._bar.get_global_rect()
 
 
 ## FEEL: the bag icon and its counter bump (something just landed in the bag).
