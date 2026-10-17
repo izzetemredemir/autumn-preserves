@@ -42,11 +42,19 @@ func _ready() -> void:
 		grid.add_child(_toggle(String(t[1]), String(t[2])))
 	grid.add_child(_label(tr("TITLE_SET_LANGUAGE")))
 	grid.add_child(_language_button())
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 6)
+	box.add_child(row)
+	var demo := Button.new()  # the jury demo day, in every build (it never touches the player's save)
+	demo.text = tr("TITLE_DEMO_DAY")
+	demo.tooltip_text = tr("TITLE_DEMO_DAY_TIP")
+	demo.pressed.connect(_play_demo_day)
+	row.add_child(demo)
 	var back := Button.new()
 	back.text = tr("UI_BACK")
-	back.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	back.pressed.connect(_close)
-	box.add_child(back)
+	row.add_child(back)
 
 
 func open() -> void:
@@ -157,3 +165,20 @@ func _grabber(c: Color) -> ImageTexture:
 	img.fill_rect(Rect2i(1, 1, 4, 8), c)
 	img.fill_rect(Rect2i(1, 8, 4, 1), Color("b66813"))
 	return ImageTexture.create_from_image(img)
+
+
+## The jury demo save (seed 452, day 3, rainy, the rare crabapple) as a temporary game: it is never written to disk,
+## so it cannot overwrite the player's own save. Works in release builds (the F1 dev panel is debug only).
+func _play_demo_day() -> void:
+	var d := DevTools.load_demo()
+	if d.is_empty():
+		return
+	if typeof(d.get("flags")) != TYPE_DICTIONARY:
+		d["flags"] = {}
+	d.flags["temp"] = true
+	GameState.data = d
+	GameState.notify(PackedStringArray(["*"]))
+	load("res://ui/tutorial/granny_todo.gd").ensure()
+	Audio.play_ui("ui_confirm")
+	visible = false
+	Transition.go("garden")

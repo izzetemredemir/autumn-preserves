@@ -311,3 +311,4 @@ critter_squirrel,game/assets/sprites/critters/critter_squirrel.png,critters,hand
 critter_hedgehog,game/assets/sprites/critters/critter_hedgehog.png,critters,hand-drawn,,,,2026-10-17T12:00:00Z,bash tools/sprites/critters/build.sh (source tools/sprites/critters/hedgehog.txt),n,,WILD-LIFE
 critter_frog,game/assets/sprites/critters/critter_frog.png,critters,hand-drawn,,,,2026-10-17T12:00:00Z,bash tools/sprites/critters/build.sh (source tools/sprites/critters/frog.txt),n,,WILD-LIFE
 critter_ring,game/assets/sprites/critters/critter_ring.png,critters,hand-drawn,,,,2026-10-17T12:00:00Z,bash tools/sprites/critters/build.sh (source tools/sprites/critters/fish_ring.txt),n,,WILD-LIFE
+mus_title,game/assets/audio/music/mus_title.ogg,music,fal-ai/elevenlabs/music,879cbd4c1ef0b1d13653b291f4ac043ec701f840,,,2026-10-16T18:48:36Z,audio_post --kind music --loop --crossfade 2,n,ied,"candidate B chosen by the human (17 Oct, decisions page); copy of candidates/mus_title_b.ogg"

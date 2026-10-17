@@ -653,3 +653,5 @@ UI_FAMILY_DRAWING_CLOSE,Yerine asmak için tıkla.
 TITLE_SET_LANGUAGE,Dil
 UI_NIGHT_STALLED_ONE,Bir kavanoz olgunlaşmak için kendi rafını bekliyor.
 UI_NIGHT_STALLED,%d kavanoz olgunlaşmak için kendi rafını bekliyor.
+TITLE_DEMO_DAY,Demo günü
+TITLE_DEMO_DAY_TIP,"Oyunu göstermek için nadir ağaçlı, yağmurlu bir 3. gün. Kendi kaydına dokunmaz."
