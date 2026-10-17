@@ -296,6 +296,8 @@ func _check(state: String, it: Dictionary) -> void:
 		if not _in_scroll(c):
 			_add(state, "overflow", c, "needs %dx%d, has %dx%d: \"%s\"" % [need.x, need.y, avail.x, avail.y, _clip(it.text)])
 	var r: Rect2 = it.rect
+	if state.ends_with("/credits"):
+		return  # rolling credits scroll past the screen edges by design; overflow and size are still checked above
 	if r.position.x < SCREEN.position.x + EDGE or r.position.y < SCREEN.position.y + EDGE \
 			or r.end.x > SCREEN.end.x - EDGE or r.end.y > SCREEN.end.y - EDGE:
 		if _visible_rect(c).intersects(SCREEN):

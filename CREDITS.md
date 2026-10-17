@@ -1,5 +1,7 @@
 # Credits
 
+**Autumn Preserves** is made by **İzzet Emre Demir** for the KODTÜ 7 game jam (16–18 October 2026).
+
 ## Fonts
 
 | Use | Font | Author | License | Source | File |

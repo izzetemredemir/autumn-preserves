@@ -262,7 +262,7 @@ static func best_neighbour(state: Dictionary) -> String:
 
 ## Credits lines; "FAREWELL_CREDIT_NAME" is a bare "%s", "" key is an empty line.
 static func credits(state: Dictionary) -> Array:
-	var out: Array = [_l("TITLE_GAME", []), _l("FAREWELL_CREDIT_JAM", []), _l("", []),
+	var out: Array = [_l("TITLE_GAME", []), _l("FAREWELL_CREDIT_MADE_BY", []), _l("FAREWELL_CREDIT_JAM", []),
 		_l("FAREWELL_CREDIT_CAST", []), _l("FAREWELL_CREDIT_TONTY", [])]
 	var kids := kid_names()
 	if kids.size() == 2:
