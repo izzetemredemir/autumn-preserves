@@ -33,6 +33,14 @@ func start_temp(save_seed: int) -> void:
 	day_started.emit(int(data.day))
 
 
+## PAUSE-MENU: writes the save now (Save and back to title, Quit). Temporary games and Memory mode are never
+## written (Save.save_game skips flags.temp). False when nothing was written.
+func save_now() -> bool:
+	if not has_game() or bool(data.get("flags", {}).get("temp", false)):
+		return false
+	return Save.save_game(data)
+
+
 ## Loads the save. A completed one (the farewell, spec §7.12) opens only in Memory mode: see is_memory().
 func load_saved() -> bool:
 	var d := Save.load_game()

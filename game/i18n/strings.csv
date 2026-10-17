@@ -763,3 +763,16 @@ GARDEN_CLOTHESLINE_2,Nothing dries like an autumn wind.
 GARDEN_CLOTHESLINE_3,"Walter's apron. I wear it\nfor jam days."
 FESTIVAL_RARE_TREE,Rare tree
 TITLE_SEED_LAB_HINT,Watch a forest grow from any seed.
+UI_PAUSE_TIP,Menu (Esc)
+UI_PAUSE_TITLE,Paused
+UI_PAUSE_RESUME,Resume
+UI_PAUSE_SETTINGS,Settings
+UI_PAUSE_BOOK,Recipe book
+UI_PAUSE_SAVE_TITLE,Save and back to title
+UI_PAUSE_TO_TITLE,Back to title
+UI_PAUSE_QUIT,Quit game
+UI_PAUSE_QUIT_SAVED,Your day is saved.
+UI_PAUSE_QUIT_FESTIVAL,The festival will end.
+UI_PAUSE_QUIT_TEMP,This day is not saved.
+UI_PAUSE_QUIT_YES,Quit
+UI_PAUSE_QUIT_NO,Stay

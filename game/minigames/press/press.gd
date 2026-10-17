@@ -43,6 +43,7 @@ var juice := 0.0
 var stars := 0
 
 var _t0_usec := 0
+var _paused_usec := 0
 var _lever := 0.0  ## 1 = fully down
 var _flash := ""
 var _flash_t := 0.0
@@ -93,6 +94,15 @@ func _label(pos: Vector2, key: String) -> Label:
 	l.add_theme_font_size_override("font_size", 18)
 	add_child(l)
 	return l
+
+
+## PAUSE-MENU: the beat clock stands still while the game is paused (the in-game menu), so no beat is missed.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PAUSED:
+		_paused_usec = Time.get_ticks_usec()
+	elif what == NOTIFICATION_UNPAUSED and _paused_usec > 0:
+		_t0_usec += Time.get_ticks_usec() - _paused_usec
+		_paused_usec = 0
 
 
 ## Song time in ms since start.

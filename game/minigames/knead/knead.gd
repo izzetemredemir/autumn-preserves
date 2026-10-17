@@ -67,6 +67,7 @@ var trace_stars := 1
 var stars := 1
 
 var _t0 := 0  ## usec at start of the current phase
+var _paused_usec := 0
 var _judged: Array[bool] = []
 var _last_judge := ""
 var _last_judge_t := -10.0
@@ -163,6 +164,15 @@ func _set_phase(p: Phase) -> void:
 			_l_msg.text = tr("MG_KNEAD_GO_BREAD") if bread else tr("MG_KNEAD_GO")
 			_cursor_a = -PI / 2.0
 	queue_redraw()
+
+
+## PAUSE-MENU: the phase clock stands still while the game is paused (the in-game menu), so no beat is missed.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PAUSED:
+		_paused_usec = Time.get_ticks_usec()
+	elif what == NOTIFICATION_UNPAUSED and _paused_usec > 0:
+		_t0 += Time.get_ticks_usec() - _paused_usec
+		_paused_usec = 0
 
 
 func _elapsed_ms(now_us: int = -1) -> float:

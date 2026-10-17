@@ -11,7 +11,7 @@ const EDGE := 2.0
 const SIZES := [18, 36]
 ## Path fragments (scene file or script) whose findings must be zero; others are only listed.
 const OWNED := ["scenes/garden/", "scenes/pantry/", "scenes/title/", "scenes/seed_lab/", "ui/book/", "ui/letters/", "ui/hud/", "ui/result_card/",
-	"scenes/farewell/", "ui/festival/"]
+	"scenes/farewell/", "ui/festival/", "ui/pause/"]
 
 var _gs: Node
 var _findings: Array = []  ## {state, kind, path, origin, owned, detail}
@@ -81,6 +81,7 @@ func _run() -> void:
 	hud.show_toast("UI_TIRED")
 	await create_timer(0.4).timeout
 	await _audit("hud", hud)
+	await _pause_menu()
 	hud.queue_free()
 	await _overlays("backdrop")
 	for p in ["res://ui/premise/premise.tscn", "res://ui/transition/night.tscn"]:
@@ -101,6 +102,30 @@ func _run() -> void:
 	var owned := _findings.filter(func(f): return f.owned).size()
 	print("ui_audit [%s]: %d states, %d texts, %d findings (%d in owned folders)" % [_locale, _states, _texts, _findings.size(), owned])
 	quit(1 if _findings.size() > 0 else 0)
+
+
+## PAUSE-MENU: the in-game menu (a normal game: Save and back to title, Quit shown), its Settings and the quit
+## confirm line. Built without pausing the tree.
+func _pause_menu() -> void:
+	var m := PauseMenu.ensure()
+	await _frames(2)
+	PauseMenu.web_override = 0
+	m._build()
+	m.visible = true
+	await _frames(4)
+	await _audit("pause", m)
+	m._open_settings(false)
+	await _frames(4)
+	await _audit("pause/settings", m)
+	m._on_settings_closed()
+	m._ask_quit()
+	await _frames(4)
+	await _audit("pause/quit", m)
+	PauseMenu.web_override = -1
+	m.visible = false
+	m._ui.queue_free()
+	m._ui = null
+	await _frames(2)
 
 
 ## FIRST-60: the world-grow overlay over the demo forest, half-way through.

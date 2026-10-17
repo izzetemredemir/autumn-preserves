@@ -96,6 +96,7 @@ var _panning := false
 ## Edge auto-scroll waits until the held item has been outside the edge zone once (picking up near it is no move).
 var _edge_armed := false
 var _hints: Control
+var _menu_btn: Control
 
 
 func _ready() -> void:
@@ -129,6 +130,8 @@ func _ready() -> void:
 	inbox_view.setup(data.inbox, board, _make_view)
 	%AutoArrange.pressed.connect(_on_auto)
 	%Back.pressed.connect(_on_back)
+	_menu_btn = PauseMenu.corner_button(Vector2(88, 228))  # PAUSE-MENU: the gear beside Back (Esc opens it too)
+	add_child(_menu_btn)
 	_hints = Control.new()
 	_hints.name = "ScrollHints"
 	_hints.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -139,11 +142,6 @@ func _ready() -> void:
 	_set_hint("")
 	queue_redraw()
 
-
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("cancel"):
-		get_viewport().set_input_as_handled()
-		_on_back()
 
 
 ## Scrolling runs before the GUI so focused buttons do not eat Up/Down and the wheel works over the board.
@@ -253,7 +251,7 @@ func _edge_dir(p: Vector2) -> int:
 func _is_empty_space(p: Vector2) -> bool:
 	if board.is_holding() or not get_global_rect().has_point(p):
 		return false
-	for c: Control in [inbox_view, %AutoArrange, %Back]:
+	for c: Control in [inbox_view, %AutoArrange, %Back, _menu_btn]:
 		if c.get_global_rect().has_point(p):
 			return false
 	if board.get_global_rect().has_point(p):

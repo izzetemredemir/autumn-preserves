@@ -5,8 +5,9 @@ extends Control
 ## card shows the stall appeal live. "Open stall" runs Market.run once (sold jars leave the save, coins, reputation +1,
 ## saved), then a 30-45 s parade plays MarketCrowd: buyers and lookers walk the square over the walk graph, browse the
 ## stalls, stop at Granny's counter where their jar hops into their basket, strollers chat and kids chase the pigeons.
-## An end card sums it up and goes back to town. Keyboard: Tab/arrows + Enter on the buttons, Esc = back (setup) /
-## skip (parade). A click on a passer-by during the parade gets a hello.
+## An end card sums it up and goes back to town. Keyboard: Tab/arrows + Enter on the buttons, Esc = skip (parade),
+## else the in-game menu (PAUSE-MENU: its gear sits top right in setup, at the coin bar's end in the parade).
+## A click on a passer-by during the parade gets a hello.
 ## QA-FIX: the villagers' poses are composed ahead, a few ms a frame: the vendors' and a likely crowd's (the stall as it
 ## stands, or as Fill stall would set it) from the first frames behind the fade and while the stall is set up, then the
 ## real crowd's in arrival order when the parade starts, so parade frames don't compose people.
@@ -177,18 +178,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_bubbles.call("say", "p%d" % id, "MARKET_HELLO_%d" % (1 + id % HELLOS), _head_of.bind(id), 4, 1.6)
 			get_viewport().set_input_as_handled()
 		return
-	if not event.is_action_pressed("cancel"):
-		return
-	get_viewport().set_input_as_handled()
-	match _phase:
-		Phase.SETUP:
-			_on_back()
-		Phase.PARADE:
-			_t = _t_end
-			_step_parade()
-			_finish()
-		Phase.DONE:
-			_on_back()
+	# Esc skips the parade; in setup and on the end card it is left to the in-game menu (PAUSE-MENU).
+	if event.is_action_pressed("cancel") and _phase == Phase.PARADE:
+		get_viewport().set_input_as_handled()
+		_t = _t_end
+		_step_parade()
+		_finish()
 
 
 # --- setup -------------------------------------------------------------------------------------------------------
@@ -723,6 +718,7 @@ func _build_setup() -> void:
 	_hint.add_theme_color_override("font_color", Color("83571e"))
 	box.add_child(_hint)
 	_open_btn = _button(tr("UI_MARKET_OPEN"), _on_open, Vector2(338, 242), Vector2(138, 22))
+	_setup_ui.add_child(PauseMenu.corner_button(Vector2(452, 1)))  # above the sign card, inside HUD_RECTS[1]
 
 
 func _build_parade() -> void:
@@ -753,6 +749,11 @@ func _build_parade() -> void:
 	row.add_child(_coins_label)
 	_sold_label = _label("")
 	row.add_child(_sold_label)
+	var gap := Control.new()
+	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(gap)
+	row.add_child(PauseMenu.button())
 	_speed_btn = Button.new()
 	_speed_btn.text = tr("UI_MARKET_SPEED")
 	_speed_btn.position = HUD_RECTS[1].position

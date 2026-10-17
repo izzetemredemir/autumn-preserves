@@ -763,3 +763,16 @@ GARDEN_CLOTHESLINE_2,Sonbahar rüzgârı gibi kurutan yok.
 GARDEN_CLOTHESLINE_3,"Walter'ın önlüğü. Reçel\ngünleri ben takıyorum."
 FESTIVAL_RARE_TREE,Nadir ağaç
 TITLE_SEED_LAB_HINT,Her tohumdan bir ormanın büyüyüşünü izle.
+UI_PAUSE_TIP,Menü (Esc)
+UI_PAUSE_TITLE,Oyun durdu
+UI_PAUSE_RESUME,Devam et
+UI_PAUSE_SETTINGS,Ayarlar
+UI_PAUSE_BOOK,Tarif defteri
+UI_PAUSE_SAVE_TITLE,Kaydet ve ana menüye dön
+UI_PAUSE_TO_TITLE,Ana menüye dön
+UI_PAUSE_QUIT,Oyundan çık
+UI_PAUSE_QUIT_SAVED,Günün kaydedilecek.
+UI_PAUSE_QUIT_FESTIVAL,Festival sona erecek.
+UI_PAUSE_QUIT_TEMP,Bu gün kaydedilmeyecek.
+UI_PAUSE_QUIT_YES,Çık
+UI_PAUSE_QUIT_NO,Kal

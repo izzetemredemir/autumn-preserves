@@ -108,7 +108,7 @@ func _check_burst(scene: Node, tree: Node2D) -> void:
 	var inside := 0
 	var bubble_y := INF
 	for c in scene.view.fx.get_children():
-		if c is ColorRect and c.size == Vector2(2, 2):
+		if c is ColorRect and (c.size == Vector2(4, 3) or c.size == Vector2(3, 4)):  # FEEL leaves: 4x3 or 3x4 with an ink edge
 			leaves += 1
 			inside += 1 if c.position.y < feet - 24 and c.position.y > feet - 72 else 0
 		elif c is PanelContainer:

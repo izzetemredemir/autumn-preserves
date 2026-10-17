@@ -197,13 +197,11 @@ func _on_post_office() -> void:
 	LettersUI.open()
 
 
+## Esc closes the jar picker; with nothing open it is left to the in-game menu (PAUSE-MENU; Back leaves the square).
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("cancel"):
-		if _picker.is_empty():
-			_on_back()
-		else:
-			_picker = {}
-			_render()
+	if event.is_action_pressed("cancel") and not _picker.is_empty():
+		_picker = {}
+		_render()
 		get_viewport().set_input_as_handled()
 
 

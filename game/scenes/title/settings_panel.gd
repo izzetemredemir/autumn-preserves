@@ -3,6 +3,8 @@ extends PanelContainer
 ## Settings (spec §10): music / effects / ambience sliders, fullscreen, show seed, Granny's To-Do, language.
 ## Every change is applied at once and written to user://settings.cfg (GameSettings). Emits `closed`, and
 ## `language_changed` after the locale switched (the title rebuilds itself in the new language).
+## PAUSE-MENU: the in-game menu reuses it with `in_game = true` (set before adding it): no Demo day / Market day
+## buttons there, since they would replace the game being played.
 
 signal closed
 signal language_changed
@@ -15,6 +17,7 @@ const TOGGLES := [
 	["WORLD_GROW_SETTING", "game", "show_grow"],
 ]
 
+var in_game := false
 var _first: Control
 
 
@@ -52,16 +55,17 @@ func _ready() -> void:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 6)
 	box.add_child(row)
-	var demo := Button.new()  # the jury demo day, in every build (it never touches the player's save)
-	demo.text = tr("TITLE_DEMO_DAY")
-	demo.tooltip_text = tr("TITLE_DEMO_DAY_TIP")
-	demo.pressed.connect(_play_demo_day)
-	row.add_child(demo)
-	var market := Button.new()  # the same save on its first market day (day 7), straight to the stall
-	market.text = tr("TITLE_MARKET_DAY")
-	market.tooltip_text = tr("TITLE_MARKET_DAY_TIP")
-	market.pressed.connect(_play_market_day)
-	row.add_child(market)
+	if not in_game:
+		var demo := Button.new()  # the jury demo day, in every build (it never touches the player's save)
+		demo.text = tr("TITLE_DEMO_DAY")
+		demo.tooltip_text = tr("TITLE_DEMO_DAY_TIP")
+		demo.pressed.connect(_play_demo_day)
+		row.add_child(demo)
+		var market := Button.new()  # the same save on its first market day (day 7), straight to the stall
+		market.text = tr("TITLE_MARKET_DAY")
+		market.tooltip_text = tr("TITLE_MARKET_DAY_TIP")
+		market.pressed.connect(_play_market_day)
+		row.add_child(market)
 	var back := Button.new()
 	back.text = tr("UI_BACK")
 	back.pressed.connect(_close)

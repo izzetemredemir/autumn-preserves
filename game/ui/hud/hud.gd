@@ -4,6 +4,7 @@ extends CanvasLayer
 ## CALENDAR-WEATHER: the harvest week's name after the weather icon from day 8 (MorningText.week_name; hidden before;
 ## "Autumn N" only in its tooltip), the weather's name as the icon's tooltip (UI_WEATHER_*).
 ## Any scene can call `Hud.toast("UI_KEY")`; the HUD node joins group "hud".
+## PAUSE-MENU: a gear at the status bar's right end opens the in-game menu (ui/pause); Esc opens it too.
 
 const TOAST_SECONDS := 2.0
 
@@ -93,6 +94,7 @@ func _build() -> void:
 	_week_label.visible = false
 	_week_label.mouse_filter = Control.MOUSE_FILTER_PASS  # tooltip: the week with its "Autumn N"
 	row.add_child(_week_label)
+	row.add_child(PauseMenu.button())  # PAUSE-MENU: the gear at the bar's right end (Esc opens the same menu)
 
 	var cursor := load(ICON_DIR + "ui_cursor.png") as Texture2D
 	if cursor != null:
