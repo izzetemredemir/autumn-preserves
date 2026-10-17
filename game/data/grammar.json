@@ -17,7 +17,7 @@
   "axis_names": ["Sweet", "Sour", "Spicy", "Salty", "Earthy"],
   "axis_order": ["sweet", "sour", "spicy", "salty", "earthy"],
   "tr": {
-    "_doc": "L10N-TR display names, never stored (saves keep the English variety names). Product name = '<adjective> <feature> <type> <recipe>': add-in adjectives take -li by vowel harmony unless given, the recipe takes the compound suffix after a type ('Elma Reçeli'), a noun feature puts the type in the compound form too ('Köy Armudu'), compound_types already have it. Repeat rule on the English words and on the Turkish stems, then the same 28-letter fallbacks. Family recipes: '<family_adjective> <feature> <short>', noun features left out.",
+    "_doc": "L10N-TR display names, never stored (saves keep the English variety names). Product name = '<adjective> <feature> <type> <recipe>': add-in adjectives take -li by vowel harmony unless given, the recipe takes the compound suffix after a type ('Elma Reçeli'), a noun feature puts the type in the compound form too ('Köy Armudu'), compound_types already have it, and so do words already in the compound form (compound_exceptions 'Sosu': 'Sosu', so 'Elma Çatni Sosu' takes no second suffix). Repeat rule on the English words and on the Turkish stems, then the same 28-letter fallbacks. Family recipes: '<family_adjective> <feature> <short>', noun features left out.",
     "types": {
       "apple": "Elma", "quince": "Ayva", "crabapple": "Yaban Elması", "pear": "Armut", "blackberry": "Böğürtlen",
       "cucumber": "Salatalık", "pepper": "Biber", "chanterelle": "Horoz Mantarı", "porcini": "Çörek Mantarı",
@@ -41,7 +41,7 @@
     "recipes": {
       "jam": {"name": "Reçel", "short": "Reçel"},
       "fruit_butter": {"name": "Meyve Ezmesi", "short": "Ezme"},
-      "chutney": {"name": "Çatni", "short": "Çatni"},
+      "chutney": {"name": "Çatni Sosu", "short": "Çatni Sosu"},
       "pickle": {"name": "Turşu", "short": "Turşu"},
       "brined_mushroom": {"name": "Mantar Turşusu", "short": "Turşu"},
       "juice": {"name": "Meyve Suyu", "short": "Su"},
@@ -58,6 +58,6 @@
       "salted_porcini": {"name": "Tuzlu Çörek Mantarı", "short": "Tuzlu Çörek Mantarı"}
     },
     "family_adjective": "Nine'nin",
-    "compound_exceptions": {"Su": "Suyu"}
+    "compound_exceptions": {"Su": "Suyu", "Sosu": "Sosu"}
   }
 }

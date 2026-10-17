@@ -53,6 +53,7 @@ func test_compound_suffix_and_softening() -> void:
 	assert_eq(Turkish.compound("Bal"), "Balı", "one syllable: no softening")
 	assert_eq(Turkish.compound("Ayva Ezme"), "Ayva Ezmesi", "the last word takes it")
 	assert_eq(Turkish.compound("Su", {"Su": "Suyu"}), "Suyu", "irregular words from the table")
+	assert_eq(Turkish.compound("Çatni Sosu", Data.grammar().tr.compound_exceptions), "Çatni Sosu", "already compound: no second suffix")
 	assert_eq(Turkish.stem("Ballı"), "Bal")
 	assert_eq(Turkish.stem("Altın"), "Altın")
 
@@ -83,6 +84,27 @@ func test_turkish_names_follow_the_grammar() -> void:
 	assert_eq(ProductGen.profile_label([1, 1, 1, 1, 1], "tr"), "Hafif")
 	assert_eq(ProductGen.recipe_name("fruit_butter", "tr"), "Meyve Ezmesi")
 	assert_eq(ProductGen.recipe_name("fruit_butter", "en"), "Fruit Butter")
+
+
+func test_chutney_is_catni_sosu() -> void:
+	# TR-GLOSS: "Çatni Sosu" already carries its compound suffix; the 28-letter limit and both fallbacks still hold.
+	var v := {"apple_7": {"id": "apple_7", "type": "apple", "name": "Ember Apple", "rarity": "common", "tier": 0,
+		"color_shift": 1, "taste_delta": [0, 3, 0, 0, 0], "size": "medium"}}
+	assert_eq(ProductGen.recipe_name("chutney", "tr"), "Çatni Sosu")
+	assert_eq(ProductGen.product_name("chutney|apple_7|-", v, "tr"), "Mayhoş Kızıl Elma Çatni Sosu", "28: fits")
+	assert_eq(ProductGen.product_name("chutney|apple_7|cinnamon", v, "tr"), "Tarçınlı Elma Çatni Sosu", "30 > 28: feature dropped")
+	assert_eq(ProductGen.product_name("chutney|apple_7|-", v, "en"), "Tart Ember Apple Chutney", "English unchanged")
+
+
+func test_coins_are_altin() -> void:
+	# TR-GLOSS: the coin word is "Altın" in every Turkish string, inflected ("altına", "altının").
+	var tr := _csv("res://i18n/strings_tr.csv")
+	assert_eq(tr.UI_COINS, "Altın")
+	assert_eq(tr.TOWN_SOLD, "%d altına satıldı")
+	assert_eq(tr.UI_NO_COINS, "Altının yetmiyor")
+	for k in tr:
+		if String(tr[k]).to_lower().contains("akç"):
+			fail("old coin word in " + k)
 
 
 func test_repeat_rule_on_turkish_stems() -> void:

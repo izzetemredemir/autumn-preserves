@@ -4,7 +4,8 @@ extends RefCounted
 ## vowel harmony for -lı/-li/-lu/-lü ("Tarçınlı", "Cevizli", "Tuzlu", "Sütlü") and the compound suffix of a noun
 ## phrase, -ı/-i/-u/-ü after a consonant and -sı/-si/-su/-sü after a vowel ("Elma Reçeli", "Yaban Elması"), with
 ## consonant softening on words of two or more syllables (p>b, ç>c, t>d, k>ğ, nk>ng: "Şurubu", "Ekmeği").
-## Irregular words come from grammar.json tr.compound_exceptions ("Su" -> "Suyu").
+## Irregular words come from grammar.json tr.compound_exceptions ("Su" -> "Suyu"); a word already in the compound
+## form maps to itself ("Sosu" -> "Sosu": "Elma Çatni Sosu", never "Çatni Sosusu").
 
 const VOWELS := "aeıioöuüâîû"
 ## Last vowel -> the four-way harmony vowel (i-type suffixes).

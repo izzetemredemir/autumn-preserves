@@ -9,7 +9,7 @@ UI_CANCEL,Vazgeç
 UI_BAG_FULL,Çanta dolu
 UI_TIRED,Yoruldum
 UI_ENERGY,Enerji
-UI_COINS,Akçe
+UI_COINS,Altın
 UI_SEED,Tohum
 KITCHEN_RECIPES,Tarifler
 KITCHEN_MAIN,Ana malzeme
@@ -21,7 +21,7 @@ KITCHEN_TO_PANTRY,Kiler
 KITCHEN_TO_GARDEN,Bahçe
 KITCHEN_BED,Yatmaya git
 KITCHEN_INBOX,Yeni gelenler
-KITCHEN_STATUS,%d. gün  Enerji %d  %d akçe
+KITCHEN_STATUS,%d. gün  Enerji %d  %d altın
 KITCHEN_PICK_RECIPE,Bir tarif seç.
 KITCHEN_NEW_VARIANT,Yeni bir şey...
 KITCHEN_COOK_FAILED,Bunu pişiremedim.
@@ -64,7 +64,7 @@ UI_KITCHEN_WRONG,Bu tarife o girmez
 UI_KITCHEN_MISSING,Bir şey eksik
 UI_KITCHEN_SAME_VARIETY,Hepsi aynı çeşit olmalı
 UI_NOTHING_LEFT,Burada bir şey kalmadı
-UI_NO_COINS,Akçen yetmiyor
+UI_NO_COINS,Altının yetmiyor
 UI_NOT_AVAILABLE,Henüz yok
 UI_TREE_EMPTY,Bu ağaçta meyve kalmadı
 UI_BED_BUSY,Burada zaten bir şey büyüyor
@@ -93,7 +93,7 @@ BOOK_METHOD_PRESS,sık
 BOOK_METHOD_KNEAD,yoğur
 BOOK_RECIPE_JAM,Reçel
 BOOK_RECIPE_FRUIT_BUTTER,Meyve Ezmesi
-BOOK_RECIPE_CHUTNEY,Çatni
+BOOK_RECIPE_CHUTNEY,Çatni Sosu
 BOOK_RECIPE_PICKLE,Turşu
 BOOK_RECIPE_BRINED_MUSHROOM,Mantar Turşusu
 BOOK_RECIPE_JUICE,Meyve Suyu
@@ -122,10 +122,10 @@ TOWN_GIFT,Hediye
 TOWN_DELIVER,Teslim et
 TOWN_GROCER_HELLO,Barnaby: Ne alırdın?
 TOWN_HAVE,%d var
-TOWN_PRICE,%d akçe
-TOWN_REWARD,%d akçe
-TOWN_BOUGHT,%s alındı: %d akçe
-TOWN_SOLD,%d akçeye satıldı
+TOWN_PRICE,%d altın
+TOWN_REWARD,%d altın
+TOWN_BOUGHT,%s alındı: %d altın
+TOWN_SOLD,%d altına satıldı
 TOWN_NOTHING_TO_SELL,Satacak bir şeyin yok.
 TOWN_NO_ORDERS,Bugün panoda sipariş yok.
 TOWN_ORDER_ANY,%s: %s bir şey (%d+ yıldız)
@@ -134,8 +134,8 @@ TOWN_ORDER_RECIPE,"%s: %s, %s (%d+ yıldız)"
 TOWN_ORDER_RECIPE_PLAIN,%s: %s (%d+ yıldız)
 TOWN_DAYS_LEFT,%d gün kaldı
 TOWN_LAST_DAY,Son gün
-TOWN_DELIVERED,Teslim edildi! +%d akçe
-TOWN_DELIVERED_HEART,Teslim edildi! +%d akçe ve bir kalp
+TOWN_DELIVERED,Teslim edildi! +%d altın
+TOWN_DELIVERED_HEART,Teslim edildi! +%d altın ve bir kalp
 TOWN_PICK_FOR_ORDER,Bir kavanoz seç
 TOWN_PICK_FOR_GIFT,%s için hediye seç
 TOWN_NO_JARS,Verecek kavanozun yok
@@ -248,7 +248,7 @@ UI_NIGHT_WEATHER_RAINY,Bugün yağmur var. Mantarlar bayılır.
 UI_NIGHT_WEATHER_WINDY,Rüzgârlı! Ağaçların altına meyve düştü.
 UI_NIGHT_WEATHER_FOGGY,Sisli bir gün. Nadir şeyler sisin ardında saklı.
 UI_DEV_TITLE,Geliştirici paneli
-UI_DEV_COINS,+100 akçe
+UI_DEV_COINS,+100 altın
 UI_DEV_ENERGY,+20 enerji
 UI_DEV_ITEMS,Eşya ver
 UI_DEV_SKIP_DAY,Bir gün atla
@@ -280,7 +280,7 @@ KITCHEN_COUNTER,Kavanoz tezgâhı
 KITCHEN_CUPBOARD,Dolap
 KITCHEN_BED_CAPTION,Yatak
 KITCHEN_HINT,Pişirmek için ocağa ya da tezgâha tıkla.
-KITCHEN_STOVE_HINT,"Ocak: reçel, meyve ezmesi ve çatni."
+KITCHEN_STOVE_HINT,"Ocak: reçel, meyve ezmesi ve çatni sosu."
 KITCHEN_COUNTER_HINT,Kavanoz tezgâhı: turşu ve mantar turşusu.
 KITCHEN_BOOK_HINT,Tarif defteri (B)
 KITCHEN_CUPBOARD_HINT,"Kavanoz, şeker, tuz, sirke, baharat. Fazlası kasabadaki bakkalda."
@@ -436,7 +436,7 @@ LET_NOTE_LEO_2,Başparmağım kadar bir böcek buldum. Mia çığlık attı.
 LET_NOTE_LEO_3,"Babam çorbayı karıştırmama izin verdi. Fazladan biber kattım, kimse fark etmedi."
 LET_NOTE_LEO_4,Şehir çok gürültülü. Sessiz bahçeni ve çıtır çıtır yaprakları özledim.
 LET_NOTE_LEO_5,Karton kutulardan şato yapıyorum. En iyisi büyük kutular!
-LET_NOTE_LEO_6,Yazım sınavı oldu. 'Çatni'yi doğru yazdım!
+LET_NOTE_LEO_6,Yazım sınavı oldu. 'Çatni sosu'nu doğru yazdım!
 LET_REPLY_MIA_1,Paket için teşekkürler! Bütün sınıfa birer kaşık ikram ettim.
 LET_REPLY_MIA_2,Paketin tıpkı mutfağın gibi kokuyordu. Çok yavaşça açtım.
 LET_REPLY_MIA_3,"Annem kavanozlarını en üst rafa koydu, her gün onları görüyorum."
@@ -504,7 +504,7 @@ UI_MARKET_SPEED,Hızlı
 UI_MARKET_SPEED_ON,Yavaş
 UI_MARKET_DONE,Pazar bitti!
 UI_MARKET_DONE_SOLD,%d / %d kavanoz satıldı
-UI_MARKET_DONE_COINS,%d akçe kazandın
+UI_MARKET_DONE_COINS,%d altın kazandın
 UI_MARKET_DONE_REP,Ün %d
 UI_MARKET_DONE_NEXT,Haftaya daha kalabalık!
 UI_MARKET_TO_TOWN,Kasabaya dön
