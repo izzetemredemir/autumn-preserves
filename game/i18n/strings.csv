@@ -655,3 +655,23 @@ UI_NIGHT_STALLED_ONE,A jar is waiting for its own shelf to mature.
 UI_NIGHT_STALLED,%d jars are waiting for their own shelf to mature.
 TITLE_DEMO_DAY,Demo day
 TITLE_DEMO_DAY_TIP,"A rainy day 3 with a rare tree, for showing the game. Your own save stays untouched."
+MARKET_CALL_BAKER_1,Fresh bread!
+MARKET_CALL_BAKER_2,Warm loaves here!
+MARKET_CALL_VINTNER_1,Grapes from the hill!
+MARKET_CALL_VINTNER_2,Sweet grapes!
+MARKET_CALL_GROCER_1,Pumpkins and apples!
+MARKET_CALL_GROCER_2,Fresh from the fields!
+MARKET_CALL_LIBRARIAN_1,Books for rainy days!
+MARKET_CALL_LIBRARIAN_2,Flowers and stories!
+MARKET_CALL_POSTMAN_1,Letters and parcels!
+MARKET_CALL_POSTMAN_2,Post for anyone?
+MARKET_CHAT_1,Lovely day for it!
+MARKET_CHAT_2,Tried Granny's jam?
+MARKET_CHAT_3,Look at those pumpkins!
+MARKET_CHAT_4,Smell that bread!
+MARKET_CHAT_5,Same time next week?
+MARKET_CHAT_6,Such pretty leaves!
+MARKET_HELLO_1,Hello there!
+MARKET_HELLO_2,What a market!
+MARKET_HELLO_3,Jam or pickles?
+MARKET_HELLO_4,"Nice day, isn't it?"

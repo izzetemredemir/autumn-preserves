@@ -18,7 +18,8 @@ var _book: Node = null
 
 
 func _ready() -> void:
-	_recording = OS.get_cmdline_args().has("--write-movie")
+	# OS.get_cmdline_args() leaves out engine flags such as --write-movie; the movie path is what tells.
+	_recording = Engine.get_write_movie_path() != ""
 
 
 ## Movie Maker runs while another window may have focus: Audio pauses music on focus loss, the recording should not.
@@ -395,6 +396,18 @@ func market_day() -> void:
 		d.day = (floori(float(day) / Market.EVERY) + 1) * Market.EVERY
 	_gs().notify(PackedStringArray(["day"]))
 	load(TRANSITION).go("market")
+
+
+## The market day without a scene change (a recording that starts in the market scene: --scene market.tscn);
+## `weather` ("sunny", "rainy") sets the day's weather for the recording.
+func market_prep(weather := "") -> void:
+	var d: Dictionary = _gs().data
+	var day := int(d.day)
+	if not Market.is_market_day(day):
+		d.day = (floori(float(day) / Market.EVERY) + 1) * Market.EVERY
+	if weather != "":
+		d.weather = weather
+	_gs().notify(PackedStringArray(["day", "weather"]))
 
 
 func market_fill() -> void:

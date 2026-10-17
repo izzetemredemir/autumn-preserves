@@ -1,0 +1,26 @@
+# Market elder's walking cane (MARKET-LIVE), 6x20, one frame: a crook above the hand, the hand grips (4,3), the tip
+# reaches the ground 16 px below the hand. Fixed bark colours.
+legend . transparent
+legend B 83571e
+legend b c58845
+frame
+..bBB.
+.B..B.
+.B..B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.
+....B.

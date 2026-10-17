@@ -1,0 +1,9 @@
+[
+	{"t": 0.0, "do": "load_demo", "args": [""], "note": "recorded with --scene res://scenes/market/market.tscn: the demo save before the market loads"},
+	{"t": 0.0, "do": "market_prep", "args": ["sunny"], "note": "today is a sunny market day"},
+	{"t": 0.9, "do": "market_fill", "note": "the counter fills from the pantry"},
+	{"dt": 1.0, "do": "market_open", "note": "the parade: buyers, browsers, strollers, vendors, birds and the dog"},
+	{"dt": 2.6, "do": "market_speed", "note": "Faster: the square in a hurry for a moment"},
+	{"dt": 3.2, "do": "market_speed", "note": "back to walking pace for the sales at Granny's counter"},
+	{"dt": 4.3, "quit": true, "note": "12 s in all"}
+]

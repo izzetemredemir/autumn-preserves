@@ -1,27 +1,28 @@
 extends Control
-## Market day (MARKET, spec §7.7). Setup: ready jars from the pantry and inbox go onto a 6x2 stall (ArrangeBoard,
-## rules from Market); the sign card shows the stall appeal live. "Open stall" runs Market.run once (sold jars leave
-## the save, coins, reputation +1, saved), then a 30-45 s accelerated parade of procedural villagers plays the
-## result: buyers stop at their jar, say a line, the jar hops into their basket and the coins tick up. An end card
-## sums it up and goes back to town. Keyboard: Tab/arrows + Enter on the buttons, Esc = back (setup) / skip (parade).
+## Market day (MARKET, MARKET-LIVE; spec §7.7). The market square (ART-MARKET's background, layout and stall) with the
+## five neighbours at their stalls, Granny in her nook, pigeons, sparrows, the dog, the fiddler, leaves and bunting.
+## Setup: ready jars from the pantry and inbox go onto Granny's 6x2 counter (ArrangeBoard, rules from Market); the sign
+## card shows the stall appeal live. "Open stall" runs Market.run once (sold jars leave the save, coins, reputation +1,
+## saved), then a 30-45 s parade plays MarketCrowd: buyers and lookers walk the square over the walk graph, browse the
+## stalls, stop at Granny's counter where their jar hops into their basket, strollers chat and kids chase the pigeons.
+## An end card sums it up and goes back to town. Keyboard: Tab/arrows + Enter on the buttons, Esc = back (setup) /
+## skip (parade). A click on a passer-by during the parade gets a hello.
 
 const InboxView := preload("res://scenes/pantry/inbox_view.gd")
 const Villager := preload("res://scenes/market/villager.gd")
-const StallArt := preload("res://scenes/market/stall_art.gd")
-const BG := "res://assets/sprites/scenes/bg_town.png"
+const ML := preload("res://scenes/market/market_layout.gd")
+const Life := preload("res://scenes/market/market_life.gd")
+const Bubbles := preload("res://scenes/market/market_bubbles.gd")
+const CrowdView := preload("res://scenes/market/crowd_view.gd")
+const RAIN := "res://ui/hud/rain.tscn"
 const COIN_ICON := "res://assets/sprites/ui/icon_coin.png"
+const GRANNY := "res://assets/sprites/granny/granny_market.png"
+const GRANNY_OLD := "res://assets/sprites/granny/granny_idle.png"
 const CELL := 24
-const BOARD_POS := Vector2i(168, 140)
 const SOUNDS := {"pick": "sfx_pantry_pick", "place": "sfx_pantry_place", "wrong": "sfx_pantry_wrong", "rotate": "sfx_piece_rotate"}
-## Parade: walking speed (px/s), buyer stop, path ends, three walking lanes (feet y), total length.
-const WALK := 46.0
-const PAUSE := 1.7
-const PATH_X0 := -12.0
-const PATH_X1 := 492.0
-const LANES := [250, 256, 262]
-const T_MIN := 30.0
-const T_MAX := 45.0
 const FAST := 3.0
+const HELLOS := 4
+const HUD_RECTS: Array[Rect2] = [Rect2(4, 4, 150, 24), Rect2(400, 4, 76, 22)]
 const C_PAPER_INK := Color("50361e")
 const C_GOLD := Color("e5bd7f")
 const C_BAR := Color("747c37")
@@ -30,11 +31,12 @@ const C_BAR_BG := Color("b9a697")
 enum Phase { SETUP, PARADE, DONE }
 
 var _phase := Phase.SETUP
+var _layout: Dictionary = {}
+var _counter := Rect2i(159, 156, 144, 48)
 var _source: Array = []
 var _entries: Array = []
 var _board: ArrangeBoard
 var _source_view: InboxView
-var _stall: StallArt
 var _setup_ui: Control
 var _parade_ui: Control
 var _fill_btn: Button
@@ -49,14 +51,27 @@ var _no_jars: Label
 var _coins_label: Label
 var _sold_label: Label
 var _end_card: PanelContainer
-var _crowd_layer: Node2D
+var _world: Node2D
+var _stall: Node2D
+var _jar_layer: Node2D
+var _granny: Sprite2D
+var _granny_frames: Array[Texture2D] = []
+var _vendors: Dictionary = {}
+var _life: Node2D
+var _bubbles: Control
+var _crowd_view: Node
 var _fx_layer: Control
 # parade state
 var _plan: Dictionary = {}
-var _walkers: Array = []
+var _crowd: Dictionary = {}
+var _jar_views: Dictionary = {}
+var _sold_ids: Dictionary = {}
+var _lines_done := 0
 var _t := 0.0
 var _t_end := 0.0
 var _speed := 1.0
+var _clock := 0.0
+var _wave_until := -1.0
 var _coins_target := 0
 var _coins_shown := 0.0
 var _sold := 0
@@ -67,12 +82,15 @@ func _ready() -> void:
 		GameState.start_temp(1)
 		GameState.data.day = Market.EVERY
 		GameState.data.inbox.append_array(sample_items())
+	_layout = ML.load_layout()
+	_counter = ML.rect((_layout.get("granny_stall", {}) as Dictionary).get("counter", [159, 156, 144, 48]))
 	var bg := TextureRect.new()
-	bg.texture = load(BG) as Texture2D
+	bg.texture = ML.background(_layout)
 	bg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
-	_build_stall()
+	_build_world()
+	_build_board()
 	_build_setup()
 	_build_parade()
 	for s in Market.sources(_data()):
@@ -80,11 +98,13 @@ func _ready() -> void:
 	_board.setup(Market.board(), _entries, {
 		"item_size": PantryRules.item_size, "can_place": Market.can_place, "can_rotate": PantryRules.can_rotate,
 	}, {"cell": CELL, "zone_colors": {Market.ZONE: ["00000000", "e19064"]}})
-	_board.position = Vector2(BOARD_POS)
+	_board.position = Vector2(_counter.position)
 	_source_view.setup(_source, _board, _make_view)
 	_refresh()
+	if _rainy() and ResourceLoader.exists(RAIN):
+		add_child((load(RAIN) as PackedScene).instantiate())
 	Audio.play_music("mus_town")
-	Audio.play_ambient("amb_town")
+	Audio.play_ambient("amb_market")
 	(_fill_btn if not _fill_btn.disabled else _back_btn).grab_focus.call_deferred()
 
 
@@ -103,20 +123,41 @@ func _data() -> Dictionary:
 	return GameState.data
 
 
+func _rainy() -> bool:
+	return String(_data().get("weather", "sunny")) == "rainy"
+
+
+func _exit_tree() -> void:
+	Audio.stop_ambient("amb_market")
+
+
 func _process(delta: float) -> void:
-	if _phase != Phase.PARADE:
-		return
-	_t += delta * _speed
-	_step_parade()
-	var target := float(_coins_target)
-	if _coins_shown < target:
-		_coins_shown = minf(target, _coins_shown + maxf(40.0, (target - _coins_shown) * 3.0) * delta * _speed)
-		_coins_label.text = "+%d" % floori(_coins_shown)
-	if _t >= _t_end:
-		_finish()
+	var dt := delta * (_speed if _phase == Phase.PARADE else 1.0)
+	_clock += dt
+	if _phase == Phase.PARADE:
+		_t += dt
+		_step_parade()
+		var target := float(_coins_target)
+		if _coins_shown < target:
+			_coins_shown = minf(target, _coins_shown + maxf(40.0, (target - _coins_shown) * 3.0) * dt)
+			_coins_label.text = "+%d" % floori(_coins_shown)
+		if _t >= _t_end:
+			_finish()
+	_step_vendors()
+	_step_granny()
+	_life.call("step", dt, _crowd_view.call("positions"))
+	_bubbles.call("step", dt)
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _phase == Phase.PARADE and event is InputEventMouseButton and (event as InputEventMouseButton).pressed \
+			and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+		var p: Dictionary = _crowd_view.call("person_at", (event as InputEventMouseButton).position)
+		if not p.is_empty():
+			var id := int(p.id)
+			_bubbles.call("say", "p%d" % id, "MARKET_HELLO_%d" % (1 + id % HELLOS), _head_of.bind(id), 4, 1.6)
+			get_viewport().set_input_as_handled()
+		return
 	if not event.is_action_pressed("cancel"):
 		return
 	get_viewport().set_input_as_handled()
@@ -236,50 +277,36 @@ func _on_open() -> void:
 	start_parade()
 
 
-## Builds the walkers from _plan (also used by the smoke test with a ready plan).
+## Builds the crowd from _plan (also used by the smoke test with a ready plan).
 func start_parade() -> void:
 	_phase = Phase.PARADE
 	_setup_ui.visible = false
 	_parade_ui.visible = true
 	_board.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_board.set_process_unhandled_input(false)
-	var visits: Array = _plan.get("visits", [])
-	var n := visits.size()
-	var cross := (PATH_X1 - PATH_X0) / WALK
-	var total := clampf(10.0 + n * 2.0, T_MIN, T_MAX)
-	var gap := maxf(0.6, (total - cross - PAUSE) / maxf(1.0, n - 1.0))
-	_walkers.clear()
-	_t_end = 0.0
-	for i in n:
-		var v: Dictionary = visits[i]
-		var c: Dictionary = v.customer
-		var w := {"visit": v, "spawn": i * gap, "lane": int(LANES[i % LANES.size()]), "stop": -1.0,
-			"sold": false, "node": null, "bubble": null}
-		var exit_t: float = w.spawn + cross
-		if not (v.item as Dictionary).is_empty():
-			var idx := _entry_index(v.entry)
-			var r := _board.entry_rect(idx) if idx >= 0 else Rect2i(60, 0, 24, 24)
-			w.stop = float(BOARD_POS.x + r.position.x + floori(r.size.x / 2.0))
-			w["index"] = idx
-			w["arrive"] = float(w.spawn) + (float(w.stop) - PATH_X0) / WALK
-			w["leave"] = float(w.arrive) + PAUSE
-			exit_t = float(w.leave) + (PATH_X1 - float(w.stop)) / WALK
-		else:
-			w["talk"] = float(w.spawn) + (240.0 - PATH_X0) / WALK
-		w["exit"] = exit_t
-		_t_end = maxf(_t_end, exit_t)
-		var node := Villager.new()
-		node.setup(int(c.look), bool(c.fancy))
-		node.visible = false
-		node.z_index = int(w.lane)
-		_crowd_layer.add_child(node)
-		w.node = node
-		_walkers.append(w)
+	var d := _data()
+	_crowd = MarketCrowd.build(int(d.save_seed), int(d.day), _plan.get("visits", []), _layout,
+		int(Market.info(d).reputation), _rainy())
+	_t_end = float(_crowd.length)
+	# the jars move onto the stall itself (y-sorted with the crowd) and stay there until sold
+	_board.visible = false
+	_jar_views.clear()
+	for i in _entries.size():
+		var r := _board.entry_rect(i)
+		var v := _make_view(_entries[i].item, int(_entries[i].get("rot", 0)), r.size)
+		v.position = Vector2(_counter.position + r.position)
+		v.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_jar_layer.add_child(v)
+		_jar_views[i] = v
+	_crowd_view.call("setup", _world, _crowd, _rainy())
+	_sold_ids.clear()
+	_lines_done = 0
 	_t = 0.0
 	_speed = 1.0
 	_speed_btn.text = tr("UI_MARKET_SPEED")
 	_coins_label.text = "+0"
 	_sold_label.text = tr("UI_MARKET_SOLD") % 0
+	_crowd_view.call("step", _t)
 	_speed_btn.grab_focus.call_deferred()
 
 
@@ -290,60 +317,61 @@ func _entry_index(entry: Dictionary) -> int:
 	return -1
 
 
-## Places every walker for time _t and fires the sales they reach.
+## Places the crowd for time _t, fires the sales they reach and the lines they say.
 func _step_parade() -> void:
-	for w in _walkers:
-		var node: Node2D = w.node
-		var s: float = w.spawn
-		if _t < s or _t > float(w.exit):
-			node.visible = false
-			_show_bubble(w, false)
+	_crowd_view.call("step", _t)
+	for p in _crowd.people:
+		if float(p.buy_t) >= 0.0 and _t >= float(p.buy_t) and not _sold_ids.has(int(p.id)):
+			_sell(p)
+	var lines: Array = _crowd.lines
+	while _lines_done < lines.size() and float(lines[_lines_done].t) <= _t:
+		var l: Dictionary = lines[_lines_done]
+		_lines_done += 1
+		if _t - float(l.t) > 1.0:
 			continue
-		var x: float
-		var walking := true
-		var buyer := float(w.stop) >= 0.0
-		if buyer:
-			if _t < float(w.arrive):
-				x = PATH_X0 + WALK * (_t - s)
-			elif _t < float(w.leave):
-				x = float(w.stop)
-				walking = false
-			else:
-				x = float(w.stop) + WALK * (_t - float(w.leave))
+		var who := String(l.who)
+		var head: Callable
+		if who.begins_with("v"):
+			head = _vendor_head.bind(who.substr(1))
 		else:
-			x = PATH_X0 + WALK * (_t - s)
-		node.visible = true
-		node.position = Vector2(roundi(x), int(w.lane))
-		node.set_frame(floori(_t * 7.0) % 4 if walking else 1)
-		if buyer:
-			if not bool(w.sold) and _t >= float(w.arrive) + 0.2:
-				_sell(w)
-			_show_bubble(w, _t >= float(w.arrive) + 0.1 and _t < float(w.leave) + 0.6)
-		else:
-			_show_bubble(w, _t >= float(w.talk) - 0.3 and _t < float(w.talk) + 1.5)
-		var bub: Control = w.bubble
-		if bub != null and bub.visible:
-			var bx := clampi(roundi(x) - floori(bub.size.x / 2.0), 2, 478 - int(bub.size.x))
-			bub.position = Vector2(bx, int(w.lane) - 50 - int(bub.size.y))
+			head = _head_of.bind(int(who.substr(1)))
+		_bubbles.call("say", who, String(l.key), head, int(l.prio), float(l.dur))
 
 
-func _sell(w: Dictionary) -> void:
-	w.sold = true
-	var v: Dictionary = w.visit
+func _head_of(id: int) -> Vector2:
+	return _crowd_view.call("head", id)
+
+
+func _vendor_head(id: String) -> Vector2:
+	var n: Node2D = _vendors.get(id)
+	if n == null:
+		return Vector2.INF
+	return n.position - Vector2(0, int(n.call("head_height")))
+
+
+func _sell(p: Dictionary) -> void:
+	_sold_ids[int(p.id)] = true
+	var v: Dictionary = _plan.visits[int(p.visit)]
 	_sold += 1
 	_coins_target += int(v.price)
 	_sold_label.text = tr("UI_MARKET_SOLD") % _sold
-	Audio.play_sfx("sfx_coins_gain")
-	var idx := int(w.get("index", -1))
-	var view := _board.view_at(idx)
+	Audio.play_sfx("sfx_coin_purse")
+	_wave_until = _clock + 1.4
+	var idx := _entry_index(v.entry)
+	var view: Control = _jar_views.get(idx)
+	var buyer: Node2D = _crowd_view.call("node_of", int(p.id))
 	if view == null or not view.visible:
 		return
 	view.visible = false
 	var hop := _make_view(v.item, int(v.entry.get("rot", 0)), Vector2i(view.size))
-	hop.position = view.global_position.floor()
+	hop.position = view.position
+	hop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fx_layer.add_child(hop)
-	var node: Node2D = w.node
-	var to := Vector2(node.position.x - floori(hop.size.x / 2.0), node.position.y - 22 - hop.size.y)
+	var to := hop.position + Vector2(0, 40)
+	if buyer != null:
+		# into the basket on their arm (about a third of their height up, on the left)
+		var hand := buyer.position + Vector2(-6, -roundi(float(buyer.call("head_height")) * 0.32))
+		to = hand - (hop.size / 2.0).floor()
 	var tw := hop.create_tween()
 	tw.set_speed_scale(_speed)
 	tw.tween_property(hop, "position:y", hop.position.y - 10, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -352,38 +380,13 @@ func _sell(w: Dictionary) -> void:
 	var plus := Label.new()
 	plus.text = tr("UI_MARKET_COINS") % int(v.price)
 	plus.add_theme_color_override("font_color", C_GOLD)
-	plus.position = Vector2(roundi(node.position.x) + 10, int(node.position.y) - 44)
+	plus.position = (view.position + Vector2(view.size.x, -6)).round()
 	plus.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fx_layer.add_child(plus)
 	var tp := plus.create_tween()
 	tp.set_speed_scale(_speed)
 	tp.tween_property(plus, "position:y", plus.position.y - 12, 0.9)
 	tp.tween_callback(plus.queue_free)
-
-
-func _show_bubble(w: Dictionary, on: bool) -> void:
-	var bub: PanelContainer = w.bubble
-	if not on:
-		if bub != null:
-			bub.visible = false
-		return
-	if bub == null:
-		bub = PanelContainer.new()
-		bub.theme_type_variation = &"PaperPanel"
-		bub.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var l := Label.new()
-		l.theme_type_variation = &"PaperLabel"
-		l.text = tr(String(w.visit.line_key))
-		bub.add_child(l)
-		_fx_layer.add_child(bub)
-		bub.reset_size()
-		w.bubble = bub
-		bub.visible = false
-	if not bub.visible:
-		bub.visible = true
-		bub.pivot_offset = Vector2(floori(bub.size.x / 2.0), bub.size.y)
-		bub.scale = Vector2(0.5, 0.5)
-		bub.create_tween().tween_property(bub, "scale", Vector2.ONE, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _on_speed() -> void:
@@ -396,17 +399,21 @@ func _finish() -> void:
 	if _phase != Phase.PARADE:
 		return
 	_phase = Phase.DONE
-	for w in _walkers:
-		if float(w.stop) >= 0.0 and not bool(w.sold):
-			w.sold = true
+	for p in _crowd.get("people", []):
+		if float(p.buy_t) >= 0.0 and not _sold_ids.has(int(p.id)):
+			_sold_ids[int(p.id)] = true
 			_sold += 1
-			_coins_target += int(w.visit.price)
-		(w.node as Node2D).visible = false
-		_show_bubble(w, false)
+			_coins_target += int(_plan.visits[int(p.visit)].price)
+			var view: Control = _jar_views.get(_entry_index(_plan.visits[int(p.visit)].entry))
+			if view != null:
+				view.visible = false
+	_crowd_view.call("clear")
+	_bubbles.call("clear")
 	_coins_shown = float(_coins_target)
 	_coins_label.text = "+%d" % _coins_target
 	_sold_label.text = tr("UI_MARKET_SOLD") % _sold
 	_speed_btn.visible = false
+	_speed = 1.0
 	var placed := _entries.size()
 	var rep := int(Market.info(_data()).reputation)
 	var box := _end_card.get_node("Box") as VBoxContainer
@@ -427,20 +434,127 @@ func _save(keys: Array) -> void:
 	GameState.notify(PackedStringArray(keys))
 
 
+# --- vendors and Granny --------------------------------------------------------------------------------------------
+
+## Vendors play their acts from the crowd during the parade; before it, a calm loop of idle and tidying.
+func _step_vendors() -> void:
+	var acts_by := {}
+	if _phase == Phase.PARADE:
+		for v in _crowd.get("vendors", []):
+			acts_by[String(v.id)] = v.acts
+	var i := 0
+	for id: String in _vendors:
+		var n: Node2D = _vendors[id]
+		var what := "idle"
+		var t0 := 0.0
+		if acts_by.has(id):
+			for a in acts_by[id]:
+				if _t >= float(a.t0) and _t < float(a.t1):
+					what = String(a.do)
+					t0 = float(a.t0)
+					break
+		else:
+			var cyc := fmod(_clock + i * 2.3, 9.0)
+			what = "wipe" if cyc > 6.5 else "idle"
+		var tt := _t if _phase == Phase.PARADE else _clock
+		var blink := fmod(tt + i * 0.9, 3.7) < 0.13
+		match what:
+			"wave":
+				n.call("show_pose", "front", "wave", floori((tt - t0) * 4.0) % 2)
+			"wipe":
+				n.call("show_pose", "front", "wipe", floori(tt * 3.0) % 2)
+			"arrange":
+				n.call("show_pose", "front", "look", floori(tt / 0.7) % 2)
+			_:
+				n.call("show_pose", "front", "idle", floori(tt * 1.2 + i) % 2, blink)
+		i += 1
+
+
+func _step_granny() -> void:
+	if _granny == null or _granny_frames.is_empty():
+		return
+	var f := floori(_clock * 1.2) % 2
+	if _clock < _wave_until and _granny_frames.size() >= 4:
+		f = 2 + floori(_clock * 5.0) % 2
+	_granny.texture = _granny_frames[f % _granny_frames.size()]
+
+
 # --- build -------------------------------------------------------------------------------------------------------
 
-func _build_stall() -> void:
-	_stall = StallArt.new()
-	_stall.size = Vector2(480, 270)
-	_stall.board_rect = Rect2i(BOARD_POS, Vector2i(Market.COLS * CELL, Market.ROWS * CELL))
-	add_child(_stall)
+func _build_world() -> void:
+	_world = Node2D.new()
+	_world.name = "World"
+	_world.y_sort_enabled = true
+	add_child(_world)
+	var stall_def: Dictionary = _layout.get("granny_stall", {})
+	var feet_y := int(stall_def.get("feet_y", int(stall_def.get("y", 110)) + int((stall_def.get("size", [180, 125]) as Array)[1])))
+	# Granny's stall: sprite, sign, jars and Granny herself sort as one thing at the stall's feet
+	_stall = Node2D.new()
+	_stall.name = "Stall"
+	_stall.position = Vector2(0, feet_y)
+	_world.add_child(_stall)
+	var inner := Node2D.new()
+	inner.position = Vector2(0, -feet_y)
+	_stall.add_child(inner)
+	var stall_tex := ML.DIR + String(stall_def.get("sprite", "stall_granny.png"))
+	if ResourceLoader.exists(stall_tex):
+		var s := Sprite2D.new()
+		s.texture = load(stall_tex) as Texture2D
+		s.centered = false
+		s.position = Vector2(int(stall_def.get("x", 153)), int(stall_def.get("y", 110)))
+		inner.add_child(s)
+	var sr := ML.rect(stall_def.get("sign", [188, 113, 111, 15]))
 	var sign_label := _label(tr("UI_MARKET_SIGN"), &"PaperLabel")
-	var sr: Rect2i = _stall.sign_rect()
-	sign_label.position = Vector2(sr.position.x, sr.position.y + 1)
-	sign_label.size = Vector2(sr.size.x, sr.size.y - 2)
+	sign_label.name = "Sign"
+	sign_label.position = Vector2(sr.position.x, sr.position.y - 2)
+	sign_label.size = Vector2(sr.size.x, sr.size.y + 3)
 	sign_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sign_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	add_child(sign_label)
+	inner.add_child(sign_label)
+	_jar_layer = Node2D.new()
+	_jar_layer.name = "Jars"
+	inner.add_child(_jar_layer)
+	_build_granny(inner, ML.v(stall_def.get("granny", [316, 230])))
+	for vd in _layout.get("vendors", []):
+		var id := String(vd.get("id", ""))
+		var v := Villager.new()
+		v.name = "Vendor_" + id
+		v.setup(Villager.vendor_look(id))
+		v.position = ML.v(vd.get("stand", [0, 0])).round()
+		_world.add_child(v)
+		_vendors[id] = v
+	_life = Life.new()
+	_life.name = "Life"
+	add_child(_life)
+	var d := _data()
+	_life.call("setup", _world, _layout, Seeds.seed_for(int(d.get("save_seed", 1)), "market", int(d.get("day", 7)), "life"))
+	_crowd_view = CrowdView.new()
+	_crowd_view.name = "Crowd"
+	add_child(_crowd_view)
+
+
+func _build_granny(parent: Node2D, at: Vector2) -> void:
+	var path := GRANNY if ResourceLoader.exists(GRANNY) else GRANNY_OLD
+	if not ResourceLoader.exists(path):
+		return
+	var tex := load(path) as Texture2D
+	var fw := 22 if path == GRANNY else 16
+	var pivot := Vector2(11, 44) if path == GRANNY else Vector2(8, 31)
+	for i in floori(tex.get_width() / float(fw)):
+		var a := AtlasTexture.new()
+		a.atlas = tex
+		a.region = Rect2(i * fw, 0, fw, tex.get_height())
+		_granny_frames.append(a)
+	_granny = Sprite2D.new()
+	_granny.name = "Granny"
+	_granny.texture = _granny_frames[0]
+	_granny.centered = false
+	_granny.offset = -pivot
+	_granny.position = at.round()
+	parent.add_child(_granny)
+
+
+func _build_board() -> void:
 	_board = ArrangeBoard.new()
 	_board.name = "Stall"
 	_board.sounds = SOUNDS
@@ -450,15 +564,18 @@ func _build_stall() -> void:
 	_board.released_outside.connect(_on_released_outside)
 	_board.hold_ended.connect(func(_i: Dictionary, _p: bool) -> void: _refresh())
 	add_child(_board)
-	_board.position = Vector2(BOARD_POS)
-	_crowd_layer = Node2D.new()
-	_crowd_layer.name = "Crowd"
-	add_child(_crowd_layer)
+	_board.position = Vector2(_counter.position)
 	_fx_layer = Control.new()
 	_fx_layer.name = "Fx"
 	_fx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fx_layer.size = Vector2(480, 270)
 	add_child(_fx_layer)
+	_bubbles = Bubbles.new()
+	_bubbles.name = "Bubbles"
+	add_child(_bubbles)
+	var blocked: Array[Rect2] = [Rect2(_counter)]
+	blocked.append_array(HUD_RECTS)
+	_bubbles.set("blocked", blocked)
 
 
 func _build_setup() -> void:
@@ -495,11 +612,11 @@ func _build_setup() -> void:
 	_setup_ui.add_child(_no_jars)
 	_back_btn = _button(tr("UI_BACK"), _on_back, Vector2(4, 242), Vector2(56, 22))
 	_fill_btn = _button(tr("UI_MARKET_FILL"), _on_fill, Vector2(64, 242), Vector2(86, 22))
-	# sign card (right)
+	# sign card (right, clear of the stall at x 153-333)
 	var card := PanelContainer.new()
 	card.theme_type_variation = &"PaperPanel"
-	card.position = Vector2(330, 26)
-	card.size = Vector2(146, 210)
+	card.position = Vector2(338, 26)
+	card.size = Vector2(138, 210)
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_setup_ui.add_child(card)
 	var box := VBoxContainer.new()
@@ -514,7 +631,7 @@ func _build_setup() -> void:
 	for key in ["UI_MARKET_VARIETY", "UI_MARKET_COLOURS", "UI_MARKET_FULL"]:
 		box.add_child(_label(tr(key), &"PaperLabel"))
 		var bar := Control.new()
-		bar.custom_minimum_size = Vector2(126, 6)
+		bar.custom_minimum_size = Vector2(118, 6)
 		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		bar.set_meta("value", 0.0)
 		bar.draw.connect(_draw_bar.bind(bar))
@@ -524,10 +641,10 @@ func _build_setup() -> void:
 	box.add_child(_visitors)
 	_hint = _label("", &"PaperLabel")
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_hint.custom_minimum_size = Vector2(130, 0)
+	_hint.custom_minimum_size = Vector2(122, 0)
 	_hint.add_theme_color_override("font_color", Color("83571e"))
 	box.add_child(_hint)
-	_open_btn = _button(tr("UI_MARKET_OPEN"), _on_open, Vector2(330, 242), Vector2(146, 22))
+	_open_btn = _button(tr("UI_MARKET_OPEN"), _on_open, Vector2(338, 242), Vector2(138, 22))
 
 
 func _build_parade() -> void:
@@ -538,8 +655,8 @@ func _build_parade() -> void:
 	_parade_ui.visible = false
 	add_child(_parade_ui)
 	var bar := PanelContainer.new()
-	bar.position = Vector2(4, 4)
-	bar.size = Vector2(150, 24)
+	bar.position = HUD_RECTS[0].position
+	bar.size = HUD_RECTS[0].size
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_parade_ui.add_child(bar)
 	var row := HBoxContainer.new()
@@ -560,8 +677,8 @@ func _build_parade() -> void:
 	row.add_child(_sold_label)
 	_speed_btn = Button.new()
 	_speed_btn.text = tr("UI_MARKET_SPEED")
-	_speed_btn.position = Vector2(400, 4)
-	_speed_btn.size = Vector2(76, 22)
+	_speed_btn.position = HUD_RECTS[1].position
+	_speed_btn.size = HUD_RECTS[1].size
 	_speed_btn.pressed.connect(_on_speed)
 	_parade_ui.add_child(_speed_btn)
 	# end card

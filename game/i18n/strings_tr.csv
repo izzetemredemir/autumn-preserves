@@ -655,3 +655,23 @@ UI_NIGHT_STALLED_ONE,Bir kavanoz olgunlaşmak için kendi rafını bekliyor.
 UI_NIGHT_STALLED,%d kavanoz olgunlaşmak için kendi rafını bekliyor.
 TITLE_DEMO_DAY,Demo günü
 TITLE_DEMO_DAY_TIP,"Oyunu göstermek için nadir ağaçlı, yağmurlu bir 3. gün. Kendi kaydına dokunmaz."
+MARKET_CALL_BAKER_1,Taze ekmek!
+MARKET_CALL_BAKER_2,Sıcacık somunlar!
+MARKET_CALL_VINTNER_1,Bağdan üzüm!
+MARKET_CALL_VINTNER_2,Tatlı üzümler!
+MARKET_CALL_GROCER_1,Balkabağı ve elma!
+MARKET_CALL_GROCER_2,Tarladan taze!
+MARKET_CALL_LIBRARIAN_1,Yağmurlu günlere kitap!
+MARKET_CALL_LIBRARIAN_2,Çiçekler ve hikayeler!
+MARKET_CALL_POSTMAN_1,Mektup ve koli!
+MARKET_CALL_POSTMAN_2,Postası olan var mı?
+MARKET_CHAT_1,Ne güzel bir gün!
+MARKET_CHAT_2,Nine'nin reçelini denedin mi?
+MARKET_CHAT_3,Şu balkabaklarına bak!
+MARKET_CHAT_4,Ekmek kokusu geliyor!
+MARKET_CHAT_5,Haftaya yine mi?
+MARKET_CHAT_6,Yapraklar ne güzel!
+MARKET_HELLO_1,Merhaba!
+MARKET_HELLO_2,Ne güzel bir pazar!
+MARKET_HELLO_3,Reçel mi turşu mu?
+MARKET_HELLO_4,"Güzel gün, değil mi?"

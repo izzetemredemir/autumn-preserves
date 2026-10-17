@@ -1,8 +1,12 @@
 extends SceneTree
-## Smoke shot (MARKET): a day-7 seed-1 game in memory (no save). Clicks the town's "Market today!" banner, drags a jar
-## onto the stall with the mouse, fills the stall and opens it with the keyboard (Enter on the focused buttons),
-## checks the save after Market.run, skips the parade with Esc and goes back to town (banner gone). Shots:
-## user://shots/market_town.png, market_setup.png, market_parade.png, market_end.png.
+## Smoke shot (MARKET, MARKET-LIVE): a day-7 seed-1 game in memory (no save). Clicks the town's "Market today!" banner,
+## drags a jar onto Granny's counter with the mouse, fills the stall and opens it with the keyboard (Enter on the
+## focused buttons), checks the save after Market.run, then jumps through the parade (MarketCrowd) and shoots five
+## moments: the square filling, browsing at the stalls, a buyer at the counter with a bubble, the busy middle, the
+## last buyers. Esc skips to the end card, Enter goes back to town (banner gone).
+## Shots: user://shots/market_town.png, market_setup.png, market_parade_1..5.png, market_end.png.
+## `-- --rainy` plays a rainy market day (fewer strollers, umbrellas, rain) and adds "_rain" to the shot names;
+## `-- --locale=tr` plays it in Turkish and adds "_tr".
 ##   godot --audio-driver Dummy --path game -s res://tests/smoke/market_shot.gd   (exit 1 when a check fails)
 
 var _gs: Node
@@ -10,6 +14,7 @@ var _scene: Control
 var _checks := 0
 var _fails := 0
 var _mask := 0
+var _suffix := ""
 
 
 func _initialize() -> void:
@@ -22,6 +27,12 @@ func _run() -> void:
 	var s := State.new_game(1)
 	s.day = 7
 	s.flags["temp"] = true
+	if "--rainy" in OS.get_cmdline_user_args():
+		s.weather = "rainy"
+		_suffix = "_rain"
+	if "--locale=tr" in OS.get_cmdline_user_args():
+		GameSettings.apply_language("tr")
+		_suffix += "_tr"
 	s.inbox = (load("res://scenes/market/market.gd") as GDScript).call("sample_items")
 	s.inbox.append(State.product("jam|pear_3|-", 2, 3))  # still waiting: stays home
 	_gs.set("data", s)
@@ -48,6 +59,11 @@ func _run() -> void:
 	var board: ArrangeBoard = _scene.get("_board")
 	var jars: Control = _scene.get("_source_view")
 	var source: Array = _scene.get("_source")
+	var counter: Rect2i = _scene.get("_counter")
+	_check("the counter is the layout's 6x2 grid (%s)" % str(counter), counter.size == Vector2i(144, 48))
+	_check("the board sits on the counter", Vector2i(board.position) == counter.position)
+	_check("five vendors at their stalls", (_scene.get("_vendors") as Dictionary).size() == 5)
+	_check("Granny stands at her stall", _scene.get("_granny") != null)
 	_check("ready jars offered, waiting jar not", source.size() == 14)
 	_check("Fill stall has the focus", _focused() == _scene.get("_fill_btn"))
 	var first: Dictionary = source[0]
@@ -62,13 +78,15 @@ func _run() -> void:
 	var mult := Market.stall_score(entries, s.varieties)
 	_check("appeal above x1 (%.2f)" % mult, mult > 1.2)
 	_check("Open stall has the focus", _focused() == _scene.get("_open_btn"))
-	await _frames(10)
+	_check("setup panels clear of the stall", (_scene.get("_open_btn") as Control).position.x >= 334.0)
+	await _frames(20)
 	_shot("market_setup")
 	var coins := int(s.coins)
 	var stall_n := entries.size()
 	_key(KEY_ENTER)
 	await _frames(3)
 	var plan: Dictionary = _scene.get("_plan")
+	var crowd: Dictionary = _scene.get("_crowd")
 	var earned := 0
 	for v in plan.sales:
 		earned += int(v.price)
@@ -77,26 +95,36 @@ func _run() -> void:
 	_check("reputation 1, last_day 7", int(Market.info(s).reputation) == 1 and int(Market.info(s).last_day) == 7)
 	_check("sold jars left the inbox", s.inbox.size() == 15 - plan.sales.size())
 	_check("parade length 30-45 s (%.1f)" % float(_scene.get("_t_end")), float(_scene.get("_t_end")) >= 29.0 and float(_scene.get("_t_end")) <= 47.0)
-	# jump to the moment the second buyer stands at the stall
-	var walkers: Array = _scene.get("_walkers")
-	var at := 12.0
-	var buyers := 0
-	for w in walkers:
-		if float(w.stop) >= 0.0:
-			buyers += 1
-			if buyers == 2:
-				at = float(w.arrive) + 0.6
-	_scene.set("_t", at)
-	await _frames(12)
-	_check("villagers on screen", _visible_walkers(walkers) >= 3)
+	_check("jars stay on the counter", _visible_jars() == stall_n)
+	var cv: Node = _scene.get("_crowd_view")
+	# five moments of the parade
+	var buyers: Array = (crowd.people as Array).filter(func(p: Dictionary) -> bool: return float(p.buy_t) >= 0.0)
+	buyers.sort_custom(func(a: Dictionary, z: Dictionary) -> bool: return float(a.buy_t) < float(z.buy_t))
+	var at_buy := float(buyers[mini(2, buyers.size() - 1)].line_t) + 0.3 if not buyers.is_empty() else 12.0
+	var moments := [1.0, 6.5, at_buy, float(crowd.length) * 0.55, float(crowd.length) - 4.0]
+	var most := 0
+	for i in moments.size():
+		_scene.set("_t", float(moments[i]))
+		await _frames(10)
+		var n := int(cv.call("visible_count"))
+		most = maxi(most, n)
+		var bubbles: Array = (_scene.get("_bubbles") as Control).call("shown")
+		_check("moment %d (%.1f s): %d people, %d bubbles" % [i + 1, float(moments[i]), n, bubbles.size()], n >= 3 and bubbles.size() <= 3)
+		for b in bubbles:
+			_check("bubble %s clear of the counter" % b.who, not (b.rect as Rect2).intersects(Rect2(counter)))
+			for c in bubbles:
+				if c != b:
+					_check("bubbles apart", not (b.rect as Rect2).intersects(c.rect))
+		_shot("market_parade_%d" % (i + 1))
+	_check("a lively square (%d at once)" % most, most >= 8)
 	_check("coins tick up", int(_scene.get("_sold")) >= 2)
-	_shot("market_parade")
+	_check("sold jars left the counter", _visible_jars() < stall_n)
 	_key(KEY_ESCAPE)
 	await _frames(14)
 	var card: Control = _scene.get("_end_card")
 	_check("Esc skips to the end card", card.visible and int(_scene.get("_phase")) == 2)
 	_check("end card counts every sale", int(_scene.get("_sold")) == plan.sales.size())
-	_check("stall size %d" % stall_n, stall_n > 0)
+	_check("every sold jar gone from the counter", _visible_jars() == stall_n - plan.sales.size())
 	_shot("market_end")
 	_key(KEY_ENTER)
 	await _frames(8)
@@ -107,10 +135,11 @@ func _run() -> void:
 	quit(1 if _fails > 0 else 0)
 
 
-func _visible_walkers(walkers: Array) -> int:
+func _visible_jars() -> int:
 	var n := 0
-	for w in walkers:
-		if (w.node as Node2D).visible:
+	var views: Dictionary = _scene.get("_jar_views")
+	for k in views:
+		if (views[k] as Control).visible:
 			n += 1
 	return n
 
@@ -123,8 +152,8 @@ func _shot(name: String) -> void:
 	var dir := "user://shots"
 	DirAccess.make_dir_recursive_absolute(dir)
 	RenderingServer.force_draw(false)
-	root.get_texture().get_image().save_png("%s/%s.png" % [dir, name])
-	print("saved ", ProjectSettings.globalize_path("%s/%s.png" % [dir, name]))
+	root.get_texture().get_image().save_png("%s/%s%s.png" % [dir, name, _suffix])
+	print("saved ", ProjectSettings.globalize_path("%s/%s%s.png" % [dir, name, _suffix]))
 
 
 func _frames(n: int) -> void:
