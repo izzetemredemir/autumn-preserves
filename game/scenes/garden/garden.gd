@@ -73,8 +73,8 @@ func _ready() -> void:
 	_build_cat()
 	_build_critters()
 	_build_life()
-	if TodoRules.festival_today(GameState.data):
-		Grandkids.attach(self)  # FESTIVAL: Mia and Leo visit
+	if TodoRules.festival_today(GameState.data) or FinaleRules.kids_visiting(GameState.data):
+		Grandkids.attach(self)  # FESTIVAL: Mia and Leo visit; ENDING: and for a week after the visit on day 30
 	camera.target = granny
 	camera.bounds = Rect2i(0, 0, Layout.W * Layout.TILE, Layout.VIEW_H)
 	camera.snap()

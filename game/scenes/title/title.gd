@@ -51,6 +51,8 @@ func _ready() -> void:
 	var saved := Save.load_game() if Save.has_save() else {}
 	if Farewell.is_completed(saved):
 		_show_completed(Farewell.completed_day(saved))
+	elif FinaleRules.visited(saved):
+		_show_visited()  # ENDING: the visit was watched (docs/story.md §6.1, step 5)
 	%SeedLab.disabled = not Router.exists("seed_lab")
 	%SeedLab.visible = false  # hidden from players (the human: it looks intimidating); L opens it for the talk
 	if %Continue.disabled:
@@ -299,6 +301,9 @@ func _on_continue() -> void:
 		# A completed save opens only in Memory mode; a farewell not watched to the end plays first.
 		Transition.go("farewell", {"mode": "memory" if Farewell.seen(GameState.data) else "play"})
 		return
+	if FinaleRules.due(GameState.data):  # ENDING: a day-30 save that has not watched the visit to the end
+		Transition.go("finale", {"mode": "play"})
+		return
 	GrannyTodo.ensure()
 	Transition.go(Transition.home_scene())
 
@@ -306,22 +311,46 @@ func _on_continue() -> void:
 ## The save is closed (spec §7.12): Continue becomes Memory and a card under the menu says how long it lasted.
 func _show_completed(days: int) -> void:
 	%Continue.text = tr("UI_MEMORY_OPEN")
+	_show_card(tr("UI_MEMORY_COMPLETED") % days)
+
+
+## ENDING: the save had the visit on day 30: a "Visited" card under the menu (Continue stays Continue). Clicking it
+## plays the visit again (skippable, the save untouched).
+func _show_visited() -> void:
+	var card := _show_card(tr("UI_VISITED") % FinaleRules.DAY)
+	card.mouse_filter = Control.MOUSE_FILTER_STOP
+	card.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	card.gui_input.connect(func(e: InputEvent) -> void:
+		if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+			_replay_visit())
+
+
+func _replay_visit() -> void:
+	if _starting or not GameState.load_saved():
+		return
+	_starting = true
+	Audio.play_ui("ui_confirm")
+	Transition.go("finale", {"mode": "replay"})
+
+
+func _show_card(text: String) -> PanelContainer:
 	var card := PanelContainer.new()
 	card.theme_type_variation = &"PaperPanel"
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var row := CenterContainer.new()
 	row.anchor_left = 0.0
 	row.anchor_right = 1.0
-	row.offset_top = 224
-	row.offset_bottom = 254
+	row.offset_top = 240  # ENDING: below the last menu button (the How to Play button made the menu taller)
+	row.offset_bottom = 268
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(row)
 	row.add_child(card)
 	var label := Label.new()
 	label.theme_type_variation = &"PaperLabel"
-	label.text = tr("UI_MEMORY_COMPLETED") % days
+	label.text = text
 	card.add_child(label)
 	_completed_card = row
+	return card
 
 
 ## New Game: seed from the field (empty = random), fresh save, then the premise.

@@ -78,6 +78,7 @@ func save_farewell_seen() -> void:
 ## Runs the night (spec §9), autosaves, starts the next day. Returns the night's events.
 ## Memory mode: nothing happens. The night from day 99 to 100 is the farewell (spec §7.12): the day-99 save is kept
 ## as Save.DAY99_PATH, the save is closed (flags.completed) and the farewell scene takes over under the night cover.
+## The night from day 29 to 30 is a normal one; then the visit (scenes/finale) takes over the same way (ENDING).
 func end_day() -> Array:
 	var night := Farewell.night(data)  # DayEnd, or the farewell night, or nothing in Memory mode
 	match String(night.kind):
@@ -92,4 +93,6 @@ func end_day() -> Array:
 	Save.save_game(data)
 	changed.emit(PackedStringArray(["*"]))
 	day_started.emit(int(data.day))
+	if FinaleRules.due(data):  # ENDING: the morning of day 30 is the visit (docs/story.md §6), after the morning card
+		Router.goto.call_deferred("finale", {"mode": "play"})
 	return night.events

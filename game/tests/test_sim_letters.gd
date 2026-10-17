@@ -67,7 +67,7 @@ func test_letters_come_every_three_to_four_days_while_answered() -> void:
 		var days: Array = []
 		for n in 40:
 			for e in DayEnd.run(s):
-				if e.type == "letter":
+				if e.type == "letter" and not Letters.is_story(e.letter):  # ENDING: Nora's day-10 letter is extra
 					days.append(int(s.day))
 			for letter in Letters.open_requests(s):
 				letter.done = true  # answered at once

@@ -922,6 +922,27 @@ STORY_LETTER_NORA_5,Bize biraz sonbahar gönder. Başlamak için bir kavanoz yet
 STORY_LETTER_NORA_SIGN,"Sevgiyle, Nora"
 TUT_D1_MAIL,Posta kutusuna bak
 TODO_HINT_D1_MAIL,"Posta kutusunda bir şey var, canım. Kim yazmış bakalım."
+FINALE_KNOCK,"Tak, tak."
+FINALE_SNOW_LINE,Everfall'a ilk kar. Sonbaharının hepsini dağıtmıştı.
+FINALE_THANKS,Oynadığın için teşekkürler.
+FINALE_NOTE_DEAR_TWO,"Sevgili %s ve %s,"
+FINALE_NOTE_DAYS,"Everfall'da %d gün, hiçbiri sıkıcı değildi."
+FINALE_NOTE_JARS,Bu iki yaşlı elle %d kavanoz doldurdum.
+FINALE_NOTE_TOP,Önce %s açın; en iyisi o.
+FINALE_NOTE_RARE,Bir kere ormanda %s buldum. Düşünsenize!
+FINALE_NOTE_TEO,Dedeniz bu vadinin sonbaharını dağıtana kaldığını söylerdi. Bugün kalanını size veriyorum.
+FINALE_NOTE_BOOTS,Botlar kapıda çıkar.
+FINALE_NOTE_SIGN,Nine
+STORY_LETTER_NORA2_DEAR,"Sevgili anne,"
+STORY_LETTER_NORA2_1,Okul ay sonunda kar tatiline giriyor.
+STORY_LETTER_NORA2_2,Yol açıksa yukarı geliyoruz.
+STORY_LETTER_NORA2_3,Toplamaya kalkma. Çocuklar kavanozları yaşadıkları yerde görmek istiyor.
+STORY_LETTER_NORA2_SIGN,"Sevgiyle, Nora"
+LET_PS_STORY_5,Not: Takvimde günlerin üstünü çiziyorum. Annem bırak diyor. Bırakmayacağım.
+LET_PS_STORY_6,Not: Tavşanı valize koydum. Hiç sonbahar görmedi.
+UI_VISITED,Ziyaret edildi - %d gün
+UI_DEV_DAY29,29. gün
+UI_DEV_DAY29_DONE,Bu kayıt ziyareti çoktan geçti.
 LET_PS_STORY_1,Not: Dedemin armut ağacında hâlâ armut var mı? Annem orman yer değiştiriyor diyor. İnanmıyorum.
 LET_PS_STORY_2,Not: Dedemin şapkasını çizdim. Buzdolabında. Buzdolabı dışarısı gibi soğuk.
 LET_PS_STORY_3,"Not: Annem tavan arasında dedemin defterini buldu. Ağladı, sonra güldü, sonra çorba yaptı."

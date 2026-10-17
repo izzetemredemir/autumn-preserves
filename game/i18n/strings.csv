@@ -922,6 +922,27 @@ STORY_LETTER_NORA_5,Send us a little autumn. One jar is enough to start.
 STORY_LETTER_NORA_SIGN,"Love, Nora"
 TUT_D1_MAIL,Check the mailbox
 TODO_HINT_D1_MAIL,"Something is in the mailbox, dear. Let's see who wrote."
+FINALE_KNOCK,"Knock, knock."
+FINALE_SNOW_LINE,The first snow in Everfall. She had given all of her autumn away.
+FINALE_THANKS,Thank you for playing.
+FINALE_NOTE_DEAR_TWO,"My dear %s and %s,"
+FINALE_NOTE_DAYS,"%d days in Everfall, and not one of them was dull."
+FINALE_NOTE_JARS,I filled %d jars with these two old hands.
+FINALE_NOTE_TOP,Open the %s first; it is my best.
+FINALE_NOTE_RARE,I once found a %s in the woods. Imagine that!
+FINALE_NOTE_TEO,Your grandfather said this valley keeps its autumn for whoever gives it away. Today I give you the rest.
+FINALE_NOTE_BOOTS,Boots off at the door.
+FINALE_NOTE_SIGN,Granny
+STORY_LETTER_NORA2_DEAR,"Dear Mum,"
+STORY_LETTER_NORA2_1,The school closes for the snow holiday at the end of the month.
+STORY_LETTER_NORA2_2,"If the road is open, we are coming up."
+STORY_LETTER_NORA2_3,Do not tidy. The children want to see the jars where they live.
+STORY_LETTER_NORA2_SIGN,"Love, Nora"
+LET_PS_STORY_5,P.S. I am crossing the days off on the calendar. Mum says stop. I will not stop.
+LET_PS_STORY_6,P.S. I packed the rabbit. He has never seen autumn.
+UI_VISITED,Visited - %d days
+UI_DEV_DAY29,Day 29
+UI_DEV_DAY29_DONE,This save is already past the visit.
 LET_PS_STORY_1,P.S. Does Grandpa's pear tree still have pears? Mum says the forest moves. I don't believe her.
 LET_PS_STORY_2,P.S. I drew Grandpa's hat. It is on the fridge. The fridge is cold like outside.
 LET_PS_STORY_3,"P.S. Mum found Grandpa's notebook in the attic. She cried, then laughed, then made soup."

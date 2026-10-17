@@ -113,10 +113,14 @@ static func night(state: Dictionary) -> Array:
 			l.next_day = day + 1  # both kids still wait for a parcel; look again tomorrow
 		else:
 			var letter := make_request(state, kid, r)
+			FinaleRules.add_ps(state, letter)  # ENDING: the visit's P.S. lines (days 20 and 26), by day, no RNG
 			l.inbox.append(letter)
 			l.last_from = kid
 			l.next_day = day + gap(state, r)
 			events.append({"type": "letter", "letter": letter})
+	var nora := FinaleRules.add_nora_letter(state)  # ENDING: Nora's second letter on day 10 (no RNG)
+	if not nora.is_empty():
+		events.append({"type": "letter", "letter": nora})
 	return events
 
 

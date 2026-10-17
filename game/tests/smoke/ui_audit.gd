@@ -20,7 +20,7 @@ const BUBBLE_KEYS := ["MARKET_CHAT_", "MARKET_HELLO_", "MARKET_CALL_", "MARKET_P
 const RV := preload("res://scenes/market/react_view.gd")
 ## Path fragments (scene file or script) whose findings must be zero; others are only listed.
 const OWNED := ["scenes/garden/", "scenes/pantry/", "scenes/title/", "scenes/seed_lab/", "ui/book/", "ui/letters/", "ui/hud/", "ui/result_card/",
-	"scenes/farewell/", "ui/festival/", "ui/pause/", "ui/howto/"]
+	"scenes/farewell/", "scenes/finale/", "ui/festival/", "ui/pause/", "ui/howto/"]
 
 var _gs: Node
 var _findings: Array = []  ## {state, kind, path, origin, owned, detail}
@@ -81,6 +81,7 @@ func _run() -> void:
 		s.queue_free()
 		await _frames(2)
 	await _farewell()
+	await _finale()
 	await _festival_cards()
 	await _festival_kitchen()
 	await _species()
@@ -354,6 +355,23 @@ func _title_panels(s: Node) -> void:
 		s._show_completed(100)
 	await _frames(4)
 	await _audit("title/completed", s)
+
+
+## ENDING: each beat of the visit once its text is in (credits mid-scroll).
+func _finale() -> void:
+	_fresh()
+	root.get_node("Router").params = {"mode": "play"}
+	var fin := (load("res://scenes/finale/finale.tscn") as PackedScene).instantiate()
+	root.add_child(fin)
+	await _frames(4)
+	for part in fin.get("_timeline"):
+		var into := 6.0 if part.id == "credits" else float(part.dur) - 1.5
+		fin.seek(float(part.start) + into)
+		await _frames(3)
+		await _audit("finale/" + String(part.id), fin)
+	fin.queue_free()
+	root.get_node("Router").params = {}
+	await _frames(2)
 
 
 ## P2-FAREWELL: each part of the farewell once its text is in (credits mid-scroll), the Memory screen and its shelf.
