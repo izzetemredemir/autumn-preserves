@@ -20,6 +20,7 @@ Save="*res://core/save.gd"
 GameState="*res://core/game_state.gd"
 Audio="*res://core/audio.gd"
 Router="*res://core/router.gd"
+DemoDirector="*res://dev/demo_director.gd"
 
 [display]
 
