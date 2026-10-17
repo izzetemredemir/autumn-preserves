@@ -55,6 +55,7 @@ var _last_click := -1
 var _l_msg: Label
 var _l_hint: Label
 var _l_juice: Label
+var _combo: Juice.Combo  ## FUN-MG: Perfect/Good in a row
 
 
 func _ready() -> void:
@@ -66,6 +67,7 @@ func _ready() -> void:
 	_l_msg.size = Vector2(480, 30)
 	_l_msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_l_msg.z_index = 10
+	_combo = Juice.combo(self, Vector2(BOTTLE_POS.x + 56, 112))
 	await get_tree().create_timer(0.2).timeout
 	if phase == Phase.IDLE:
 		var ctx := {"seed": 7, "recipe": "juice", "desc": {"appearance": {"fill": ["a22512", "c94d2e", "e19064"]}}}
@@ -86,6 +88,8 @@ func start(ctx: Dictionary) -> void:
 	counts = {"perfect": 0, "good": 0, "miss": 0}
 	juice = 0.0
 	_last_click = -1
+	if _combo != null:
+		_combo.broke()
 	_t0_usec = Time.get_ticks_usec()
 	phase = Phase.PLAY
 	queue_redraw()
@@ -174,6 +178,35 @@ func _resolve(i: int, grade: String) -> void:
 	juice = minf(1.0, juice + PressRules.juice_for(grade))
 	_flash = grade
 	_flash_t = 0.5
+	_feel(grade)
+
+
+## FUN-MG: every beat has a voice. Hits squirt juice from the spout into the bottle (Perfect splashes more, with a
+## glug a beat later); the streak counter climbs on Perfect/Good and lets go softly on a miss.
+func _feel(grade: String) -> void:
+	if grade == "miss":
+		Audio.play_sfx("sfx_press_miss")
+		_combo.broke()
+		return
+	Audio.play_sfx("sfx_press_perfect" if grade == "perfect" else "sfx_press_hit")
+	_combo.hit()
+	var perfect := grade == "perfect"
+	var spout := Vector2(PRESS_POS.x + 73, 174)
+	var tones: Array = [fill_tones[1], fill_tones[2], fill_tones[0]]
+	Juice.droplets(self, spout, Vector2(46, -36), tones, 9 if perfect else 5, 12.0, 240.0, 0.4)
+	get_tree().create_timer(0.14).timeout.connect(_glug.bind(perfect, tones))
+
+
+func _glug(perfect: bool, tones: Array) -> void:
+	if not is_inside_tree():
+		return
+	Juice.sfx_pitched(self, "sfx_spoon_scoop", -5.0 if perfect else -8.0, -4.0)
+	var top := BOTTLE_POS.y + 55.0 - roundf(34.0 * juice)  # the surface in the bottle
+	var at := Vector2(BOTTLE_POS.x + 12, top)
+	if perfect:  # a splash that jumps up out of the neck
+		Juice.droplets(self, at, Vector2(0, -62), tones, 8, 20.0, 300.0, 0.45)
+	else:
+		Juice.droplets(self, at, Vector2(0, -26), tones, 3, 9.0, 220.0, 0.3)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -191,6 +224,8 @@ func _finish() -> void:
 	_l_hint.text = ""
 	_l_msg.text = tr("MG_PRESS_RESULT") % [stars, counts["perfect"], counts["good"], counts["miss"]]
 	_result_t = 0.0
+	if stars >= 3:
+		Juice.star_burst(self, Rect2(BOTTLE_POS.x - 20, BOTTLE_POS.y - 20, 70, 80), 50)
 	print("PRESS RESULT stars=%d perfect=%d good=%d miss=%d" % [stars, counts["perfect"], counts["good"], counts["miss"]])
 
 

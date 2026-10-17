@@ -115,7 +115,7 @@ static func dither_flash(parent: Node, rect: Rect2, color := C_GOLD, z := 30) ->
 
 ## Plays sfx `id` (or its _01 variation) on the SFX bus at `semitones` up: rising notes (stars one by one).
 ## Its own short-lived player, so the shared Audio voices keep their random pitch.
-static func sfx_pitched(owner: Node, id: String, semitones: float) -> void:
+static func sfx_pitched(owner: Node, id: String, semitones: float, volume_db := 0.0) -> void:
 	var path := SFX_DIR + id + ".wav"
 	if not ResourceLoader.exists(path):
 		path = SFX_DIR + id + "_01.wav"
@@ -125,9 +125,98 @@ static func sfx_pitched(owner: Node, id: String, semitones: float) -> void:
 	p.stream = load(path)
 	p.bus = &"SFX" if AudioServer.get_bus_index(&"SFX") >= 0 else &"Master"
 	p.pitch_scale = pow(2.0, semitones / 12.0)
+	p.volume_db = volume_db
 	owner.add_child(p)
 	p.finished.connect(p.queue_free)
 	p.play()
+
+
+## FUN-MG · A small round puff of `colors` pixels out from `at` (flour, foam, steam): `count` 2 px specks that shrink.
+static func puff(parent: Node, at: Vector2, colors: Array, count := 6, speed := 34.0, z := 45) -> Node2D:
+	var b := Burst.make(parent, at, z)
+	var r := rng()
+	for i in (maxi(1, count / 3) if calm else count):
+		var a := r.randf() * TAU
+		var v := Vector2(cos(a), sin(a) * 0.7) * speed * r.randf_range(0.4, 1.0)
+		b.add(DUST, Vector2.ZERO, v + Vector2(0, -8), 20.0, r.randf_range(0.25, 0.42), colors[i % colors.size()])
+	return b
+
+
+## FUN-MG · Juice droplets: `count` 2 px drops thrown from `at` with velocity `vel` (spread by `spread`) under gravity.
+static func droplets(parent: Node, at: Vector2, vel: Vector2, colors: Array, count := 5, spread := 14.0,
+		gravity := 260.0, life := 0.4, z := 45) -> Node2D:
+	var b := Burst.make(parent, at, z)
+	var r := rng()
+	for i in (maxi(1, count / 3) if calm else count):
+		var v := vel + Vector2(r.randf_range(-spread, spread), r.randf_range(-spread, spread) * 0.7)
+		b.add(DOT, Vector2.ZERO, v, gravity, life * r.randf_range(0.8, 1.2), colors[i % colors.size()])
+	return b
+
+
+## FUN-MG · The sparkle burst for a 3-star result, with its chime.
+static func star_burst(owner: Node2D, area: Rect2, z := 60) -> void:
+	sparkle(owner, area, 14, z)
+	sfx_pitched(owner, "sfx_sparkle", 0.0)
+
+
+## FUN-MG · A streak counter ("x2", "x3"...) that pops on every hit past the first and plays a note one step higher
+## each time; a break steps it down through palette greys and hides it (no sound, no harsh flash).
+static func combo(parent: Node, pos: Vector2, z := 12) -> Combo:
+	var c := Combo.new()
+	c.position = (pos - c.size * 0.5).round()  # `pos` is the centre
+	c.z_index = z
+	parent.add_child(c)
+	return c
+
+
+const COMBO_NOTES := [0, 2, 4, 7, 9, 12]  ## semitones above the base note, a major pentatonic climb
+
+
+class Combo extends Label:
+	var count := 0
+	var _fade: Tween
+
+	func _init() -> void:
+		size = Vector2(40, 22)
+		var bg := StyleBoxFlat.new()  # a plum tab behind the number so it reads on any background
+		bg.bg_color = C_SHADOW
+		bg.border_color = C_GOLD
+		bg.set_border_width_all(1)
+		bg.content_margin_top = 1
+		add_theme_stylebox_override("normal", bg)
+		vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		add_theme_font_size_override("font_size", 18)
+		add_theme_color_override("font_color", C_GOLD)
+		visible = false
+
+	## One more hit in a row.
+	func hit(sound := true) -> void:
+		count += 1
+		if _fade != null:
+			_fade.kill()
+		if count < 2:
+			return
+		text = tr("MG_COMBO") % count
+		add_theme_color_override("font_color", C_GOLD)
+		visible = true
+		Juice.pop(self, 1.6, 0.16)
+		if sound:
+			Juice.sfx_pitched(self, "sfx_star_pop", COMBO_NOTES[mini(count - 2, COMBO_NOTES.size() - 1)], -4.0)
+
+	## The streak broke: fade out in steps through gold, stone and shadow.
+	func broke() -> void:
+		var shown := visible and count >= 2
+		count = 0
+		if not shown:
+			return
+		if _fade != null:
+			_fade.kill()
+		_fade = create_tween()
+		for c: Color in [C_STONE, C_CREAM_LO, C_SHADOW]:
+			_fade.tween_callback(add_theme_color_override.bind("font_color", c))
+			_fade.tween_interval(0.16)
+		_fade.tween_callback(set_visible.bind(false))
 
 
 ## Pixel particles integrated per frame and drawn on whole pixels; frees itself when the last one is gone.

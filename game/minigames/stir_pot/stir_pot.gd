@@ -60,6 +60,10 @@ var _auto_t := 0.0
 var _bub_t := 0.0
 var _steam_t := 0.0
 var _sparkle_cd := 0.0
+var _combo: Juice.Combo  ## FUN-MG: skims in a row
+var _skim_gap := 0.0
+var _plop_cd := 0.0
+var _bub_cycle: Array[int] = []
 
 var _l_time: Label
 var _l_msg: Label
@@ -131,6 +135,7 @@ func _ready() -> void:
 	_l_msg.size = Vector2(480, 30)
 	_l_msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_l_msg.z_index = 10
+	_combo = Juice.combo(self, Vector2(CENTER.x, 44))
 	await get_tree().create_timer(0.2).timeout
 	if phase == Phase.IDLE:
 		var ctx := {"seed": 7, "recipe": "jam", "desc": {"appearance": {"fill": "c94d2e"}}}
@@ -170,6 +175,9 @@ func start(ctx: Dictionary) -> void:
 	bar = 0.0
 	foam.clear()
 	foam_timer = 2.0
+	_skim_gap = 0.0
+	if _combo != null:
+		_combo.broke()
 	phase = Phase.READY
 	queue_redraw()
 
@@ -238,6 +246,10 @@ func _play(dt: float) -> void:
 			Juice.sparkle(self, Rect2(GAUGE_X + 42, y - 6, 28, 12), 6, 5)
 			Audio.play_sfx("sfx_sparkle")
 	_update_foam(dt)
+	_bubble_plops(dt)
+	_skim_gap += dt
+	if _skim_gap > 4.0 and _combo.count > 0:  # a pause lets the streak go, softly
+		_combo.broke()
 	if Input.is_action_just_pressed("skim") and not foam.is_empty():
 		_skim(0)
 	Audio.set_loop_sfx("sfx_stir_loop", stir_speed > 0.05, lerpf(0.8, 1.4, clampf(stir_speed, 0.0, 1.0)))
@@ -294,7 +306,26 @@ func _perfect_feel(dt: float) -> void:
 	Juice.sparkle(self, Rect2(p.round(), Vector2.ONE), 1, 5)
 
 
+## FUN-MG: a tiny plop each time a bubble finishes its pop (own light cooldown, quiet, pitch varies by bubble).
+func _bubble_plops(dt: float) -> void:
+	_plop_cd -= dt
+	var n := 2 + int(clampf(needle, 0.0, 1.0) * 4.0) + int(clampf(stir_speed, 0.0, 1.0) * 3.0)
+	while _bub_cycle.size() < n:
+		_bub_cycle.append(int(_bub_t + float(_bub_cycle.size()) * 0.37))
+	for i in n:
+		var c := int(_bub_t + float(i) * 0.37)
+		if c != _bub_cycle[i]:
+			_bub_cycle[i] = c
+			if _plop_cd <= 0.0:
+				_plop_cd = 0.3
+				Juice.sfx_pitched(self, "sfx_bag_add", 7.0 + float((i * 5) % 6), -9.0)
+
+
 func _skim(i: int) -> void:
+	var at := (CENTER + foam[i]).round()
+	Juice.puff(self, at, [Juice.C_CREAM, Juice.C_CREAM_LO, Juice.C_STONE], 8, 36.0, 6)
+	_skim_gap = 0.0
+	_combo.hit()
 	foam.remove_at(i)
 	bar = minf(1.0, bar + SKIM_BONUS)
 	Audio.play_sfx("sfx_foam_skim")
@@ -332,8 +363,9 @@ func _finish() -> void:
 	_result_panel.visible = true
 	_result_t = 0.0
 	if stars >= 3:
-		Juice.sparkle(self, Rect2(CENTER - Vector2(44, 40), Vector2(88, 80)), 14, 5)
-		Audio.play_sfx("sfx_sparkle")
+		Juice.star_burst(self, Rect2(CENTER - Vector2(44, 40), Vector2(88, 80)), 5)
+	if _combo != null:
+		_combo.broke()
 	print("STIR RESULT stars=%d bar=%.3f" % [stars, bar])
 
 
@@ -350,15 +382,12 @@ func _draw() -> void:
 
 
 func _draw_pot() -> void:
-	draw_texture(_tinted("stir_liquid", fill_color), LIQUID_POS)
+	# FUN-MG: the jam deepens toward its dark tone as the bar fills (four steps, so the tint cache stays small)
+	var body := fill_color.lerp(tone_dark, snappedf(bar, 0.25) * 0.5)
+	draw_texture(_tinted("stir_liquid", body), LIQUID_POS)
 	draw_texture(_tinted("stir_liquid_rim", tone_dark), LIQUID_POS)
 	draw_texture(_tinted("stir_liquid_glint", tone_light), LIQUID_POS)
-	for k in 3:
-		var a := spoon_angle - 0.5 - k * 0.45
-		var rr := 26.0 + k * 10.0
-		var p0 := CENTER + Vector2(cos(a), sin(a)) * rr
-		var p1 := CENTER + Vector2(cos(a - 0.3), sin(a - 0.3)) * rr
-		draw_line(p0.round(), p1.round(), tone_light, 1.0)
+	_draw_swirl()
 	if phase == Phase.PLAY or phase == Phase.DONE:
 		_draw_bubbles()
 	var foam_tex := _t("stir_foam")
@@ -369,6 +398,22 @@ func _draw_pot() -> void:
 			Rect2(idx * SPOON_SIZE, 0, SPOON_SIZE, SPOON_SIZE))
 	if phase == Phase.PLAY or phase == Phase.DONE:
 		_draw_steam()
+
+
+## FUN-MG: three rings of palette pixels trail the spoon round the pot; the faster the stir, the longer the tail.
+## Nearest dots are light and 2 px, the tail thins to dark single pixels.
+func _draw_swirl() -> void:
+	var tail := 4 + roundi(clampf(stir_speed, 0.0, 1.2) * 8.0)
+	for k in 3:
+		var rr := 24.0 + k * 11.0
+		var lag := 0.5 + k * 0.35
+		for j in tail:
+			var a := spoon_angle - lag - j * (0.17 - k * 0.03)
+			var p := (CENTER + Vector2(cos(a), sin(a) * 0.92) * rr).round()
+			if j < tail / 2:
+				draw_rect(Rect2(p, Vector2(2, 2) if j < 2 else Vector2.ONE), tone_light)
+			else:
+				draw_rect(Rect2(p, Vector2.ONE), tone_dark)
 
 
 ## Purely visual bubbles (no RNG, no gameplay): more of them when the pot runs hot or the spoon goes fast; they

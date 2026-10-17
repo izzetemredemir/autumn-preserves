@@ -28,7 +28,7 @@ const C_GLASS_LIT := Color("567c7d")
 const C_GLASS_SHINE := Color("b4b3a0")
 const C_SHADOW := Color("3d1f29")
 const C_FULL := Color("dbcc83")
-const SETTLE_TIME := 0.18
+const SETTLE_TIME := 0.26
 const FALLBACK_FILL := Color("b7b768")
 const FALLBACK_EDGE := Color("747c37")
 
@@ -47,6 +47,7 @@ var _fall: Dictionary = {}  # {x, w, h, row, id, t}
 var _shake := 0.0
 var _settle := {}  # {id, t}: a piece that just landed hops and settles (visual only)
 var _was_full := false
+var _lid_pop_due := false  ## FUN-MG: the piece that fills the jar gets a lid-pop when it lands
 var _full_t := -1.0
 var _pending_drop := -1.0
 var _press_pos := Vector2.ZERO
@@ -316,7 +317,6 @@ func _drop_piece() -> void:
 	_settle = {}
 	_piece = {}
 	_pending_drop = -1.0
-	Audio.play_sfx("sfx_jar_piece_drop")
 	_update_fill_label()
 	queue_redraw()
 
@@ -328,6 +328,7 @@ func _update_fill_label() -> void:
 	_fill_label.add_theme_color_override("font_color", C_FULL if ratio >= 1.0 else C_TEXT)
 	if ratio >= 1.0 and not _was_full:  # the "Full!" moment, once
 		_was_full = true
+		_lid_pop_due = true
 		_full_t = 0.0
 		_full_label.visible = true
 		Juice.pop(_full_label, 2.0, 0.25)
@@ -363,6 +364,8 @@ func _finish() -> void:
 	_stars = PackJarRules.stars_for(_fill, _brine_ok)
 	_hint.text = "MG_PACK_HINT_DONE"
 	Audio.play_sfx("sfx_jar_pop")
+	if _stars >= 3:
+		Juice.star_burst(self, Rect2(JAR_X - 20, JAR_Y - 20, COLS * CELL + 40, 120), 60)
 	queue_redraw()
 
 
@@ -474,6 +477,7 @@ func _process(delta: float) -> void:
 		_fall.t += delta
 		if _fall.t >= FALL_TIME:
 			_settle = {"id": int(_fall.id), "t": 0.0}
+			_landed(int(_fall.id))
 			_fall = {}
 			_spawn_piece()
 		queue_redraw()
@@ -505,6 +509,23 @@ func _process(delta: float) -> void:
 					get_tree().quit()
 	if _autoplay:
 		_bot(delta)
+
+
+## FUN-MG: a piece touches down: a tap whose sample and pitch depend on the piece (cucumber rings tick, cabbage
+## shreds hush), a puff of dust under it and, for the piece that fills the jar, a lid-pop with a sparkle.
+func _landed(id: int) -> void:
+	var pi: Dictionary = _piece_info.get(id, {})
+	if pi.is_empty():
+		return
+	var tex_idx := maxi(PIECE_SPRITES.find(_texture_of(str(pi.type))), 0)
+	var tap := "sfx_jar_piece_drop_0%d" % (1 + tex_idx % 4)
+	Juice.sfx_pitched(self, tap, [0.0, 3.0, -3.0, 5.0, -5.0, 7.0, -2.0][tex_idx % 7])
+	var base := _cell_rect(int(pi.x), int(pi.row)).position
+	Juice.dust_puff(self, Vector2(base.x + int(pi.w) * CELL / 2.0, base.y + CELL), int(pi.w) * CELL / 2, 6)
+	if _lid_pop_due:
+		_lid_pop_due = false
+		Juice.sfx_pitched(self, "sfx_jar_pop", 2.0)
+		Juice.sparkle(self, Rect2(JAR_X, JAR_Y - 12, COLS * CELL, 18), 8, 6)
 
 
 func _process_brine(delta: float) -> void:
@@ -588,7 +609,8 @@ func _draw() -> void:
 		var pi: Dictionary = _piece_info[id]
 		var pos := _cell_rect(int(pi.x), int(pi.row) + int(pi.h) - 1).position
 		if not _settle.is_empty() and int(_settle.id) == int(id):  # landing hop: up 3 px and back, whole pixels
-			pos.y -= roundf(sin(clampf(float(_settle.t) / SETTLE_TIME, 0.0, 1.0) * PI) * 3.0)
+			var k := clampf(float(_settle.t) / SETTLE_TIME, 0.0, 1.0)
+			pos.y -= roundf(absf(sin(k * TAU)) * 3.0 * (1.0 - k))  # two bounces, the second smaller
 		_draw_piece(pos, str(pi.type), int(pi.w), int(pi.h))
 	if not _fall.is_empty():
 		var k := clampf(float(_fall.t) / FALL_TIME, 0.0, 1.0)

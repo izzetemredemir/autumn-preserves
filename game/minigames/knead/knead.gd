@@ -74,6 +74,8 @@ var _last_judge := ""
 var _last_judge_t := -10.0
 var _last_side := 0
 var _press_flash := 0.0
+var _press_age := 10.0  ## FUN-MG: seconds since the last press, drives the squash-stretch-spring
+var _combo: Juice.Combo  ## Perfect/Good in a row
 var _dragging := false
 var _pointer := Vector2(-100, -100)
 var _prev_pointer := Vector2(-100, -100)
@@ -97,6 +99,7 @@ func _ready() -> void:
 	_l_msg.size = Vector2(480, 30)
 	_l_msg.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_l_msg.z_index = 10
+	_combo = Juice.combo(self, Vector2(390, 112))
 	await get_tree().create_timer(0.2).timeout
 	if phase == Phase.IDLE:
 		var ctx := {"seed": 7, "recipe": "pie", "desc": {"appearance": {"fill": ["a22512", "c94d2e", "e19064"]}}}
@@ -127,6 +130,8 @@ func start(ctx: Dictionary) -> void:
 	perfect = 0
 	good = 0
 	miss = 0
+	if _combo != null:
+		_combo.broke()
 	points = KneadRules.ellipse_points(CENTER, LOAF_RX, LOAF_RY) if bread else KneadRules.ring_points(CENTER, RING_R)
 	hit_points.clear()
 	for i in points.size():
@@ -190,6 +195,7 @@ func _beat_ms(i: int) -> float:
 
 func _process(delta: float) -> void:
 	_press_flash = maxf(0.0, _press_flash - delta)
+	_press_age += delta
 	match phase:
 		Phase.READY:
 			if _elapsed_ms() >= READY_TIME * 1000.0:
@@ -310,13 +316,21 @@ func _press(side: int, now_us: int) -> void:
 			best = i
 	_last_side = side
 	_press_flash = 0.12
+	_press_age = 0.0
 	if best < 0 or best_err > KneadRules.GOOD_MS:
 		return  # stray press, ignored
 	_judged[best] = true
+	Juice.sfx_pitched(self, "sfx_knead_0%d" % Juice.rng().randi_range(1, 3), Juice.rng().randf_range(-1.0, 1.0))  # (not Audio: tests load this script without autoloads)
+	_flour(side, best_err <= KneadRules.PERFECT_MS)
 	if KneadRules.beat_side(best) != side:
 		_register("miss")
 	else:
 		_register(KneadRules.judge(best_err))
+
+
+## FUN-MG: a puff of flour from under the hand that pressed (more on a Perfect).
+func _flour(side: int, big: bool) -> void:
+	Juice.puff(self, Vector2(CENTER.x + side * 36, 168), [C_POINT, Juice.C_CREAM_LO, Juice.C_STONE], 10 if big else 6, 30.0, 8)
 
 
 func _register(j: String) -> void:
@@ -329,6 +343,11 @@ func _register(j: String) -> void:
 			miss += 1
 	_last_judge = j
 	_last_judge_t = Time.get_ticks_msec() / 1000.0
+	if _combo != null:
+		if j == "miss":
+			_combo.broke()
+		else:
+			_combo.hit()
 	if _l_msg != null:  # JURY-MG: Perfect / Good / Miss pop in their own colour
 		_l_msg.add_theme_color_override("font_color", JUDGE_COLORS[j])
 		Juice.pop(_l_msg, 1.5, 0.16)
@@ -341,6 +360,10 @@ func _finish() -> void:
 	trace_stars = KneadRules.trace_stars(_hit_count(), points.size())
 	stars = KneadRules.combine_stars(rhythm_stars, trace_stars)
 	_l_msg.text = tr("MG_KNEAD_DONE") % stars
+	if _combo != null:
+		_combo.broke()
+	if stars >= 3:
+		Juice.star_burst(self, Rect2(CENTER.x - 60, CENTER.y - 60, 120, 110), 50)
 	_result_t = 0.0
 	phase = Phase.DONE
 
@@ -385,7 +408,12 @@ func _draw_dough() -> void:
 	var step := KneadRules.squash_step(perfect + good)
 	var f := clampi(roundi(step * 4.0 / KneadRules.MAX_SQUASH), 0, 4)
 	# JURY-MG: the dough squashes flat on every beat (wider, shorter, bottom edge fixed) and springs back.
-	var sq := roundi(6.0 * clampf(_press_flash / 0.12, 0.0, 1.0))
+	# FUN-MG: it then overshoots tall and thin and settles (a damped spring; negative = stretch), whole pixels.
+	var sq := 0
+	if _press_age < 0.7:
+		sq = roundi(6.0 * exp(-_press_age * 9.0) * cos(_press_age * 28.0))
+		if Juice.calm:
+			sq = clampi(sq, 0, 6)
 	draw_texture_rect_region(T_DOUGH, Rect2(204 - sq, 128 + sq * 2, 72 + sq * 2, 44 - sq * 2), Rect2(f * 72, 0, 72, 44))
 	# Hands; the one that just pressed moves in and down.
 	var l_down := _press_flash > 0.0 and _last_side < 0
