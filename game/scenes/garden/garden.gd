@@ -857,7 +857,7 @@ func _todo_spot() -> GardenSpot:
 						return s
 			if step == "f_letter" or step == "d1_mail":
 				return find_spot("mailbox")
-		"kitchen", "pantry":
+		"kitchen", "pantry", "parlor":
 			return find_spot("door")
 		"wild":
 			return find_spot("gate")

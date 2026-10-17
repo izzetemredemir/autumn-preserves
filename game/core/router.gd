@@ -10,6 +10,7 @@ const SCENES := {
 	"wild": "res://scenes/wild/wild.tscn",
 	"kitchen": "res://scenes/kitchen/kitchen.tscn",
 	"pantry": "res://scenes/pantry/pantry.tscn",
+	"parlor": "res://scenes/parlor/parlor.tscn",
 	"town": "res://scenes/town/town.tscn",
 	"market": "res://scenes/market/market.tscn",
 	"farewell": "res://scenes/farewell/farewell.tscn",

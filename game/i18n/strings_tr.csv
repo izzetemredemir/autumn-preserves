@@ -879,7 +879,7 @@ TODO_HINT_D1_SHAKE,"Hadi elma ağacını silkeleyelim: yanına git, E'ye bas ya 
 TODO_HINT_D1_JAM,Ne güzel elmalar! Mutfağa girip ocakta reçel pişirelim.
 TODO_HINT_D1_PANTRY,Şimdi kavanoz kilerdeki rafa. Kilerin kapısı mutfakta.
 TODO_HINT_D1_ORDER,Fırıncı bir kavanoz istemiş. Yol tabelasından kasabaya götürelim.
-TODO_HINT_D1_BED,Ne gündü ama! Yatma vakti canım: yatak mutfağın köşesinde.
+TODO_HINT_D1_BED,Ne gündü ama! Yatma vakti canım: yatak oturma odasında.
 TODO_HINT_D2_FOREST,Hadi toplamaya: bahçe kapısından ormana çıkalım.
 TODO_HINT_D2_MUSHROOM,Mantarlar orman zemininde saklanır. Bir tane toplayalım!
 TODO_HINT_D2_BRINE,Mantarları kavanoz tezgahında turşuya yatıralım.
@@ -898,6 +898,18 @@ WILD_SURPRISE_COIN,Yaprakların arasında bozuk para! +%d
 WILD_SURPRISE_MUSHROOM,Yaprakların arasında bir mantar: %s
 WILD_SURPRISE_FOUND,Çalının içinde: %s
 WILD_SURPRISE_SPARKLE,Şanslı bir parıltı! %s
+KITCHEN_TO_PARLOR,Oturma odası
+KITCHEN_PARLOR_HINT,"Oturma odası: tarif defteri, mektuplar ve yatak."
+PARLOR_HINT,"Oturma odası: tarif defteri, mektuplar, yatak ve kedi."
+PARLOR_TO_KITCHEN,Mutfak
+PARLOR_KITCHEN_HINT,Mutfağa dön.
+PARLOR_BOOK,Tarif defteri
+PARLOR_LETTERS,Mektuplar
+PARLOR_LETTERS_HINT,Torunlardan gelen mektuplar.
+PARLOR_LETTERS_NEW,Mektuplar: torunlardan %d yeni mektup!
+PARLOR_CAT,Kedi
+PARLOR_CAT_HINT,Kedi sepetinde uyuyor. Bir sevelim mi?
+PARLOR_CAT_PURR,Mırrr... buna bayılıyor.
 UI_TIP_SOUND_ON,Ses açık (M)
 UI_TIP_SOUND_OFF,Ses kapalı (M)
 STORY_LETTER_NORA_DEAR,"Sevgili anne,"

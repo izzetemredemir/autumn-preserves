@@ -2,7 +2,8 @@ extends SceneTree
 ## Smoke shot (GD-KITCHEN): runs the kitchen alone (throwaway game + debug inventory), cooks jam on the stove
 ## (stir_pot plays itself through the ctx autoplay hook) and pickles at the jar counter (pack_jar result is
 ## emitted by this script), checks both jars reached the inbox, then keyboard open/close, the chutney vegetable
-## slot's Change picker with real mouse clicks (JURY-STOVE; Esc closes the picker first) and a night in bed. ART-GRANNY: Granny stands at the painting's scale (44x88, feet at
+## slot's Change picker with real mouse clicks (JURY-STOVE; Esc closes the picker first) and the parlour door (PARLOR: the bed
+## and the night are in parlor_shot.gd). ART-GRANNY: Granny stands at the painting's scale (44x88, feet at
 ## y 175-185), her doze chair sits under the hotspots, and a click on her skirt reaches the stove. Saves:
 ##   user://shots/kitchen.png        room after both cooks (waiting jar on the sill, To-Do glow, captions)
 ##   user://shots/kitchen_panel.png  stove panel with a filled slot and an add-in
@@ -148,27 +149,11 @@ func _run() -> void:
 	_action("cancel")
 	await _frames(4)
 
-	# --- bed: confirm, Night runs end_day, back in the kitchen on day 2
-	var day0: int = int(gs.data.day)
-	_k._on_spot("bed")
-	await _frames(2)
-	_check(_k._dialog.visible, "bed asks first")
-	_k._on_sleep()
-	await _frames(2)
-	var night: Node = null
-	for n in root.get_children():
-		if n.has_signal("finished") and n.get("after_scene") != null:
-			night = n
-	_check(night != null, "Night started")
-	t0 = Time.get_ticks_msec()
-	while night != null and not night.get("_accepting") and Time.get_ticks_msec() - t0 < 8000:
-		await process_frame
-	if night != null:
-		night._button.pressed.emit()
-	t0 = Time.get_ticks_msec()
-	while not _k._room_active and Time.get_ticks_msec() - t0 < 8000:
-		await process_frame
-	_check(int(gs.data.day) == day0 + 1 and _k._room_active, "slept: day %d -> %d" % [day0, int(gs.data.day)])
+	# --- PARLOR: the book and the bed moved next door; the parlour door (the doormat) is a captioned hotspot
+	_check(not _k._spots.has("bed") and not _k._spots.has("book"), "no bed or book hotspot in the kitchen")
+	var door: Control = _k._spots.get("parlor")
+	_check(door != null and door.is_visible_in_tree() and door.size.x >= 16 and door.size.y >= 16
+		and door.caption != null and door.caption.text == tr("KITCHEN_TO_PARLOR"), "the parlour door, captioned")
 	print("KITCHEN SMOKE ", "OK" if _fail == 0 else "FAILED (%d)" % _fail)
 	quit(1 if _fail > 0 else 0)
 

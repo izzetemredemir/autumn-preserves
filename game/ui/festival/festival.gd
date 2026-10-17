@@ -9,7 +9,7 @@ extends CanvasLayer
 ## is loaded. Progress marks live in the temporary state: flags.festival.started / ended.
 
 const LAYER := 30  ## inside GrannyTodo's popup range: the note hides while a card shows
-const QUIET_IN := ["garden", "kitchen", "pantry", "town"]
+const QUIET_IN := ["garden", "kitchen", "pantry", "parlor", "town"]
 const POPUP_LAYERS := Vector2i(12, 60)
 const START_DELAY := 0.5
 const END_DELAY := 1.2  ## after the last tick, so the note's celebration shows first

@@ -15,7 +15,7 @@ extends CanvasLayer
 signal opened
 signal closed
 
-const PLAY_SCENES := ["garden", "wild", "kitchen", "pantry", "town", "market"]
+const PLAY_SCENES := ["garden", "wild", "kitchen", "pantry", "parlor", "town", "market"]
 const LAYER := 80  ## over the HUD (10), the To-Do note (11) and the popups (12-60), under Transition (90) and Night (95)
 const THEME := "res://ui/theme/theme.tres"
 ## Loaded by path, like the autoloads below (/root/Audio, /root/GameState): this script also compiles where the

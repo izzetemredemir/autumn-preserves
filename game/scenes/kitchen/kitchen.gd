@@ -30,10 +30,11 @@ const BLINK_SEC := 0.14
 const PANEL_POS := Vector2(8, 30)
 const STICKY_MS := 4000
 ## Granny's To-Do steps that happen at a kitchen object; steps elsewhere light the door that leads there.
-const STEP_SPOT := {"d1_jam": "stove", "d1_bed": "bed", "d2_brine": "counter", "f_jam": "stove", "f_juice": "press"}
+const STEP_SPOT := {"d1_jam": "stove", "d2_brine": "counter", "f_jam": "stove", "f_juice": "press"}
 const NAV := [["move_left", SIDE_LEFT], ["move_right", SIDE_RIGHT], ["move_up", SIDE_TOP], ["move_down", SIDE_BOTTOM]]
 const Art := preload("res://scenes/kitchen/kitchen_art.gd")
 const Hotspot := preload("res://scenes/kitchen/hotspot.gd")
+const ParlorArt := preload("res://scenes/parlor/parlor_art.gd")  ## PARLOR: the book, letters and bed live next door
 const REVEAL_SEC := 1.5  ## every caption shows this long when Granny walks in
 const CookPanel := preload("res://scenes/kitchen/cook_panel.gd")
 const Shelf := preload("res://scenes/kitchen/waiting_shelf.gd")
@@ -162,11 +163,14 @@ func _build_room() -> void:
 	_room.add_child(_doze)
 	var captions := {
 		"garden": tr("KITCHEN_TO_GARDEN"), "stove": tr("KITCHEN_STOVE"), "counter": tr("KITCHEN_COUNTER"),
-		"cupboard": tr("KITCHEN_CUPBOARD"), "pantry": tr("KITCHEN_TO_PANTRY"), "bed": tr("KITCHEN_BED_CAPTION"),
+		"cupboard": tr("KITCHEN_CUPBOARD"), "pantry": tr("KITCHEN_TO_PANTRY"), "parlor": tr("KITCHEN_TO_PARLOR"),
 		"press": tr("KITCHEN_PRESS"), "board": tr("KITCHEN_BOARD"),
 	}
 	var rects: Dictionary = Art.OBJECTS.duplicate()
 	rects.merge(Art.P1_OBJECTS)
+	rects.erase("book")
+	rects.erase("bed")
+	rects["parlor"] = ParlorArt.KITCHEN_DOOR
 	for kind: String in rects:
 		var h: Button = Hotspot.new()
 		_room.add_child(h)
@@ -177,6 +181,8 @@ func _build_room() -> void:
 		h.mouse_exited.connect(_on_spot_leave)
 		h.focus_exited.connect(_on_spot_leave)
 		_spots[kind] = h
+	_spots.parlor.add_child(ParlorArt.KitchenDoor.new())
+	_spots.parlor.move_child(_spots.parlor.get_child(-1), 0)
 	_shelf = Shelf.new()
 	_room.add_child(_shelf)
 	_shelf.hovered.connect(_on_shelf_hover)
@@ -314,8 +320,8 @@ func _update_glow() -> void:
 		spot = STEP_SPOT[step]
 	elif step != "":
 		var scene := String(TodoRules.SCENE_OF.get(step, ""))
-		if scene == "pantry":
-			spot = "pantry"
+		if scene == "pantry" or scene == "parlor":
+			spot = scene
 		elif scene != "" and scene != "kitchen":
 			spot = "garden"
 	if spot == _glow:
@@ -380,16 +386,14 @@ func _spot_hint(kind: String) -> String:
 			return tr("KITCHEN_STOVE_HINT")
 		"counter":
 			return tr("KITCHEN_COUNTER_HINT")
-		"book":
-			return tr("KITCHEN_BOOK_HINT")
+		"parlor":
+			return tr("KITCHEN_PARLOR_HINT")
 		"cupboard":
 			return tr("KITCHEN_CUPBOARD_HINT")
 		"pantry":
 			return tr("KITCHEN_PANTRY_HINT") % GameState.data.inbox.size()
 		"garden":
 			return tr("KITCHEN_GARDEN_HINT")
-		"bed":
-			return tr("KITCHEN_BED_HINT")
 		"press":
 			return tr("KITCHEN_PRESS_HINT")
 		"board":
@@ -440,8 +444,8 @@ func _on_spot(kind: String) -> void:
 			_open_panel("press")
 		"board":
 			_open_panel("knead")
-		"book":
-			_open_book()
+		"parlor":
+			_go("parlor")
 		"cupboard":
 			Audio.play_ui("ui_click")
 			_say(tr("KITCHEN_CUPBOARD_HINT"), true)
@@ -449,8 +453,6 @@ func _on_spot(kind: String) -> void:
 			_go("pantry")
 		"garden":
 			_go("garden" if Router.exists("garden") else "wild")
-		"bed":
-			_ask_bed()
 
 
 func _go(target: String) -> void:
@@ -459,7 +461,7 @@ func _go(target: String) -> void:
 		_say(tr("KITCHEN_DOOR_LATER"), true)
 		return
 	Audio.play_sfx("sfx_door_open")
-	if target != "pantry":
+	if target not in ["pantry", "parlor"]:
 		Audio.set_indoor(false)
 	_set_room_active(false)
 	if ResourceLoader.exists(TRANSITION_GD):

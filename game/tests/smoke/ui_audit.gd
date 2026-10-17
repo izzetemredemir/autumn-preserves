@@ -56,6 +56,7 @@ func _run() -> void:
 		"seed_lab": "res://scenes/seed_lab/seed_lab.tscn",
 		"town": "res://scenes/town/town.tscn",
 		"kitchen": "res://scenes/kitchen/kitchen.tscn",
+		"parlor": "res://scenes/parlor/parlor.tscn",
 		"wild": "res://scenes/wild/wild.tscn",
 		"wild_map": "res://scenes/wild/wild_map.tscn",
 	}

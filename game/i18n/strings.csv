@@ -879,7 +879,7 @@ TODO_HINT_D1_SHAKE,"Let's shake the apple tree: walk up to it and press E, or cl
 TODO_HINT_D1_JAM,Lovely apples! Into the kitchen: let's cook a jam at the stove.
 TODO_HINT_D1_PANTRY,Now the jar goes on a pantry shelf. The pantry door is in the kitchen.
 TODO_HINT_D1_ORDER,"The baker ordered a jar. Let's take it to town, past the road sign."
-TODO_HINT_D1_BED,"What a day! Time for bed, dear: the bed nook is in the kitchen."
+TODO_HINT_D1_BED,"What a day! Time for bed, dear: the bed nook is in the parlour."
 TODO_HINT_D2_FOREST,Let's go foraging: out the garden gate to the forest.
 TODO_HINT_D2_MUSHROOM,Mushrooms hide on the forest floor. Let's pick one!
 TODO_HINT_D2_BRINE,Let's brine the mushrooms in a jar at the jar counter.
@@ -898,6 +898,18 @@ WILD_SURPRISE_COIN,A coin in the leaves! +%d
 WILD_SURPRISE_MUSHROOM,A mushroom in the leaves: %s
 WILD_SURPRISE_FOUND,Tucked in the bush: %s
 WILD_SURPRISE_SPARKLE,A lucky sparkle! %s
+KITCHEN_TO_PARLOR,Parlour
+KITCHEN_PARLOR_HINT,"Parlour: the recipe book, the letters and the bed."
+PARLOR_HINT,"The parlour: the recipe book, the letters, the bed and the cat."
+PARLOR_TO_KITCHEN,Kitchen
+PARLOR_KITCHEN_HINT,Back to the kitchen.
+PARLOR_BOOK,Recipe book
+PARLOR_LETTERS,Letters
+PARLOR_LETTERS_HINT,Letters from the grandchildren.
+PARLOR_LETTERS_NEW,Letters: %d new from the grandchildren!
+PARLOR_CAT,Cat
+PARLOR_CAT_HINT,The cat naps in her basket. Give her a pet?
+PARLOR_CAT_PURR,Purrr... she loves that.
 UI_TIP_SOUND_ON,Sound on (M)
 UI_TIP_SOUND_OFF,Sound off (M)
 STORY_LETTER_NORA_DEAR,"Dear Mum,"

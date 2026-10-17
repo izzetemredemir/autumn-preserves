@@ -20,7 +20,7 @@ const BITS := {
 const CLOSED_BIT := 15
 ## Scene each step happens in, so scenes can make the step's object glow (spec §8.5).
 const SCENE_OF := {
-	"d1_mail": "garden", "d1_shake": "garden", "d1_jam": "kitchen", "d1_pantry": "pantry", "d1_order": "town", "d1_bed": "kitchen",
+	"d1_mail": "garden", "d1_shake": "garden", "d1_jam": "kitchen", "d1_pantry": "pantry", "d1_order": "town", "d1_bed": "parlor",
 	"d2_forest": "wild", "d2_mushroom": "wild", "d2_brine": "kitchen", "d2_sell": "town",
 	"f_shake": "wild", "f_jam": "kitchen", "f_juice": "kitchen", "f_pantry": "pantry", "f_market": "town",
 	"f_letter": "garden",
