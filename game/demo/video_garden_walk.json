@@ -1,0 +1,6 @@
+[
+	{"t": 0.0, "locale": "tr", "scene": "res://scenes/garden/garden.tscn", "do": "festival_load", "args": ["", {}, true], "note": "TRAILER: the garden in the golden morning"},
+	{"t": 0.0, "do": "garden_prep", "args": ["sunny"]},
+	{"t": 0.8, "do": "garden_spot", "args": ["gate"], "note": "Granny walks from the door to the gate"},
+	{"dt": 6.0, "quit": true}
+]

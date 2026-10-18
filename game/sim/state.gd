@@ -72,6 +72,38 @@ static func _garden_variety(varieties: Dictionary, type: String, r: RandomNumber
 	return ids[r.randi_range(0, ids.size() - 1)]
 
 
+## PANTRY-STACKS: merges duplicate fresh/nut stacks of old saves once. Bag and inbox merge into the first stack of the
+## variety (smaller days_left and nights win); on the shelf a duplicate entry folds into the first entry of the variety.
+static func normalize_stacks(state: Dictionary) -> void:
+	for where in ["bag", "inbox"]:
+		if not state.has(where):
+			continue
+		var out: Array = []
+		for item in state[where]:
+			Forage.add_stacked(out, item)
+		state[where] = out
+	if not state.has("pantry"):
+		return
+	var kept: Array = []
+	for e in state.pantry.get("items", []):
+		var it: Dictionary = e.item
+		var host: Dictionary = {}
+		if it.get("kind", "") in ["fresh", "nut"]:
+			for k in kept:
+				if Forage._same_stack(k.item, it) and int(k.item.count) + int(it.count) <= Forage._stack_max(it):
+					host = k
+					break
+		if host.is_empty():
+			kept.append(e)
+			continue
+		var h: Dictionary = host.item
+		h.count = int(h.count) + int(it.count)
+		if it.kind == "fresh":
+			h.days_left = mini(int(h.days_left), int(it.days_left))
+			h.nights = mini(int(h.get("nights", 0)), int(it.get("nights", 0)))
+	state.pantry.items = kept
+
+
 static func fresh(variety_id: String, count: int, days_left: int) -> Dictionary:
 	return {"kind": "fresh", "variety": variety_id, "count": count, "days_left": days_left, "nights": 0}
 

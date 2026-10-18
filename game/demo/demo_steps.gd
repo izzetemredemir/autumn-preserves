@@ -711,3 +711,29 @@ func pantry_stock(recipe: String = "jam", type: String = "crabapple", rarity: St
 			_gs().notify(PackedStringArray(["inbox", "pantry", "cupboard", "energy", "book", "stats"]))
 			return
 	push_warning("demo: could not stock a %s %s" % [rarity, type])
+
+
+## TRAILER · Granny nods off in her rocking chair (kitchen doze, a hint day): sets a hint day in the temporary game and
+## fills the idle clock, so the doze starts at once.
+func kitchen_doze(hold: float = 6.0) -> void:
+	var k := _scene()
+	_gs().data.day = 92
+	var t := 0.0
+	while t < hold and is_instance_valid(k):
+		if k._can_doze() and not k._doze.visible:
+			k._idle = k.DOZE_AFTER
+		t += get_process_delta_time()
+		await get_tree().process_frame
+
+
+## TRAILER · The day-30 visit film (scenes/finale): jumps to `t` seconds into it (kitchen 0-8, garden 8-18, snow 18-28).
+func finale_seek(t: float) -> void:
+	_scene().seek(t)
+
+
+## TRAILER · The snow beat without its spoilers: no children and no line, only the snowy garden, Granny and the cat.
+func finale_snow_clean() -> void:
+	var snow: Node = _scene().shot("snow")
+	for id in snow._figs:
+		snow._figs[id].visible = false
+	snow._snow._line_box.visible = false

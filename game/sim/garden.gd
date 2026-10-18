@@ -120,27 +120,9 @@ static func ensure_beds(state: Dictionary) -> bool:
 	return beds.size() > before
 
 
-## Adds an item to the bag, topping up equal stacks (same variety + days_left, or same nut type) to rules.stack.
+## Adds an item to the bag, merging into the variety's stack (Forage.add_stacked, PANTRY-STACKS).
 static func add_to_bag(state: Dictionary, item: Dictionary) -> void:
-	var stack: Dictionary = Data.rules().stack
-	var cap := int(stack.nut_max) if item.kind == "nut" else int(stack.fresh_max)
-	var left := int(item.count)
-	for b in state.bag:
-		if left <= 0:
-			break
-		if b.kind != item.kind or int(b.count) >= cap:
-			continue
-		var same: bool = (b.kind == "nut" and b.type == item.type) or \
-			(b.kind == "fresh" and b.variety == item.variety and int(b.days_left) == int(item.days_left))
-		if same:
-			var put := mini(cap - int(b.count), left)
-			b.count = int(b.count) + put
-			left -= put
-	while left > 0:
-		var part := item.duplicate(true)
-		part.count = mini(cap, left)
-		left -= int(part.count)
-		state.bag.append(part)
+	Forage.add_stacked(state.bag, item)
 
 
 ## Fresh item of a garden variety, or a nut stack for nut trees (walnut).

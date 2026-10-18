@@ -1,0 +1,5 @@
+[
+	{"t": 0.0, "locale": "tr", "scene": "res://scenes/kitchen/kitchen.tscn", "do": "festival_load", "args": [""], "note": "TRAILER: Granny dozing at the stove"},
+	{"t": 0.3, "do": "kitchen_doze", "note": "a hint day, idle clock full: she nods off in her chair"},
+	{"dt": 6.0, "quit": true}
+]

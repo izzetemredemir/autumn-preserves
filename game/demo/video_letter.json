@@ -1,5 +1,5 @@
 [
-	{"t": 0.0, "scene": "res://scenes/garden/garden.tscn", "do": "festival_load", "args": ["", {}, true]},
+	{"t": 0.0, "locale": "tr", "scene": "res://scenes/garden/garden.tscn", "do": "festival_load", "args": ["", {}, true]},
 	{"t": 0.0, "do": "garden_prep", "args": ["sunny"]},
 	{"t": 0.6, "do": "letters_reply", "args": ["mia", 2], "note": "Mia's letter with her drawing"},
 	{"dt": 4.5, "do": "letters_close"},

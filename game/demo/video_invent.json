@@ -1,5 +1,5 @@
 [
-	{"t": 0.0, "scene": "res://scenes/kitchen/kitchen.tscn", "do": "festival_load", "args": [""], "note": "VIDEO-02: the festival kitchen"},
+	{"t": 0.0, "locale": "tr", "scene": "res://scenes/kitchen/kitchen.tscn", "do": "festival_load", "args": [""], "note": "VIDEO-02: the festival kitchen"},
 	{"t": 1.0, "do": "kitchen_spot", "args": ["stove"]},
 	{"dt": 1.8, "do": "kitchen_invent", "args": [["apple", "pear"]], "note": "Invent panel opens with picks"},
 	{"dt": 4.0, "do": "kitchen_invent_cook", "args": [10.0, 34.0], "note": "Cook: New creation!"},

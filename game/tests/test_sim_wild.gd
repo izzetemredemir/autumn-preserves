@@ -389,8 +389,8 @@ func test_forage_empty_bag_merges_stacks() -> void:
 	s.bag = [State.fresh("apple_1", 4, 6), State.fresh("apple_1", 1, 5), State.nut("walnut", 7), State.nut("walnut", 6)]
 	Forage.empty_bag_to_inbox(s)
 	assert_eq(s.bag, [])
-	assert_eq(s.inbox, [State.fresh("apple_1", 5, 6), State.fresh("apple_1", 2, 6), State.fresh("apple_1", 1, 5),
-		State.nut("walnut", 10), State.nut("walnut", 3)])
+	# PANTRY-STACKS: the apples are one stack (8) with the smaller days_left, nuts still split at nut_max
+	assert_eq(s.inbox, [State.fresh("apple_1", 8, 5), State.nut("walnut", 10), State.nut("walnut", 3)])
 	var total := 0
 	for it in s.inbox:
 		total += int(it.count)
@@ -403,8 +403,46 @@ func test_forage_bag_stacks_on_pick() -> void:
 	Forage.add_stacked(list, State.fresh("pear_1", 3, 4))
 	Forage.add_stacked(list, State.fresh("pear_1", 3, 4))
 	Forage.add_stacked(list, State.fresh("pear_1", 3, 3))
-	assert_eq(list, [State.fresh("pear_1", 5, 4), State.fresh("pear_1", 1, 4), State.fresh("pear_1", 3, 3)])
+	# PANTRY-STACKS: one stack per variety, the smaller days_left wins
+	assert_eq(list, [State.fresh("pear_1", 9, 3)])
 	assert_eq(int(s.energy), int(Data.rules().energy.base))
+
+
+func test_stacks_one_per_variety() -> void:
+	var list: Array = []
+	Forage.add_stacked(list, State.fresh("apple_1", 6, 6))
+	Forage.add_stacked(list, State.fresh("apple_1", 6, 5))
+	assert_eq(list, [State.fresh("apple_1", 12, 5)], "two days, one stack, min days_left")
+	var shake: Array = []
+	Forage.add_stacked(shake, State.fresh("apple_1", 17, 6))
+	assert_eq(shake.size(), 1, "a 17-apple shake is one stack")
+	assert_eq(int(shake[0].count), 17)
+
+
+func test_empty_bag_merges_into_inbox_stack() -> void:
+	var s := _game()
+	s.inbox = [State.fresh("apple_1", 4, 3)]
+	s.bag = [State.fresh("apple_1", 7, 6), State.fresh("pear_1", 2, 4)]
+	Forage.empty_bag_to_inbox(s)
+	assert_eq(s.inbox, [State.fresh("apple_1", 11, 3), State.fresh("pear_1", 2, 4)])
+	assert_eq(s.bag, [])
+
+
+func test_old_save_stacks_are_normalised() -> void:
+	var s := _game()
+	s.bag = [State.fresh("apple_1", 5, 6), State.fresh("apple_1", 5, 6), State.fresh("apple_1", 2, 4)]
+	s.inbox = [State.fresh("pear_1", 3, 4), State.fresh("pear_1", 1, 2)]
+	s.pantry.items = [
+		{"item": State.fresh("quince_1", 5, 5), "x": 0, "y": 0, "rot": 0},
+		{"item": State.fresh("quince_1", 2, 3), "x": 2, "y": 0, "rot": 0},
+	]
+	State.normalize_stacks(s)
+	assert_eq(s.bag, [State.fresh("apple_1", 12, 4)])
+	assert_eq(s.inbox, [State.fresh("pear_1", 4, 2)])
+	assert_eq(s.pantry.items.size(), 1)
+	assert_eq(s.pantry.items[0].item, State.fresh("quince_1", 7, 3))
+	State.normalize_stacks(s)
+	assert_eq(s.bag.size(), 1, "idempotent")
 
 
 # ---------------- helpers ----------------

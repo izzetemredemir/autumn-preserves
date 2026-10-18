@@ -9,6 +9,7 @@ extends Node
 ##   {"do": "seed_lab", "args": [452]}                 a route step of res://demo/demo_steps.gd (game methods)
 ##   {"call": "@scene/%Grow", "method": "grab_focus"}  a node method; "@scene" is the current scene
 ##   {"tap": [240, 150]}  a click at base-res coords · {"action": "ui_accept"} · {"quit": true}
+##   "locale": "tr"      on the first event: TranslationServer.set_locale before the first scene (settings.cfg untouched)
 ##   "note": free text, ignored (says what the viewer sees)
 ## Events at t <= 0 run in _ready(), before the main scene loads (start a recording inside a scene).
 ## Time is counted in frames of unscaled time, so a step that fast-forwards (Engine.time_scale) keeps the
@@ -35,6 +36,8 @@ func _ready() -> void:
 		set_process(false)
 		return
 	_events = _timed(parsed)
+	if not _events.is_empty() and _events[0].has("locale"):  # additive: absent = the player's language, unchanged
+		TranslationServer.set_locale(String(_events[0]["locale"]))
 	if ResourceLoader.exists(STEPS):
 		steps = (load(STEPS) as GDScript).new()
 		steps.name = "Steps"

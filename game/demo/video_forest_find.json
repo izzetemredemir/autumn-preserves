@@ -1,5 +1,5 @@
 [
-	{"t": 0.0, "scene": "res://scenes/wild/wild.tscn", "do": "festival_load", "args": ["", {"biome": "forest"}, true], "note": "VIDEO-02: the festival forest, already grown"},
+	{"t": 0.0, "locale": "tr", "scene": "res://scenes/wild/wild.tscn", "do": "festival_load", "args": ["", {"biome": "forest"}, true], "note": "VIDEO-02: the festival forest, already grown"},
 	{"t": 0.8, "do": "wild_shake_rare", "note": "Granny walks to the rare tree and shakes it: New find"},
 	{"dt": 6.0, "do": "wild_pick_species", "note": "the new species beside it: the New species card"},
 	{"dt": 6.0, "quit": true}

@@ -1,5 +1,5 @@
 [
-	{"t": 0.0, "scene": "res://scenes/kitchen/kitchen.tscn", "do": "festival_load", "args": [""], "note": "VIDEO-02: the festival kitchen"},
+	{"t": 0.0, "locale": "tr", "scene": "res://scenes/kitchen/kitchen.tscn", "do": "festival_load", "args": [""], "note": "VIDEO-02: the festival kitchen"},
 	{"t": 0.8, "do": "kitchen_spot", "args": ["stove"], "note": "the new stove panel"},
 	{"dt": 1.4, "do": "kitchen_pick", "args": ["jam", "crabapple", "rare"]},
 	{"dt": 1.8, "do": "kitchen_cook", "args": [10.0, 34.0], "note": "the stir plays itself, fast-forwarded, then the result card"},

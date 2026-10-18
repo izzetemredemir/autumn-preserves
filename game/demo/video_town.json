@@ -1,5 +1,5 @@
 [
-	{"t": 0.0, "scene": "res://scenes/town/town.tscn", "do": "festival_load", "args": [""], "note": "VIDEO-02: the town square"},
+	{"t": 0.0, "locale": "tr", "scene": "res://scenes/town/town.tscn", "do": "festival_load", "args": [""], "note": "VIDEO-02: the town square"},
 	{"t": 1.5, "do": "town_neighbour", "args": ["baker"], "note": "Rosie waves, her page opens"},
 	{"dt": 4.5, "quit": true}
 ]

@@ -86,8 +86,9 @@ static func empty_bag_to_inbox(state: Dictionary) -> void:
 	state.bag = []
 
 
-## Adds `item` to an item list: fills matching stacks up to rules.stack (fresh: same variety + days_left;
-## nut: same type), then appends new stacks. Products are appended as they are.
+## Adds `item` to an item list: fills matching stacks up to rules.stack (fresh: same variety, any days_left, the
+## merged stack keeps the smaller days_left and nights; nut: same type), then appends new stacks. Products are
+## appended as they are. PANTRY-STACKS.
 static func add_stacked(list: Array, item: Dictionary) -> void:
 	if not item.has("count"):
 		list.append(item.duplicate(true))
@@ -104,6 +105,9 @@ static func add_stacked(list: Array, item: Dictionary) -> void:
 			continue
 		var add := mini(room, left)
 		s.count = int(s.count) + add
+		if s.kind == "fresh":
+			s.days_left = mini(int(s.days_left), int(item.days_left))
+			s.nights = mini(int(s.get("nights", 0)), int(item.get("nights", 0)))
 		left -= add
 	while left > 0:
 		var part := item.duplicate(true)
@@ -225,7 +229,7 @@ static func _same_stack(a: Dictionary, b: Dictionary) -> bool:
 		return false
 	match b.kind:
 		"fresh":
-			return a.variety == b.variety and int(a.days_left) == int(b.days_left)
+			return a.variety == b.variety
 		"nut":
 			return a.type == b.type
 	return false

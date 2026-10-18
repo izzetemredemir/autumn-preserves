@@ -55,10 +55,12 @@ func backup_day99(state: Dictionary) -> bool:
 func load_game(path: String = PATH) -> Dictionary:
 	var d := _read_dict(path)
 	if not d.is_empty():
+		State.normalize_stacks(d)
 		return d
 	var bak := _read_dict(_bak(path))
 	if not bak.is_empty():
 		print("Save: %s missing or unreadable, loaded the backup %s" % [path, _bak(path)])
+		State.normalize_stacks(bak)
 		return bak
 	return {}
 

@@ -1,5 +1,5 @@
 [
-	{"t": 0.0, "scene": "res://scenes/market/market.tscn", "do": "festival_load", "args": [""], "note": "VIDEO-01 market clip: the festival save (a market day, a full pantry) before the market loads"},
+	{"t": 0.0, "locale": "tr", "scene": "res://scenes/market/market.tscn", "do": "festival_load", "args": [""], "note": "VIDEO-01 market clip: the festival save (a market day, a full pantry) before the market loads"},
 	{"t": 0.0, "do": "market_prep", "args": ["sunny"], "note": "a sunny market day"},
 	{"t": 0.8, "do": "market_fill", "note": "the counter fills from the pantry"},
 	{"dt": 1.0, "do": "market_open", "note": "the living crowd: buyers, browsers, strollers, vendors, birds and the dog, at walking pace"},
