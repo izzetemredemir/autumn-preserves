@@ -1016,3 +1016,4 @@ UI_TIP_TODO,Granny's note
 UI_BAG_TITLE,Bag
 UI_BAG_EMPTY,Nothing in the bag yet.
 UI_BAG_HINT,"Empties into the pantry basket when you go indoors."
+LET_NO_NEW,No new letters. The old ones are in the parlour.

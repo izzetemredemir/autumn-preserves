@@ -271,7 +271,7 @@ func _guide_button(text: String, skip: int) -> Control:
 
 ## Post office (P1-LETTERS): grandchild letters and the parcel screen, as an overlay.
 func _on_post_office() -> void:
-	LettersUI.open()
+	LettersUI.open(-1, true)  # POST-UNREAD: only new letters here; the read ones are in the parlour
 
 
 ## Esc closes the jar picker; with nothing open it is left to the in-game menu (PAUSE-MENU; Back leaves the square).

@@ -7,6 +7,7 @@ extends CanvasLayer
 ## PAUSE-MENU: a gear at the status bar's right end opens the in-game menu (ui/pause); Esc opens it too.
 
 const TOAST_SECONDS := 2.0
+const PEEK_SECONDS := 2.0
 const BAR_W := 472  ## HUD-BAR: x 4..476 on the 480 px screen
 
 const ICON_DIR := "res://assets/sprites/ui/"
@@ -38,6 +39,12 @@ var _sound_btn: TextureButton
 var _toast_holder: Control
 var _toast_tween: Tween
 var _ui_root: Control
+var _bag_frame: Panel  ## BAG-VIEW: 1-px gold hover frame around the bag icon + count
+var _caret: Polygon2D  ## BAG-VIEW: little arrow from the icon to the open panel
+var _bag_pulse: Tween
+var _peeking := false  ## the panel opened by itself and closes after PEEK_SECONDS
+var _prev_bag := -1
+static var _full_peek_day := -1  ## the day the bag last filled up and peeked (once a day)
 var _bag_panel: BagPanel  ## BAG-VIEW: the contents panel under the bar (null while closed)
 
 
@@ -93,6 +100,8 @@ func _build() -> void:
 		c.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		c.tooltip_text = tr("UI_TIP_BAG")
 		c.gui_input.connect(_on_bag_input)
+		c.mouse_entered.connect(_bag_hover.bind(true))
+		c.mouse_exited.connect(_bag_hover.bind(false))
 	row.add_child(_icon("icon_coin", "UI_TIP_COINS"))
 	_coins_label = Label.new()
 	row.add_child(_coins_label)
@@ -121,6 +130,9 @@ func _build() -> void:
 	_refresh_sound()
 	row.add_child(PauseMenu.button())  # PAUSE-MENU: the gear at the bar's right end (Esc opens the same menu)
 
+	var hand := load(ICON_DIR + "ui_cursor_hand.png") as Texture2D
+	if hand != null:
+		Input.set_custom_mouse_cursor(hand, Input.CURSOR_POINTING_HAND, CURSOR_HOTSPOT)
 	var cursor := load(ICON_DIR + "ui_cursor.png") as Texture2D
 	if cursor != null:
 		Input.set_custom_mouse_cursor(cursor, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
@@ -144,6 +156,75 @@ func _on_bag_input(event: InputEvent) -> void:
 		toggle_bag()
 
 
+## BAG-VIEW: while the bag is full the icon and count alternate gold / normal every 0.8 s (whole-colour steps).
+func _set_pulse(on: bool) -> void:
+	if on == (_bag_pulse != null and _bag_pulse.is_valid()):
+		return
+	if _bag_pulse != null:
+		_bag_pulse.kill()
+		_bag_pulse = null
+	_bag_icon.modulate = Color.WHITE
+	if not on:
+		return
+	_bag_pulse = create_tween().set_loops()
+	_bag_pulse.tween_callback(func() -> void: _bag_icon.modulate = C_GOLD)
+	_bag_pulse.tween_interval(0.8)
+	_bag_pulse.tween_callback(func() -> void: _bag_icon.modulate = Color.WHITE)
+	_bag_pulse.tween_interval(0.8)
+
+
+## The 1-px frame the hotspots use, drawn around the icon and its count on hover.
+func _bag_hover(on: bool) -> void:
+	if _bag_frame == null:
+		_bag_frame = Panel.new()
+		var sb := StyleBoxFlat.new()
+		sb.draw_center = false
+		sb.set_border_width_all(1)
+		sb.border_color = C_GOLD
+		_bag_frame.add_theme_stylebox_override("panel", sb)
+		_bag_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_ui_root.add_child(_bag_frame)
+	if on:
+		var r := _bag_icon.get_global_rect().merge(_bag_label.get_global_rect()).grow(2)
+		_bag_frame.position = r.position.floor()
+		_bag_frame.size = r.size.floor()
+	_bag_frame.visible = on
+
+
+## First thing in the bag in this save (flags.bag_seen), and the bag filling up (once a day): the panel opens by itself
+## for PEEK_SECONDS so the player learns the icon opens it. Never blocks anything.
+func _bag_peek_check(d: Dictionary, full: bool) -> void:
+	var n := Forage.bag_count(d)
+	var prev := _prev_bag
+	_prev_bag = n
+	if _bag_panel != null or get_tree().paused or _ui_root == null:
+		return
+	var flags: Dictionary = d.get("flags", {})
+	var day := int(d.get("day", 1))
+	if n > 0 and not bool(flags.get("bag_seen", false)):
+		flags["bag_seen"] = true
+		d["flags"] = flags
+		_peek()
+	elif full and prev >= 0 and prev < n and _full_peek_day != day:
+		_full_peek_day = day
+		_peek()
+
+
+func _peek() -> void:
+	await get_tree().process_frame  # the bar's layout is settled
+	await get_tree().process_frame
+	if _bag_panel != null or not is_inside_tree():
+		return
+	toggle_bag()
+	if _bag_panel == null:
+		return
+	_peeking = true
+	var panel := _bag_panel
+	get_tree().create_timer(PEEK_SECONDS).timeout.connect(func() -> void:
+		if _peeking and _bag_panel == panel:
+			close_bag())
+
+
 func toggle_bag() -> void:
 	if _bag_panel != null:
 		close_bag()
@@ -153,9 +234,19 @@ func toggle_bag() -> void:
 	_bag_panel = BagPanel.new()
 	_ui_root.add_child(_bag_panel)
 	_bag_panel.position = Vector2(4, maxi(24, int(_bar.get_global_rect().end.y) + 2))
+	_caret = Polygon2D.new()  # a little arrow from the icon down to the panel
+	var cx := floorf(_bag_icon.get_global_rect().get_center().x)
+	var top := _bag_panel.position.y
+	_caret.polygon = PackedVector2Array([Vector2(cx - 4, top), Vector2(cx + 4, top), Vector2(cx, top - 4)])
+	_caret.color = C_CREAM
+	_ui_root.add_child(_caret)
 
 
 func close_bag() -> void:
+	_peeking = false
+	if _caret != null:
+		_caret.queue_free()
+		_caret = null
 	if _bag_panel != null:
 		_bag_panel.queue_free()
 		_bag_panel = null
@@ -195,10 +286,13 @@ func _refresh() -> void:
 	_energy_bar.max_value = emax
 	_energy_bar.value = e
 	_bag_label.text = str(Forage.bag_count(d))
-	if BagPanel.is_full(d):  # BAG-VIEW: the number itself says "full"
+	var full := BagPanel.is_full(d)
+	if full:  # BAG-VIEW: the number itself says "full"
 		_bag_label.add_theme_color_override("font_color", C_GOLD)
 	else:
 		_bag_label.remove_theme_color_override("font_color")
+	_set_pulse(full)
+	_bag_peek_check(d, full)
 	if _bag_panel != null:
 		_bag_panel.refresh()
 	_coins_label.text = str(int(d.get("coins", 0)))

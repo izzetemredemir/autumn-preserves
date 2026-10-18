@@ -32,6 +32,7 @@ func _run() -> void:
 	var vids: Array = d.varieties.keys()
 	vids.sort()
 	d.bag = []
+	d.flags.bag_seen = true  # the auto-peek has its own checks below
 	var cap := Forage.bag_capacity(d)
 	var i := 0
 	while Forage.bag_count(d) < cap:
@@ -78,6 +79,17 @@ func _run() -> void:
 	await _click(Vector2(400, 200))
 	await _frames(4)
 	_check(not hud.is_bag_open(), "a click outside closes it")
+	# pulse: the icon alternates gold / white while full, stops when there is room
+	_check(hud._bag_pulse != null and hud._bag_pulse.is_valid(), "full bag: the icon pulses")
+	var seen := {}
+	for k in 40:
+		seen[hud._bag_icon.modulate] = true
+		await _frames(5)
+	_check(seen.size() == 2 and seen.has(GOLD), "the pulse alternates between gold and the normal colour")
+	_shot("bag_pulse")
+	hud._bag_hover(true)
+	_check(hud._bag_frame.visible and hud._bag_frame.size.x > 16, "hover: the 1-px frame shows around icon and count")
+	hud._bag_hover(false)
 	# empty bag
 	d.bag = []
 	gs.notify(PackedStringArray(["bag"]))
@@ -88,6 +100,30 @@ func _run() -> void:
 	_shot("bag_empty")
 	_key(KEY_I)
 	await _frames(2)
+	_check(not (hud._bag_pulse != null and hud._bag_pulse.is_valid()) and hud._bag_icon.modulate == Color.WHITE, "room again: the pulse stops")
+	# auto-peek: the first thing in the bag opens the panel by itself, then it closes
+	d.flags.erase("bag_seen")
+	d.bag = [State.fresh(vids[0], 2, 5)]
+	gs.notify(PackedStringArray(["bag"]))
+	await _frames(20)
+	_check(hud.is_bag_open() and hud._peeking and d.flags.get("bag_seen", false), "first pick: the panel peeks and bag_seen is set")
+	_check(hud._caret != null, "the arrow from the icon shows")
+	_shot("bag_peek")
+	await create_timer(2.3).timeout
+	_check(not hud.is_bag_open() and hud._caret == null, "the peek closes by itself after 2 s")
+	# full for the first time today
+	d.bag = [State.fresh(vids[0], cap - 1, 5)]
+	gs.notify(PackedStringArray(["bag"]))
+	await _frames(4)
+	d.bag.append(State.fresh(vids[1], 1, 5))
+	gs.notify(PackedStringArray(["bag"]))
+	await _frames(20)
+	_check(hud.is_bag_open(), "bag becomes full: the panel peeks")
+	await create_timer(2.3).timeout
+	_check(not hud.is_bag_open(), "and closes again")
+	d.bag = []
+	gs.notify(PackedStringArray(["bag"]))
+	await _frames(4)
 	# other scenes: the key and Esc
 	for sc in ["res://scenes/wild/wild.tscn", "res://scenes/kitchen/kitchen.tscn"]:
 		if not ResourceLoader.exists(sc):

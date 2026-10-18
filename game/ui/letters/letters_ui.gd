@@ -31,6 +31,10 @@ const BODY_ASCENT := 11  ## m5x7 at 16 px: the rule sits right under the letters
 
 var _start_id := -1
 var _letter_id := -1
+## POST-UNREAD (human, 18 Oct): opened from the post office, the list shows only the letters that were unread when it
+## opened (so the one being read stays listed); the parlour's letters hotspot shows them all.
+var _unread_only := false
+var _shown_ids: Array = []
 var _built := false
 var _root: Control
 var _read_page: Control
@@ -63,7 +67,8 @@ var _love_preview: Label
 
 
 ## Finds the open overlay or creates one under the scene root, showing `letter_id` (-1: newest unread, else newest).
-static func open(letter_id: int = -1) -> LettersUI:
+## unread_only: the post office view (read letters stay in the parlour).
+static func open(letter_id: int = -1, unread_only: bool = false) -> LettersUI:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:
 		return null
@@ -71,6 +76,7 @@ static func open(letter_id: int = -1) -> LettersUI:
 	if ui == null:
 		ui = (load(SCENE) as PackedScene).instantiate() as LettersUI
 		ui._start_id = letter_id
+		ui._unread_only = unread_only
 		tree.root.add_child(ui)  # _ready() shows it
 	else:
 		ui.show_letter(letter_id)
@@ -123,12 +129,18 @@ func _unhandled_key_input(event: InputEvent) -> void:
 ## Shows a letter in the reader (-1: newest unread, else the newest) and marks it read.
 func show_letter(letter_id: int = -1) -> void:
 	var inbox: Array = _data().letters.inbox
+	if _unread_only and _shown_ids.is_empty():
+		for l in inbox:
+			if not bool(l.get("read", false)):
+				_shown_ids.append(int(l.id))
+	if _unread_only and letter_id < 0 and _shown_ids.is_empty():
+		letter_id = -2  # nothing unread: the reader shows the "no new letters" paper
 	if letter_id < 0:
 		for i in range(inbox.size() - 1, -1, -1):
 			if not bool(inbox[i].get("read", false)):
 				letter_id = int(inbox[i].id)
 				break
-	if letter_id < 0 and not inbox.is_empty():
+	if letter_id == -1 and not inbox.is_empty():
 		letter_id = int(inbox[inbox.size() - 1].id)
 	_letter_id = letter_id
 	if _letter_id >= 0:
@@ -144,6 +156,8 @@ func _render_reader() -> void:
 	var inbox: Array = d.letters.inbox
 	for i in range(inbox.size() - 1, -1, -1):
 		var l: Dictionary = inbox[i]
+		if _unread_only and not _shown_ids.has(int(l.id)):
+			continue
 		var b := Button.new()
 		b.text = tr("LET_LIST_ITEM") % [Letters.kid_name(String(l.from)), int(l.day)]
 		b.icon = _envelope(l)
@@ -163,7 +177,7 @@ func _render_reader() -> void:
 	_status.add_theme_color_override("font_color", GOLD)
 	_flash = ""
 	if letter.is_empty():
-		_paper(tr("LET_EMPTY"))
+		_paper(tr("LET_NO_NEW") if _unread_only and not inbox.is_empty() else tr("LET_EMPTY"))
 		return
 	if Letters.is_story(letter):
 		_card.visible = false  # a letter from Nora: no child card, no love, no request, no Pack button
