@@ -2,8 +2,9 @@ extends SceneTree
 ## QA-WEEK · One-week play-through bot (spec §8.4-8.5, tech-spec §7). A new game (seed 452) played from day 1 to day 8
 ## through the real scenes with clicks, taps, drags and key presses, the way a player would: Granny's To-Do of days 1
 ## and 2, shaking trees and foraging, cooking at every station it can reach (stove, counter, and from day 3, after the
-## dev panel's "Unlock P1", the fruit press and the dough board), jars into the pantry, orders, selling and buying in
-## town, letters from the mailbox (read, pack, send), the day-7 market, the bed every night, day 8's harvest calendar
+## dev panel's "Unlock P1", the fruit press and the dough board), jars into the pantry, orders and buying in town
+## (CUT-CLUTTER: no grocer's Sell; coins come from orders and the market, and they must never stop a jam), heart
+## gifts, letters from the mailbox (read, pack, send), the day-7 market, the bed every night, day 8's harvest calendar
 ## and weather (HUD, morning card, the wild).
 ## Records every SCRIPT ERROR and engine error (an OS logger), warnings and warning floods, soft-locks (no progress for
 ## 10 s), scenes that fail to load and coin/energy anomalies (each action's cost or gain checked against the rules,
@@ -117,6 +118,9 @@ var _batch_count := 0
 var _mastered: Array[String] = []
 var _bought_upgrades: Array[String] = []
 var _biomes := {}
+var _gifts_seen := {}  ## CUT-CLUTTER: neighbours whose heart gift was seen on their page
+var _low_coins := -1  ## the smallest purse after shopping, and its day
+var _low_day := 0
 
 
 ## Logger that queues engine and script errors (any thread); the bot drains it every frame.
@@ -1049,10 +1053,9 @@ func _town_round(n: int) -> bool:
 	var t := current_scene
 	if not await _deliver(t):
 		return false
-	if not await _sell(t, n):
-		return false
 	if not await _buy(t):
 		return false
+	_check_jam_money(n)
 	if _soak_days > 0 and not await _upgrades(t):
 		return false
 	_act("town: click Back to the garden")
@@ -1061,13 +1064,15 @@ func _town_round(n: int) -> bool:
 
 
 func _deliver(t: Node) -> bool:
-	var tabs: Dictionary = t.get("_tab_buttons")
-	_act("town: click the Orders tab")
-	await _click_ctrl(tabs.orders)
-	await _frames(4)
+	await _tab_to(t, "orders")
+	await _frames(1)
 	_shot("town_orders")
+	var delivered := 0
 	for attempt in 8:
 		var d: Dictionary = _gs.data
+		if String(t.get("_tab")) != "orders":  # CUT-CLUTTER: a neighbour's gift opens their page; back to the board
+			_gift_seen(t)
+			await _tab_to(t, "orders")
 		var btn: Button = null
 		for b in _buttons(t):
 			var args := _bound(b)
@@ -1106,76 +1111,58 @@ func _deliver(t: Node) -> bool:
 		_expect(int(d.coins) - c0 == expect, "high", "coin anomaly", "an order paid %d coins (rule: value x reward_mult = %d)" % [int(d.coins) - c0, expect])
 		_expect(int(d.stats.orders_done) == done0 + 1, "medium", "town", "orders_done did not count the delivery")
 		_day_row().orders += 1
+		delivered += 1
+	if delivered > 0:  # a heart gift comes 1.6 s after the delivery (town._show_rewards): let it play, then look
+		await _secs(2.0)
+		_gift_seen(t)
 	if _day() == 1:
 		_expect(TodoRules.is_done(TodoRules.bits_of(_gs.data), "d1_order"), "medium", "tutorial", "To-Do step 'take the baker's order to town' did not tick (orders_done %d)" % int(_gs.data.stats.orders_done))
+	if _day() == 2 and delivered > 0:
+		_expect(TodoRules.is_done(TodoRules.bits_of(_gs.data), "d2_sell"), "medium", "tutorial", "To-Do step 'deliver an order' did not tick after %d deliveries" % delivered)
 	return true
 
 
-func _sell(t: Node, n: int) -> bool:
-	var tabs: Dictionary = t.get("_tab_buttons")
-	_act("town: click the Grocer tab, Sell")
-	await _click_ctrl(tabs.grocer)
-	await _frames(2)
-	await _click_ctrl(_bound_button(t, "sell"))
-	await _frames(4)
-	var sold := 0
-	var force := n == 2  # To-Do day 2: sell the extra
-	for attempt in 14:
-		if sold >= 4:
-			break
-		var d: Dictionary = _gs.data
-		var pick: Button = null
-		for b in _buttons(t):
-			var args := _bound(b)
-			if b.text == tr("TOWN_SELL") and not args.is_empty() and typeof(args[0]) == TYPE_DICTIONARY:
-				var it := _item_at(d, args[0])
-				if _surplus(d, it) or (force and sold == 0 and String(it.get("kind", "")) != "product"):
-					pick = b
-					break
-		if pick == null:
-			var nxt := _text_button(t, ">")
-			if nxt != null and not nxt.disabled:
-				await _click_ctrl(nxt)
-				await _frames(3)
-				continue
-			break
-		var item := _item_at(d, _bound(pick)[0])
-		var price := Economy.sell_price(item, d.varieties)
-		var c0 := int(d.coins)
-		_allow_coins = true
-		_act("town: Sell %s" % _item_label(item))
-		await _click_ctrl(pick)
-		await _frames(4)
-		_allow_coins = false
-		_expect(int(d.coins) - c0 == price, "high", "coin anomaly", "selling %s paid %d (rule %d)" % [_item_label(item), int(d.coins) - c0, price])
-		sold += 1
-		_day_row().sold += 1
-	if sold > 0:
-		_shot("town_sold")
-	if n == 2:
-		_expect(TodoRules.is_done(TodoRules.bits_of(_gs.data), "d2_sell"), "medium", "tutorial", "To-Do step 'sell the extra' did not tick after %d sales" % sold)
-	return true
+## Clicks a town tab until it is open (3 tries). A click that did not switch the tab is logged (low): it was lost
+## while nothing covered the button (seen now and then on day 2, not reproduced by hand).
+func _tab_to(t: Node, id: String) -> void:
+	for i in 3:
+		if String(t.get("_tab")) == id and t.get("_picker").is_empty():
+			return
+		if i > 0:
+			_problem("low", "town", "a click on the %s tab did not open it; clicked again" % id)
+		_act("town: click the %s tab" % id)
+		await _click_ctrl((t.get("_tab_buttons") as Dictionary)[id])
+		await _frames(3)
 
 
-## Fresh stacks too small to cook and nuts beyond a few count as extra; jars are kept (orders, letters, market).
-func _surplus(d: Dictionary, item: Dictionary) -> bool:
-	match String(item.get("kind", "")):
-		"nut":
-			return int(item.count) > 0
-		"fresh":
-			var total := 0
-			for it in _all_items(d):
-				if String(it.kind) == "fresh" and String(it.variety) == String(item.variety):
-					total += int(it.count)
-			return total < 2
-	return false
+## CUT-CLUTTER: a neighbour's heart gift on show (their page, the Teo line, "+3 [jar]"): one screenshot and a note.
+func _gift_seen(t: Node) -> void:
+	var g: Dictionary = t.get("_gift")
+	if g.is_empty() or _gifts_seen.has(String(g.get("npc", ""))):
+		return
+	_gifts_seen[String(g.npc)] = true
+	_shot("town_gift")
+	_notes.append("Day %d: %s's heart gift on their page: +%d %s and the Teo line." % [_day(), String(g.npc),
+		int(g.get("count", 0)), String(g.get("value", ""))])
+
+
+## CUT-CLUTTER: the grocer buys nothing, so coins come from orders and the market only. After shopping, a jam must
+## still be possible: a jar and sugar in the cupboard, or the coins for them.
+func _check_jam_money(n: int) -> void:
+	var d: Dictionary = _gs.data
+	if _low_coins < 0 or int(d.coins) < _low_coins:
+		_low_coins = int(d.coins)
+		_low_day = n
+	for id in ["jar", "sugar"]:
+		if int(d.cupboard.get(id, 0)) < 1 and int(d.coins) < Economy.price(d, id):
+			_problem("high", "economy", "coins block jam-making on day %d: no %s in the cupboard and %d coins (price %d)" % [
+				n, id, int(d.coins), Economy.price(d, id)])
 
 
 func _buy(t: Node) -> bool:
 	var d: Dictionary = _gs.data
-	_act("town: Buy, Supplies")
-	await _click_ctrl(_bound_button(t, "buy"))
-	await _frames(2)
+	_act("town: Grocer tab, Supplies")
+	await _tab_to(t, "grocer")
 	await _click_ctrl(_bound_button(t, "supplies"))
 	await _frames(3)
 	var needs := SUPPLIES.duplicate()
@@ -1289,6 +1276,7 @@ func _market() -> bool:
 	for v in plan.get("sales", []):
 		earned += int(v.price)
 	_expect(int(d.coins) == c0 + earned, "high", "coin anomaly", "the market paid %d coins, its sales add up to %d" % [int(d.coins) - c0, earned])
+	_day_row().sold += plan.get("sales", []).size()  # CUT-CLUTTER: the market is the only place jars are sold
 	await _secs(3.0)
 	_shot("market_parade")
 	_act("market: Esc skips the parade")
@@ -1768,7 +1756,7 @@ func _text_button(node: Node, text: String) -> Button:
 	return null
 
 
-## The visible button whose pressed callback is bound to `arg` first (town toggles: "buy", "sell", "supplies"...).
+## The visible button whose pressed callback is bound to `arg` first (town toggles: "supplies", "seeds", "upgrades").
 func _bound_button(node: Node, arg: String) -> Button:
 	for b in _buttons(node):
 		var args := _bound(b)
@@ -1938,6 +1926,9 @@ func _finish() -> void:
 	var high := 0
 	for p in _problems:
 		high += 1 if p.sev == "high" else 0
+	if _gs.data.has("stats"):
+		print("week_bot economy: %d coins at the end, %d earned, %d orders, smallest purse after shopping %d (day %d)" % [
+			int(_gs.data.coins), int(_gs.data.stats.get("coins_earned", 0)), int(_gs.data.stats.get("orders_done", 0)), _low_coins, _low_day])
 	print("%s: day %d reached in %d s, %d problems (%d high), %d screenshots in %s, report %s" % [
 		"soak" if _soak_days > 0 else "week_bot", _day(), (Time.get_ticks_msec() - _t0) / 1000, _problems.size(), high, _shots, ProjectSettings.globalize_path(_dir), path])
 	quit(1 if high > 0 else 0)
@@ -1968,7 +1959,7 @@ func _report() -> String:
 	lines.append("")
 	lines.append("## The week")
 	lines.append("")
-	lines.append("| Day | Weather | Coins (morning) | Energy (morning) | Cooked | Orders | Sold | Notes |")
+	lines.append("| Day | Weather | Coins (morning) | Energy (morning) | Cooked | Orders | Sold (market) | Notes |")
 	lines.append("|---|---|---|---|---|---|---|---|")
 	for r in _days:
 		lines.append("| %d | %s | %d | %d / %d | %s | %d | %d | %s |" % [int(r.day), r.weather, int(r.coins), int(r.energy), int(r.energy_max),
@@ -1993,6 +1984,8 @@ func _report() -> String:
 	for k in per_scene:
 		sc.append("%s x%d" % [k, int(per_scene[k])])
 	lines.append("- Scene visits: %s." % ", ".join(sc))
+	if _low_coins >= 0:
+		lines.append("- Economy (CUT-CLUTTER, no grocer's Sell): coins come from orders and the market only; the smallest purse after shopping was %d coins on day %d." % [_low_coins, _low_day])
 	for n in _notes:
 		lines.append("- " + n)
 	lines.append("")
@@ -2057,8 +2050,8 @@ func _upgrades(t: Node) -> bool:
 			if price < 0 or int(d.coins) < price + SOAK_RESERVE:
 				break
 			if not opened:
-				_act("town: Buy, Upgrades")
-				await _click_ctrl(_bound_button(t, "buy"))
+				_act("town: Grocer tab, Upgrades")
+				await _click_ctrl((t.get("_tab_buttons") as Dictionary).grocer)
 				await _frames(2)
 				await _click_ctrl(_bound_button(t, "upgrades"))
 				await _frames(3)
@@ -2218,7 +2211,7 @@ func _soak_report() -> String:
 	lines.append("")
 	lines.append("Sampled every morning in the kitchen once the morning card is closed (day 1: the garden after New Game). Static = `OS.get_static_memory_usage()`; objects, nodes, orphans and resources from `Performance`; video = `RENDER_VIDEO_MEM_USED`; save = the save as JSON. Spikes = frames over %d ms of real time during that day (the frames of the bot's own screenshots are skipped)." % int(SPIKE_MS))
 	lines.append("")
-	lines.append("| Day | Weather | Coins | Energy | Cooked | Orders | Sold | Static MB | Objects | Nodes | Orphans | Resources | Video MB | Save KB | Spikes (max ms) | Notes |")
+	lines.append("| Day | Weather | Coins | Energy | Cooked | Orders | Sold (market) | Static MB | Objects | Nodes | Orphans | Resources | Video MB | Save KB | Spikes (max ms) | Notes |")
 	lines.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")
 	for r: Dictionary in _days:
 		lines.append("| %d | %s | %d | %d / %d | %s | %d | %d | %s | %s | %s | %s | %s | %s | %s | %s | %s |" % [int(r.day), r.weather, int(r.coins),

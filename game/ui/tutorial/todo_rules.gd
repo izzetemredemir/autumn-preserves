@@ -132,7 +132,7 @@ static func step_done(state: Dictionary, step: String, ctx: Dictionary = {}) -> 
 		"d2_brine":
 			return _made(state, ["brined_mushroom", "pickle"])
 		"d2_sell":
-			return bool(ctx.get("sold", false))
+			return bool(ctx.get("delivered", false))  # CUT-CLUTTER: "Deliver an order" (no grocer's Sell any more)
 		"f_shake", "f_jam", "f_invent", "f_juice", "f_pantry", "f_market", "f_letter":
 			return _festival_done(state, step)
 	return false

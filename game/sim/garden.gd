@@ -78,6 +78,12 @@ static func plant(state: Dictionary, bed_index: int, crop: String, use_fertilize
 	return {"ok": true, "reason": "", "variety": variety, "days_left": days}
 
 
+## CUT-CLUTTER: what the plant menu calls. There is no fertilizer choice any more: the bed takes a sack of the
+## compost's fertilizer by itself whenever there is one (the compost works quietly).
+static func plant_auto(state: Dictionary, bed_index: int, crop: String) -> Dictionary:
+	return plant(state, bed_index, crop, int(state.get("garden", {}).get("fertilizer", 0)) > 0)
+
+
 ## Picks a ready bed: shop.seeds[crop].yield fresh items into the bag, the bed empties. {"ok", "reason", "items"}
 static func harvest(state: Dictionary, bed_index: int) -> Dictionary:
 	var beds: Array = state.garden.beds

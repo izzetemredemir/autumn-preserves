@@ -194,11 +194,10 @@ func _use(s: GardenSpot) -> void:
 			_shake(s)
 		"bed":
 			_bed(s)
-		"compost":
-			var g: Dictionary = GameState.data.garden
+		"compost":  # CUT-CLUTTER: one plain line, no counts (the compost feeds the beds by itself)
 			Audio.play_sfx("sfx_bush_rustle")
 			s.pop()
-			Fx.bubble(fx, s.top(), tr("GARDEN_COMPOST") % [int(g.compost), _compost_per(), int(g.fertilizer)], 2.0)
+			Fx.bubble(fx, s.top(), tr("GARDEN_COMPOST_BIN"), 1.8)
 		"mailbox":
 			_mailbox(s)
 		"door":
@@ -254,7 +253,7 @@ func _open_menu(s: GardenSpot) -> void:
 	add_child(m)
 	m.chosen.connect(_plant.bind(s))
 	m.closed.connect(_on_menu_closed)
-	m.open(options, int(GameState.data.garden.fertilizer))
+	m.open(options)
 
 
 func _on_menu_closed() -> void:
@@ -281,8 +280,8 @@ func _mailbox(s: GardenSpot) -> void:
 	ui.closed.connect(_on_menu_closed)
 
 
-func _plant(crop: String, use_fertilizer: bool, s: GardenSpot) -> void:
-	var r := Garden.plant(GameState.data, s.index, crop, use_fertilizer)
+func _plant(crop: String, s: GardenSpot) -> void:
+	var r := Garden.plant_auto(GameState.data, s.index, crop)
 	if not bool(r.get("ok", false)):
 		_fail(s, String(r.get("reason", "")))
 		return

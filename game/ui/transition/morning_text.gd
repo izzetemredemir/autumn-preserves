@@ -9,7 +9,8 @@ const MAX_NOTABLE := 6
 ## onto two rows, so the notable lines are capped by rows, not by count (QA-WEEK: the day-8 card was 283 px).
 const MAX_ROWS := 10
 const ROW_CHARS := 32  ## about the card's 236 px at 18 px text, with room for word wrap
-const NOTABLE := ["matured", "stalled", "grown", "tree_refilled", "honey", "order_new", "spoiled", "fertilizer"]
+## CUT-CLUTTER: the compost's "fertilizer" night event has no line (the compost works quietly).
+const NOTABLE := ["matured", "stalled", "grown", "tree_refilled", "honey", "order_new", "spoiled"]
 const MANY := ["UI_NIGHT_GROWN", "UI_NIGHT_MATURED"]
 
 
@@ -80,9 +81,6 @@ static func line(e: Dictionary, state: Dictionary) -> Dictionary:
 		"order_new":
 			var npc := String(e.get("order", {}).get("npc", ""))
 			return _l("UI_NIGHT_ORDER", [npc_name(npc)])
-		"fertilizer":
-			var made := int(e.get("made", 0))
-			return _l("UI_NIGHT_FERTILIZER", [made]) if made > 0 else {}
 		"weather":
 			var w := String(e.get("weather", "sunny")).to_upper()
 			return _l("UI_NIGHT_WEATHER_" + w, [])

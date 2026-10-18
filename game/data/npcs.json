@@ -1,9 +1,9 @@
 {
-  "_doc": "Neighbours, spec §6.6. likes/dislikes are taste axes. Text keys live in i18n/strings.csv (NPC_<ID>_*).",
+  "_doc": "Neighbours, spec §6.6. likes/dislikes are taste axes. Text keys live in i18n/strings.csv (NPC_<ID>_*). reward kind 'gift' (CUT-CLUTTER): at that many hearts the neighbour tells their Teo line and hands over count x value (a cupboard id).",
   "grocer":    {"name": "Barnaby", "role": "grocer",    "likes": ["salty", "sour"],   "dislikes": "sweet",  "reward": {"hearts": 3, "kind": "shop_discount", "value": 0.1}, "priority": 0},
   "baker":     {"name": "Rosie",   "role": "baker",     "likes": ["sweet", "spicy"],  "dislikes": "salty",  "reward": {"hearts": 2, "kind": "unlock", "value": "knead"}, "priority": 0},
-  "postman":   {"name": "Pip",     "role": "postman",   "likes": ["sour", "salty"],   "dislikes": "earthy", "reward": {"hearts": 2, "kind": "letters_more_often", "value": 1}, "priority": 0},
+  "postman":   {"name": "Pip",     "role": "postman",   "likes": ["sour", "salty"],   "dislikes": "earthy", "reward": {"hearts": 2, "kind": "gift", "value": "jar", "count": 3}, "priority": 0},
   "vintner":   {"name": "Vito",    "role": "vintner",   "likes": ["sweet", "earthy"], "dislikes": "spicy",  "reward": {"hearts": 2, "kind": "unlock_biome", "value": "vineyard"}, "priority": 1},
-  "librarian": {"name": "Edith",   "role": "librarian", "likes": ["earthy", "spicy"], "dislikes": "sour",   "reward": {"hearts": 1, "kind": "hints", "value": 1}, "priority": 1},
+  "librarian": {"name": "Edith",   "role": "librarian", "likes": ["earthy", "spicy"], "dislikes": "sour",   "reward": {"hearts": 2, "kind": "gift", "value": "sugar", "count": 2}, "priority": 1},
   "grandkids": {"mia": {"name": "Mia", "likes": ["sweet", "sour"], "dislikes_group": "mushroom"}, "leo": {"name": "Leo", "likes": ["spicy", "salty"], "dislikes_group": "fruit"}}
 }

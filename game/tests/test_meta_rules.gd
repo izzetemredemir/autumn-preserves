@@ -46,6 +46,9 @@ func test_todo_day2_steps_and_bits_stay_on() -> void:
 	assert_true(TodoRules.is_done(bits, "d2_mushroom"))
 	s.book.variants["brined_mushroom|chanterelle_1|-"] = {}
 	bits = TodoRules.evaluate(s, bits, {"sold": true})
+	assert_false(TodoRules.is_done(bits, "d2_sell"), "CUT-CLUTTER: coins without an order (the forest) do not tick it")
+	bits = TodoRules.evaluate(s, bits, {"delivered": true})
+	assert_true(TodoRules.is_done(bits, "d2_sell"), "day 2's last step: deliver an order")
 	assert_true(TodoRules.day_finished(s, bits))
 	assert_eq(TodoRules.current_step(s, bits), "")
 
@@ -115,7 +118,7 @@ func test_morning_lines_from_night_events() -> void:
 		{"type": "tree_refilled", "tree": 0, "tree_type": "apple"},
 		{"type": "order_new", "order": {"npc": "baker"}},
 		{"type": "spoiled", "item": State.nut("walnut", 2), "where": "inbox"},
-		{"type": "fertilizer", "made": 0, "fertilizer": 0},
+		{"type": "fertilizer", "made": 1, "fertilizer": 1},
 	]
 	lines = MorningText.lines(crafted, s)
 	assert_eq(lines[0].key, "UI_NIGHT_GROWN")
@@ -123,7 +126,7 @@ func test_morning_lines_from_night_events() -> void:
 	assert_eq(lines[1].args, ["apple"])
 	assert_eq(lines[2].args, ["Rosie"])
 	assert_eq(lines[3].key, "UI_NIGHT_SPOILED")
-	assert_eq(lines.size(), 4, "no fertilizer line when none was made")
+	assert_eq(lines.size(), 4, "CUT-CLUTTER: the compost works quietly, no fertilizer line")
 
 
 func test_morning_merges_and_caps_lines() -> void:

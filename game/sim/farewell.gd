@@ -17,7 +17,7 @@ const WALK_SCALE := 0.8
 const WORRY_COUNT := 3
 ## Hint days: notable morning lines kept (MorningText order), the energy line is dropped.
 const MORNING_NOTABLE := 2
-const NOTABLE := ["matured", "grown", "tree_refilled", "order_new", "spoiled", "fertilizer"]
+const NOTABLE := ["matured", "grown", "tree_refilled", "order_new", "spoiled"]  ## CUT-CLUTTER: no fertilizer line
 const RARITY_RANK := {"common": 0, "uncommon": 1, "rare": 2}
 const TOP_JARS := 3
 ## The pantry pan shows at most this many jars, in shelf order.

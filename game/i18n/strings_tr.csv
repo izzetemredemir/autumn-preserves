@@ -228,7 +228,7 @@ TUT_D1_BED,Yatmaya git
 TUT_D2_FOREST,Kapıdan çıkıp ormana git
 TUT_D2_MUSHROOM,Bir mantar topla
 TUT_D2_BRINE,Turşusunu kur
-TUT_D2_SELL,Fazlasını bakkala sat
+TUT_D2_SELL,Kasabada bir sipariş teslim et
 TUT_ALL_DONE,"Hepsi tamam, canım!"
 UI_NIGHT_MORNING,Günaydın! %d. gün
 UI_NIGHT_QUIET,Sakin bir gece.
@@ -884,7 +884,7 @@ TODO_HINT_D1_BED,Ne gündü ama! Yatma vakti canım: yatak oturma odasında.
 TODO_HINT_D2_FOREST,Hadi toplamaya: bahçe kapısından ormana çıkalım.
 TODO_HINT_D2_MUSHROOM,Mantarlar orman zemininde saklanır. Bir tane toplayalım!
 TODO_HINT_D2_BRINE,Mantarları kavanoz tezgâhında turşuya yatıralım.
-TODO_HINT_D2_SELL,Fazla bir kavanozumuz var. Kasabada bakkala satalım.
+TODO_HINT_D2_SELL,Kasabada biri kavanoz istemiş. Sipariş panosuna bakalım.
 TODO_HINT_F_SHAKE,Bugün ormanda nadir bir ağaç var! Hadi bulup silkeleyelim.
 TODO_HINT_F_JAM,Nadir meyveden hiç yapmadığımız bir reçeli ocakta pişirelim.
 TODO_HINT_F_JUICE,Şimdi meyve presinde taze bir meyve suyu!
@@ -1004,3 +1004,6 @@ GROW_LINE_6,Bugünün ormanı hazır.
 GROW_FIRST_TEO,Teo derdi ki: orman aynı günü iki kez vermez.
 GROW_DAY,Gün %d
 GROW_SEED,tohum %d
+GARDEN_COMPOST_BIN,Kompost kutusu. Burada çürüyenler tarhları besler.
+UI_REWARD_GIFT_JAR,Pip sana %d kavanoz verdi!
+UI_REWARD_GIFT_SUGAR,Edith sana %d paket şeker verdi!

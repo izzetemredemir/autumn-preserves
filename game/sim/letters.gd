@@ -13,7 +13,7 @@ extends RefCounted
 ## Kids come from Data.npcs().grandkids ({"likes": [2 axes], "dislikes_group": ingredient group}).
 ## A parcel is a 3x2 box of ArrangeBoard entries ({"item","x","y","rot"}); straw is the item {"kind": "straw"}.
 
-## Days between request letters (the postman's reward shortens the upper end).
+## Days between request letters.
 const GAP := [3, 4]
 ## The first letter comes with the first market, on day 7 (spec §8.4); a save that is already past it gets one tomorrow.
 const FIRST_DAY := 7
@@ -124,16 +124,10 @@ static func night(state: Dictionary) -> Array:
 	return events
 
 
-## Days until the next request letter: GAP, upper end shortened by the postman's "letters_more_often" reward.
-static func gap(state: Dictionary, r: RandomNumberGenerator) -> int:
-	var hi := int(GAP[1])
-	var npcs := Data.npcs()
-	for npc_id in npcs:
-		var reward: Variant = npcs[npc_id].get("reward")
-		if typeof(reward) == TYPE_DICTIONARY and reward.get("kind", "") == "letters_more_often" \
-				and Economy.hearts(state, npc_id) >= int(reward.hearts):
-			hi -= int(reward.value)
-	return r.randi_range(int(GAP[0]), maxi(int(GAP[0]), hi))
+## Days until the next request letter: GAP. CUT-CLUTTER: Pip's hearts no longer shorten it (his reward is a gift
+## now); still one draw, so the stream's order is unchanged.
+static func gap(_state: Dictionary, r: RandomNumberGenerator) -> int:
+	return r.randi_range(int(GAP[0]), int(GAP[1]))
 
 
 ## A new request letter from `kid` (not committed to the inbox). Every item is satisfiable with unlocked P0

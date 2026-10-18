@@ -1,22 +1,20 @@
 extends CanvasLayer
-## GD-GARDEN · "Plant what?" card for an empty bed: one button per seed packet in the cupboard, a fertilizer
-## toggle when there is some, Cancel. Mouse, touch and keys (arrows + Enter; Esc or a tap outside closes).
-## It only reports the choice; the garden scene calls Garden.plant.
-##   var m := PlantMenu.new(); add_child(m); m.open([{"crop": "cucumber", "count": 2}], fertilizer)
+## GD-GARDEN · "Plant what?" card for an empty bed: one button per seed packet in the cupboard, Cancel. Mouse, touch
+## and keys (arrows + Enter; Esc or a tap outside closes). CUT-CLUTTER: no fertilizer toggle (Garden.plant_auto uses
+## the compost's fertilizer by itself). It only reports the choice; the garden scene plants.
+##   var m := PlantMenu.new(); add_child(m); m.open([{"crop": "cucumber", "count": 2}])
 
-signal chosen(crop: String, use_fertilizer: bool)
+signal chosen(crop: String)
 signal closed
 
 const ICON := "res://assets/sprites/icons/seed_%s.png"
 const C_TITLE := Color("83571e")
 
-var _fert: Button
-var _fert_left := 0
 var _first: Button
 var _done := false
 
 
-func open(options: Array, fertilizer: int) -> void:
+func open(options: Array) -> void:
 	layer = 20
 	var root := CenterContainer.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -47,14 +45,6 @@ func open(options: Array, fertilizer: int) -> void:
 		box.add_child(b)
 		if _first == null:
 			_first = b
-	if fertilizer > 0:
-		_fert_left = fertilizer
-		_fert = Button.new()
-		_fert.toggle_mode = true
-		_fert.custom_minimum_size = Vector2(0, 20)
-		_fert.toggled.connect(func(_on: bool) -> void: _fert_text())
-		_fert_text()
-		box.add_child(_fert)
 	var cancel := Button.new()
 	cancel.text = tr("UI_CANCEL")
 	cancel.custom_minimum_size = Vector2(0, 20)
@@ -72,8 +62,7 @@ func is_open() -> bool:
 func choose(crop: String) -> void:
 	if _done:
 		return
-	var fert := _fert != null and _fert.button_pressed
-	chosen.emit(crop, fert)
+	chosen.emit(crop)
 	close()
 
 
@@ -83,11 +72,6 @@ func close() -> void:
 	_done = true
 	closed.emit()
 	queue_free()
-
-
-func _fert_text() -> void:
-	var key := "GARDEN_FERT_ON" if _fert.button_pressed else "GARDEN_FERT_OFF"
-	_fert.text = tr(key) % _fert_left
 
 
 func _on_outside_input(event: InputEvent) -> void:

@@ -1,5 +1,7 @@
 extends Control
-## Town square (GD-TOWN): grocer (buy / sell), order board, neighbours (talk / gift). One 480x270 click scene.
+## Town square (GD-TOWN): grocer (buy), order board, neighbours (talk / gift). One 480x270 click scene.
+## CUT-CLUTTER: the grocer only sells to Granny; jars turn into coins through orders and the weekly market, where
+## people react to them.
 ## All rules come from Economy / Orders; this scene only lists, asks and shows results.
 ## The backdrop is a separate TextureRect ("Background") so ART can swap its texture.
 
@@ -20,7 +22,6 @@ var _tab := "grocer"
 var _react_card: Control
 var _react_undo: Array[Callable] = []  # what the delivery card changed, undone when it goes
 var _banner: Control  # MARKET's "Market today!" banner (market days only)
-var _sub := "buy"
 var _group := "supplies"
 var _npc := "grocer"
 var _page := 0
@@ -33,6 +34,7 @@ var _icon_cells: Dictionary = {}
 var _icon_size := Vector2(16, 16)
 var _back_btn: Button
 var _story_npc := ""  # STORY-03: the neighbour whose Teo line is on show
+var _gift: Dictionary = {}  # CUT-CLUTTER: the heart gift on show on its neighbour's page (a take_rewards entry)
 
 
 func _ready() -> void:
@@ -226,6 +228,7 @@ func _on_tab(id: String) -> void:
 	_tab = id
 	_page = 0
 	_picker = {}
+	_gift = {}
 	_render()
 
 
@@ -234,8 +237,8 @@ func _on_back() -> void:
 
 
 ## ONBOARD-GUIDE: what Granny's guide asks the town (GuideArrow header): the Orders tab, then Deliver, for the order
-## step; the grocer's Sell for the selling step; the market banner on festival day; else the way back. No Granny here:
-## her hint sits over the square, above the panel.
+## steps of day 1 and day 2 (CUT-CLUTTER: day 2 delivers an order, no grocer's Sell); the market banner on festival
+## day; else the way back. No Granny here: her hint sits over the square, above the panel.
 func _guide_at(what: String) -> Variant:
 	match what:
 		"granny":
@@ -248,13 +251,8 @@ func _guide_at(what: String) -> Variant:
 		return null
 	var target: Control = _back_btn
 	match what:
-		"d1_order":
+		"d1_order", "d2_sell":
 			target = _tab_buttons.orders if _tab != "orders" else _guide_button(tr("TOWN_DELIVER"), 0)
-		"d2_sell":
-			if _tab != "grocer":
-				target = _tab_buttons.grocer
-			else:  # the Sell sub-tab in the head row, then the first Sell row under it
-				target = _guide_button(tr("TOWN_SELL"), 1 if _sub == "sell" else 0)
 		"f_market":
 			target = get_node_or_null("MarketToday") as Control
 	if target == null or not target.is_visible_in_tree():
@@ -373,7 +371,7 @@ func _products() -> Array:
 	return out
 
 
-## Everything the grocer would take: inbox first, then the pantry.
+## Everything Granny has at home: inbox first, then the pantry.
 func _sellables() -> Array:
 	var out: Array = []
 	var d: Dictionary = GameState.data
@@ -408,33 +406,16 @@ func _item_icon(item: Dictionary) -> Control:
 
 # ------------------------------------------------------------------ grocer
 
+## The grocer's shop: Supplies / Seeds / Upgrades in the head row, the rows under it. CUT-CLUTTER: no Sell sub-tab.
 func _render_grocer() -> void:
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 6)
-	var buy := _button(tr("TOWN_BUY"), _set_sub.bind("buy"))
-	var sell := _button(tr("TOWN_SELL"), _set_sub.bind("sell"))
-	_mark(buy, _sub == "buy")
-	_mark(sell, _sub == "sell")
-	head.add_child(buy)
-	head.add_child(sell)
-	if _sub == "buy":
-		for g in GROUPS:
-			var gb := _button(tr("UI_UPGRADE_GROUP_" + String(g).to_upper()), _set_group.bind(g))
-			_mark(gb, _group == g)
-			head.add_child(gb)
-	else:
-		head.add_child(_label(tr("TOWN_GROCER_HELLO")))
+	for g in GROUPS:
+		var gb := _button(tr("UI_UPGRADE_GROUP_" + String(g).to_upper()), _set_group.bind(g))
+		_mark(gb, _group == g)
+		head.add_child(gb)
 	_content.add_child(head)
-	if _sub == "buy":
-		_render_buy(head)
-	else:
-		_render_sell(head)
-
-
-func _set_sub(s: String) -> void:
-	_sub = s
-	_page = 0
-	_render()
+	_render_buy(head)
 
 
 func _set_group(g: String) -> void:
@@ -507,28 +488,6 @@ func _on_buy(id: String) -> void:
 		return
 	_save_and_notify(["coins", "cupboard", "pantry", "upgrades"])
 	Hud.toast("TOWN_BOUGHT", [_shop_name(id), int(res.spent)])
-
-
-func _render_sell(head: HBoxContainer) -> void:
-	var d: Dictionary = GameState.data
-	var list := _sellables()
-	if list.is_empty():
-		_content.add_child(_label(tr("TOWN_NOTHING_TO_SELL")))
-		return
-	var r := _pager(head, list.size(), ROWS)
-	for e in list.slice(r.x, r.y):
-		var price := Economy.sell_price(e.item, d.varieties)
-		var text := "%s  -  %s" % [_item_name(e.item), tr("TOWN_PRICE") % price]
-		_row(_item_icon(e.item), text, tr("TOWN_SELL"), _on_sell.bind(e.ref))
-
-
-func _on_sell(ref: Dictionary) -> void:
-	var res := Economy.sell(GameState.data, ref)
-	if not res.ok:
-		Hud.toast(res.reason)
-		return
-	_save_and_notify(["coins", "inbox", "pantry", "stats"])
-	Hud.toast("TOWN_SOLD", [int(res.coins)])
 
 
 # ------------------------------------------------------------------ order board
@@ -646,10 +605,10 @@ func _render_neighbours() -> void:
 	var gift := _button(tr("TOWN_GIFT"), _on_gift)
 	gift.custom_minimum_size = Vector2(72, 18)
 	top.add_child(gift)
+	if not _gift.is_empty() and String(_gift.npc) == _npc:
+		top.add_child(_gift_badge(_gift))
 	info.add_child(top)
 	var says := tr("NPC_%s_%d" % [_npc.to_upper(), clampi(hearts / 2, 0, 2)])
-	if Economy.unlocked(d, "hints") and _npc == "librarian":
-		says += "  " + tr("NPC_LIBRARIAN_HINT")
 	var story := _story_says(d, hearts, says)
 	var lines: Array = [story] if story != says else [story, tr("TOWN_LIKES") % _axis_text(npc.likes)]  # the Teo line takes the likes' place
 	for t in lines:
@@ -678,7 +637,43 @@ func _story_says(d: Dictionary, hearts: int, says: String) -> String:
 func _select_npc(id: String) -> void:
 	_story_npc = ""
 	_npc = id
+	if not _gift.is_empty() and String(_gift.npc) != id:
+		_gift = {}
 	_render()
+
+
+## CUT-CLUTTER: a heart gift (Pip's jars, Edith's sugar) is a moment, not a hidden bonus: the neighbour's page opens
+## with their Teo line (STORY-03, due at the same heart count) and what they handed over beside their hearts.
+func _gift_moment(r: Dictionary) -> void:
+	if not is_inside_tree() or not _picker.is_empty() or not String(r.get("npc", "")) in NPC_IDS:
+		return
+	_gift = r
+	_npc = String(r.npc)
+	_story_npc = ""
+	_tab = "neighbours"
+	_page = 0
+	_render()
+	Audio.play_sfx("sfx_sparkle")
+
+
+## "+3 [jar]": the gift's count and icon, popping in beside the hearts.
+func _gift_badge(r: Dictionary) -> Control:
+	var box := HBoxContainer.new()
+	box.name = "GiftBadge"
+	box.add_theme_constant_override("separation", 2)
+	box.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var n := Label.new()
+	n.text = "+%d" % int(r.get("count", 1))
+	box.add_child(n)
+	box.add_child(_icon(String(r.get("value", ""))))
+	if not bool(r.get("popped", false)):  # pops once; later re-renders of the page keep it still
+		r["popped"] = true
+		box.pivot_offset = Vector2(14, 8)
+		box.scale = Vector2(0.6, 0.6)
+		var tw := box.create_tween()
+		tw.tween_property(box, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	return box
 
 
 func _on_gift() -> void:
@@ -838,7 +833,10 @@ func _show_rewards(delay: float) -> void:
 	Save.save_game(GameState.data)  # the queue is empty now: do not toast twice after a reload
 	await get_tree().create_timer(delay).timeout
 	for r: Dictionary in earned:
-		Hud.toast(r.key)
+		var gift := String(r.get("kind", "")) == "gift"
+		if gift:
+			_gift_moment(r)
+		Hud.toast(r.key, [int(r.get("count", 1))] if gift else [])
 		Audio.play_jingle("jgl_level")
 		await get_tree().create_timer(2.2).timeout
 

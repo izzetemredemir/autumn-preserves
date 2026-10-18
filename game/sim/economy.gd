@@ -163,9 +163,16 @@ static func rewards_of(npc_id: String) -> Array:
 	return out
 
 
-## Toast key of a reward, e.g. UI_REWARD_KNEAD, UI_REWARD_VINEYARD, UI_REWARD_SHOP_DISCOUNT.
+## CUT-CLUTTER: Pip's "letters more often" and Edith's "hints" became a gift you can see (kind "gift"). A save that
+## already claimed the old reward (the festival save, older plays) does not get the gift on top.
+const REPLACED_TAGS := {"postman": "postman:2:letters_more_often", "librarian": "librarian:1:hints"}
+
+
+## Toast key of a reward, e.g. UI_REWARD_KNEAD, UI_REWARD_VINEYARD, UI_REWARD_SHOP_DISCOUNT, UI_REWARD_GIFT_JAR.
 static func reward_key(reward: Dictionary) -> String:
 	var tail := String(reward.value) if String(reward.kind).begins_with("unlock") else String(reward.kind)
+	if String(reward.kind) == "gift":
+		tail = "gift_" + String(reward.value)
 	return "UI_REWARD_" + tail.to_upper()
 
 
@@ -178,7 +185,7 @@ static func ensure_neighbours(state: Dictionary) -> void:
 
 
 ## Applies every reward of `npc_id` whose heart threshold is reached and was not claimed yet.
-## Queues each one in state.flags.reward_queue and returns the new ones ({"npc","hearts","kind","value","key"}).
+## Queues each one in state.flags.reward_queue and returns the new ones ({"npc","hearts","kind","value","count","key"}).
 static func claim_rewards(state: Dictionary, npc_id: String) -> Array:
 	var fresh: Array = []
 	var claimed: Dictionary = state.flags.get("rewards", {})
@@ -187,9 +194,12 @@ static func claim_rewards(state: Dictionary, npc_id: String) -> Array:
 		var tag := "%s:%d:%s" % [npc_id, int(r.hearts), r.kind]
 		if h < int(r.hearts) or claimed.has(tag):
 			continue
+		if String(r.kind) == "gift" and claimed.has(REPLACED_TAGS.get(npc_id, "")):
+			continue
 		claimed[tag] = true
 		_apply_reward(state, r)
-		fresh.append({"npc": npc_id, "hearts": int(r.hearts), "kind": r.kind, "value": r.value, "key": reward_key(r)})
+		fresh.append({"npc": npc_id, "hearts": int(r.hearts), "kind": r.kind, "value": r.value,
+			"count": int(r.get("count", 1)), "key": reward_key(r)})
 	state.flags.rewards = claimed
 	if not fresh.is_empty():
 		var q: Array = state.flags.get("reward_queue", [])
@@ -220,11 +230,9 @@ static func _apply_reward(state: Dictionary, r: Dictionary) -> void:
 	match String(r.kind):
 		"unlock", "unlock_biome":
 			unlock(state, String(r.value))
-		"hints":
-			unlock(state, "hints")
-		"addin":
+		"addin", "gift":  # the town shows a gift as the neighbour's Teo line and the jars or sugar handed over
 			state.cupboard[r.value] = int(state.cupboard.get(r.value, 0)) + int(r.get("count", 1))
-		# "shop_discount" (discount()) and "letters_more_often" (Letters.gap) are derived from hearts.
+		# "shop_discount" (discount()) is derived from hearts.
 
 
 ## Points a gift earns: gift_points when one of the neighbour's liked axes is >= gift_like_min.

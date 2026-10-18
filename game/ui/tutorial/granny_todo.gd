@@ -156,15 +156,16 @@ func _sync_money() -> void:
 	_orders = int(stats.get("orders_done", 0))
 
 
-## Coins earned without a finished order means something was sold.
-func _sold_since_last() -> bool:
+## The money part of ctx since the last check: "delivered" when an order was finished (CUT-CLUTTER: day 2's step),
+## "sold" when coins came in without one (the market, a find in the forest).
+func _money_since_last() -> Dictionary:
 	var stats: Dictionary = GameState.data.get("stats", {})
 	var earned := int(stats.get("coins_earned", 0))
 	var orders := int(stats.get("orders_done", 0))
-	var sold := earned > _earned and orders == _orders
+	var out := {"delivered": orders > _orders, "sold": earned > _earned and orders == _orders}
 	_earned = earned
 	_orders = orders
-	return sold
+	return out
 
 
 func _evaluate(feedback: bool) -> void:
@@ -175,7 +176,8 @@ func _evaluate(feedback: bool) -> void:
 	if not d.has("flags"):
 		d["flags"] = {}
 	var old := TodoRules.bits_of(d)
-	var ctx := {"scene": Router.current, "sold": _sold_since_last()}
+	var ctx := _money_since_last()
+	ctx["scene"] = Router.current
 	var bits := TodoRules.evaluate(d, old, ctx)
 	if bits != old:
 		d.flags["tutorial"] = bits

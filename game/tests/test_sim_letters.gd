@@ -273,15 +273,19 @@ func test_love_unlocks_family_recipes_at_three_six_ten() -> void:
 	assert_eq(reply.care_note, "LET_REPLY_CARE_MIA")
 
 
-func test_postman_hearts_make_letters_come_more_often() -> void:
+## CUT-CLUTTER: Pip's hearts give a gift now; the letter gap stays 3 or 4 days and draws the same numbers.
+func test_letter_gap_ignores_the_postmans_hearts() -> void:
 	var s := State.new_game(1)
 	var gaps := {}
+	var plain: Array = []
 	for d in range(1, 60):
-		gaps[Letters.gap(s, Seeds.rng(1, "letters", d))] = true
+		var g := Letters.gap(s, Seeds.rng(1, "letters", d))
+		gaps[g] = true
+		plain.append(g)
 	assert_eq(gaps.keys().size(), 2, "3 or 4 days")
 	s.friendship.postman = 99
 	for d in range(1, 60):
-		assert_eq(Letters.gap(s, Seeds.rng(1, "letters", d)), 3)
+		assert_eq(Letters.gap(s, Seeds.rng(1, "letters", d)), plain[d - 1])
 
 
 func test_every_text_key_exists() -> void:
