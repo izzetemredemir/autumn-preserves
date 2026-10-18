@@ -16,9 +16,18 @@
   <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest"><img src="https://img.shields.io/github/v/release/izzetemredemir/autumn-preserves?style=flat-square&color=c94d2e&label=release" alt="Latest release"></a>
 </p>
 
+<h2 align="center">▶ Try it now in your browser, no download</h2>
+
 <p align="center">
-  <b>Play:</b> <a href="https://izzetemredemir.github.io/autumn-preserves/">in your browser</a> (plays in the browser on desktop; on a phone hold it landscape)<br>
-  <b>Download:</b>
+  <a href="https://izzetemredemir.github.io/autumn-preserves/"><img src="https://img.shields.io/badge/%E2%96%B6%20PLAY%20IN%20YOUR%20BROWSER-izzetemredemir.github.io%2Fautumn--preserves-c94d2e?style=for-the-badge" alt="Play in your browser"></a><br>
+  <b><a href="https://izzetemredemir.github.io/autumn-preserves/">izzetemredemir.github.io/autumn-preserves</a></b><br>
+  Open the link on a computer (Chrome, Edge, Firefox or Safari), wait a few seconds for it to load, and play with the mouse.<br>
+  On a phone, hold it landscape. For Turkish, open Settings on the title screen.<br>
+  <sub>Tarayıcıda hemen oyna: bağlantıyı bilgisayarda aç, birkaç saniye yüklensin, fareyle oyna. Türkçe için başlık ekranında Ayarlar.</sub>
+</p>
+
+<p align="center">
+  <b>Or download:</b>
   <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/autumn-preserves-macos.zip">macOS (zip)</a> ·
   <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/autumn-preserves-windows.zip">Windows (zip)</a> ·
   <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/autumn-preserves-linux.tar.gz">Linux (tar.gz)</a> ·

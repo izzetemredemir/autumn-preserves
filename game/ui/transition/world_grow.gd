@@ -227,7 +227,8 @@ func _apply() -> void:
 func _input(event: InputEvent) -> void:
 	if _finished or not event.is_pressed() or event.is_echo():
 		return
-	if event is InputEventKey or event is InputEventMouseButton or event is InputEventScreenTouch \
-			or event is InputEventJoypadButton:
-		get_viewport().set_input_as_handled()
+	if event is InputEventKey or event is InputEventJoypadButton:
+		skip()  # the key still reaches the game (I opens the bag, arrows walk) instead of being eaten by the skip
+	elif event is InputEventMouseButton or event is InputEventScreenTouch:
+		get_viewport().set_input_as_handled()  # a click never lands on the map under the overlay
 		skip()

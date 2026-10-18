@@ -392,7 +392,7 @@ func _update_hint(where: Callable, d: Dictionary, delta: float) -> void:
 		keep.append(Rect2(_tip.x - 7, _tip.y - 13, 15, 16))
 	if _cap_on:
 		keep.append(Rect2(_cap_at.x - 11, _cap_at.y - 13, 23, 14))
-	var pick := 0
+	var pick := -1
 	for i in wants.size():
 		var w: Vector2 = wants[i][0]
 		var free := w.x >= 4 and w.x + sz.x <= vp.x - 4 and w.y >= TOP and w.y + sz.y <= vp.y - 4
@@ -401,8 +401,13 @@ func _update_hint(where: Callable, d: Dictionary, delta: float) -> void:
 		if free:
 			pick = i
 			break
+	if pick < 0:
+		pick = 0
 	var want: Vector2 = wants[pick][0]
 	var pos := Vector2(clampf(want.x, 4, vp.x - 4 - sz.x), clampf(want.y, TOP, vp.y - 4 - sz.y))
+	if keep[0].has_area() and Rect2(pos, sz).intersects(keep[0]):
+		_bubble.visible = false  # no free spot beside Granny: the open note already says the step, never cover it
+		return
 	_bubble.position = pos
 	_tail_dir = String(wants[pick][1])
 	_tail = Vector2(-1, -1)
