@@ -42,11 +42,13 @@ func _ready() -> void:
 	%Festival.pressed.connect(_on_festival)
 	_build_lab_hint()
 	%Festival.disabled = not FileAccess.file_exists(FestivalFacts.SAVE)
+	%Festival.visible = Dev.enabled()  # RELEASE-CLEAN: the F key opens the demo day in every build
 	%NewGame.pressed.connect(_on_new_game)
 	%Continue.pressed.connect(_on_continue)
 	%SeedLab.pressed.connect(_on_seed_lab)
 	%Settings.pressed.connect(_on_settings)
 	_build_how_to_button()
+	_build_quit_button()
 	%Continue.disabled = not Save.has_save()
 	var saved := Save.load_game() if Save.has_save() else {}
 	if Farewell.is_completed(saved):
@@ -55,7 +57,8 @@ func _ready() -> void:
 		_show_visited()  # ENDING: the visit was watched (docs/story.md §6.1, step 5)
 	%SeedLab.disabled = not Router.exists("seed_lab")
 	%SeedLab.visible = false  # hidden from players (the human: it looks intimidating); L opens it for the talk
-	if %Continue.disabled:
+	_order_menu()
+	if %Continue.disabled or not %Continue.visible:
 		%NewGame.grab_focus()
 	else:
 		%Continue.grab_focus()
@@ -104,15 +107,19 @@ func _build_new_game_panel() -> void:
 	head.text = tr("TITLE_NEW_GAME")
 	head.theme_type_variation = &"Heading"
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	head.visible = Dev.enabled()
 	box.add_child(head)
 	var line := Label.new()
 	line.text = tr("UI_NEWGAME_LINE")
 	line.custom_minimum_size = Vector2(250, 0)
 	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	line.visible = Dev.enabled()  # RELEASE-CLEAN: no description text for players
 	box.add_child(line)
 	_overwrite = Label.new()
-	_overwrite.text = tr("TITLE_OVERWRITE")
+	_overwrite.text = tr("TITLE_OVERWRITE" if Dev.enabled() else "TITLE_OVERWRITE_ASK")
+	_overwrite.custom_minimum_size = Vector2(220, 0)
+	_overwrite.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_overwrite.add_theme_color_override("font_color", Color("e19064"))
 	_overwrite.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_overwrite)
@@ -251,11 +258,17 @@ func _open(panel: Control) -> void:
 
 
 func _on_new_game() -> void:
+	if not Save.has_save() and not Dev.enabled():
+		_start()  # nothing to confirm: straight to the intro
+		return
 	_open(_new_panel)
 	%Slogan.visible = false
+	# RELEASE-CLEAN: a first-time player starts at once; the seed link and the replace warning belong to a
+	# player who has a save (a two-button confirm); the seed field is dev mode only.
+	var guarded := Dev.enabled()
 	_overwrite.visible = Save.has_save()
 	_seed_row.visible = false
-	_seed_link.visible = true
+	_seed_link.visible = guarded
 	_start_button.grab_focus()
 
 
@@ -340,8 +353,8 @@ func _show_card(text: String) -> PanelContainer:
 	var row := CenterContainer.new()
 	row.anchor_left = 0.0
 	row.anchor_right = 1.0
-	row.offset_top = 240  # ENDING: below the last menu button (the How to Play button made the menu taller)
-	row.offset_bottom = 268
+	row.offset_top = 76  # between the slogan and the menu (the menu is six buttons tall now)
+	row.offset_bottom = 95
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(row)
 	row.add_child(card)
@@ -389,6 +402,29 @@ func _build_how_to_button() -> void:
 	%Menu.move_child(b, %Settings.get_index())
 
 
+func _build_quit_button() -> void:
+	if not PauseMenu.quit_allowed():
+		return  # a web page has no window to close
+	var b := Button.new()
+	b.name = "Quit"
+	b.text = tr("TITLE_QUIT")
+	b.pressed.connect(func() -> void:
+		Audio.play_ui("ui_back")
+		get_tree().quit())
+	%Menu.add_child(b)
+
+
+## RELEASE-CLEAN: the menu order is Continue (only with a save), New Game, Harvest Festival, How to Play, Settings,
+## Quit. The Forest Lab button is never shown (the L key opens it).
+func _order_menu() -> void:
+	%Continue.visible = Save.has_save() or Dev.enabled()
+	var order: Array[Node] = [%Continue, %NewGame, %Festival, %Menu.get_node("HowTo"), %Settings]
+	for i in order.size():
+		%Menu.move_child(order[i], i)
+	if %Menu.has_node("Quit"):
+		%Menu.move_child(%Menu.get_node("Quit"), %Menu.get_child_count() - 1)
+
+
 func _on_how_to() -> void:
 	Audio.play_ui("ui_click")
 	%Menu.visible = false
@@ -405,6 +441,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			and (event as InputEventKey).physical_keycode == KEY_L and Router.exists("seed_lab"):
 		get_viewport().set_input_as_handled()
 		_on_seed_lab()
+		return
+	if %Menu.visible and event is InputEventKey and event.pressed and not event.echo \
+			and (event as InputEventKey).physical_keycode == KEY_F and not %Festival.disabled:
+		get_viewport().set_input_as_handled()
+		_on_festival()  # the presentation's demo day, hidden from the menu in release builds
 		return
 	if _new_panel.visible and event.is_action_pressed("cancel"):
 		get_viewport().set_input_as_handled()

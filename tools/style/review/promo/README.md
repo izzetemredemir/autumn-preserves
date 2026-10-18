@@ -1,8 +1,28 @@
 # Promo illustrations: candidates (PROMO-ART)
 
-Scenes P1–P7 of `docs/jury/promo-plan.md` §2. Every scene has its own labelled sheet here, and the human picks one candidate per scene. These are candidates, not finals.
+Scenes P1–P7 of `docs/jury/promo-plan.md` §2. Every scene has its own labelled sheet here, and the human picks one candidate per scene.
 
-**How they were made.** Every candidate comes from the key-art generator, `openai/gpt-image-2.5/flare/edit`. The first two references are always the same style anchors: the picked key art (`tools/publish/key_art.png`) and the title painting (`bg_title`). Each scene adds a third reference for its characters or room, listed in the table. The two candidates of a scene share one prompt and differ only in seed, 1017 or 2026. Each raw went through `tools/pipeline/pixel_cleanup.py --size 960x540 --fit cover --resample box --bg none --palette tools/palettes/autumn.hex`, the same flags as the key art. P7 used `--size 540x810`. All 15 cleaned PNGs pass `pixel_cleanup.py --check` with 0 off-palette pixels and no partial alpha. No image has text in it. Titles, names and the QR code are added later in Remotion or in the deck.
+## Status, 18 Oct 04:50
+
+All seven scenes are picked, and their finals are in `tools/publish/promo/`. Each final is the candidate at exactly 2× with nearest neighbour, stored as an indexed PNG, and passes the palette check:
+
+| Scene | Picked | Final |
+|---|---|---|
+| P1 | v1 | `P1_city_winter.png` (1920×1080) |
+| P2 | v5 (round 3) | `P2_teo_photo.png` |
+| P3 | v2 | `P3_letter.png` |
+| P4 | v2 | `P4_valley_map.png` |
+| P5 | v2 | `P5_people.png` (Nora as drawn here is now her approved reference) |
+| P6 | v1 | `P6_pantry_snow.png` |
+| P7 | v2 | `P7_poster.png` (1080×1620) |
+
+**P2 was rejected.** The human's note: "ikisi de yaşlı ve tonton olmalı" ("both should be old and chubby"). The photo is the one on the mantel, from their later years, not from their youth. Round 3 (`promo_P2_r3.txt`) draws them both elderly. Tonty matches the game's Granny exactly. Teo has white hair, a white beard, a brimmed felt hat and a wine-red waistcoat. The colours are faded and sepia-tinted, but her red cardigan and green skirt still show. The candidates are **v4** (seed 1017) and **v5** (seed 2026), on `P2_teo_photo.png`, which now shows only round 3. The rejected v1–v3 stay in `tools/style/raw/promo/` and the log.
+
+**The human picked P2 v5** (18 Oct), which was also my recommendation. It fits the mantel caption: Teo smiles gently but doesn't laugh ("He is laughing in every photo but this one"). The gate, the pear tree and the cottage are all in frame, which leaves room for parallax. v4 frames them closer and is more emotional, but Teo laughs in it.
+
+The table below is the first round as it was handed in, with my recommendations at the time.
+
+**How they were made.** Every candidate comes from the key-art generator, `openai/gpt-image-2.5/flare/edit`. The first two references are always the same style anchors: the picked key art (`tools/publish/key_art.png`) and the title painting (`bg_title`). Each scene adds a third reference for its characters or room, listed in the table. The two candidates of a scene share one prompt and differ only in seed, 1017 or 2026. Each raw went through `tools/pipeline/pixel_cleanup.py --size 960x540 --fit cover --resample box --bg none --palette tools/palettes/autumn.hex`, the same flags as the key art. P7 used `--size 540x810`. All 17 cleaned PNGs (15 from the first round plus the two P2 round-3 candidates) pass `pixel_cleanup.py --check` with 0 off-palette pixels and no partial alpha. No image has text in it. Titles, names and the QR code are added later in Remotion or in the deck.
 
 **Files.** The raws are `tools/style/raw/promo/promo_<scene>_v<N>.png`. The cleaned candidates are `..._v<N>_960.png`, or `..._540.png` for P7. The cell labels on the sheets are these file stems. Every generation has its own row in `tools/asset_log.csv` (`promo_<scene>_v<N>`, family `promo`). Each row holds the seed, the reference URLs and the result URL.
 
@@ -11,7 +31,7 @@ Scenes P1–P7 of `docs/jury/promo-plan.md` §2. Every scene has its own labelle
 | Scene | Sheet | Prompt | Third reference | Candidates | Pick | Why |
 |---|---|---|---|---|---|---|
 | P1 Winter in the city | `P1_city_winter.png` | `promo_P1.txt` | Mia and Leo portrait sheet (`portraits_kids`) | v1, v2 | **v2** | The left of the frame is calm snowy sky, so the trailer title has space, and both children's faces and the empty jar read clearly in the one warm window. v1 fills the left with rooftops and a street lamp. |
-| P2 Teo and Tonty, fifty years ago | `P2_teo_photo.png` | `promo_P2.txt` (v1, v2), `promo_P2_r2.txt` (v3) | Granny reference sheet | v1, v2, v3 | **v3** | Only v3 makes Tonty clearly young: she has dark hair, while in v1 and v2 her pale sepia bun reads as grey. Teo wears a brimmed felt hat like the one on the parlour peg. v3 is the one regeneration. |
+| P2 Teo and Tonty (rejected, see Status) | `P2_teo_photo.png` now shows round 3; this round is in git history | `promo_P2.txt` (v1, v2), `promo_P2_r2.txt` (v3) | Granny reference sheet | v1, v2, v3 | **v3** | Only v3 makes Tonty clearly young: she has dark hair, while in v1 and v2 her pale sepia bun reads as grey. Teo wears a brimmed felt hat like the one on the parlour peg. v3 is the one regeneration. |
 | P3 The letter | `P3_letter.png` | `promo_P3.txt` | Granny reference sheet | v1, v2 | **v1** | Both hands unfold the letter in the middle of the frame, and the snowflake stamp, tea, jam and peeking cat all read at a glance. The letter lines can't be read. |
 | P4 Map of the Everfall valley | `P4_valley_map.png` | `promo_P4.txt` | (style references only) | v1, v2 | **v2** | It has more open parchment between the cottage, forest, vineyard, stream, village and mountain road, which leaves room for the deck's loop arrows. v1 is richer but more crowded. |
 | P5 The people of Everfall | `P5_people.png` | `promo_P5.txt` | The 8 game portraits at ×6 (`tools/style/raw/promo/ref_portraits_x6.png`) | v1, v2 | **v1** | The nine cards are evenly spaced with Tonty's card the largest, and every face matches its game portrait. The name plaques are empty and ready for the deck. v2 has a stray frame in the bottom-left corner. |

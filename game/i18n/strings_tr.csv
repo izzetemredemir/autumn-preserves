@@ -1007,3 +1007,5 @@ GROW_SEED,tohum %d
 GARDEN_COMPOST_BIN,Kompost kutusu. Burada çürüyenler tarhları besler.
 UI_REWARD_GIFT_JAR,Pip sana %d kavanoz verdi!
 UI_REWARD_GIFT_SUGAR,Edith sana %d paket şeker verdi!
+TITLE_QUIT,Çık
+TITLE_OVERWRITE_ASK,Kayıtlı sonbaharının yerine geçer. Baştan başlansın mı?

@@ -1007,3 +1007,5 @@ GROW_SEED,seed %d
 GARDEN_COMPOST_BIN,The compost bin. What spoils here feeds the beds.
 UI_REWARD_GIFT_JAR,Pip gave you %d jars!
 UI_REWARD_GIFT_SUGAR,Edith gave you %d bags of sugar!
+TITLE_QUIT,Quit
+TITLE_OVERWRITE_ASK,This replaces your saved autumn. Start over?

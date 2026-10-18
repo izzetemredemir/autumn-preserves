@@ -14,7 +14,7 @@ var _demo: Button
 
 
 static func ensure() -> void:
-	if not OS.is_debug_build():
+	if not Dev.enabled():
 		return
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null or tree.get_first_node_in_group("dev_panel") != null:

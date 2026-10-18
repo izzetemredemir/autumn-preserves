@@ -46,6 +46,8 @@ func _ready() -> void:
 	left.append([_label(tr("TITLE_SET_LANGUAGE")), _language_button()])
 	var right: Array = []
 	for t in TOGGLES:
+		if t[2] == "show_seed_corner" and not Dev.enabled():
+			continue  # RELEASE-CLEAN: the seed overlay is a dev aid; its value stays false
 		right.append([_label(tr(t[0])), _toggle(String(t[1]), String(t[2]))])
 	for r in maxi(left.size(), right.size()):
 		for side: Array in [left, right]:
@@ -55,7 +57,7 @@ func _ready() -> void:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 6)
 	box.add_child(row)
-	if not in_game:
+	if not in_game and Dev.enabled():
 		var demo := Button.new()  # the jury demo day, in every build (it never touches the player's save)
 		demo.text = tr("TITLE_DEMO_DAY")
 		demo.tooltip_text = tr("TITLE_DEMO_DAY_TIP")
