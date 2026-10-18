@@ -1,8 +1,10 @@
 [
 	{"t": 0.0, "locale": "tr", "scene": "res://scenes/kitchen/kitchen.tscn", "do": "festival_load", "args": [""], "note": "TRAILER: the jar counter, pack to 100 percent, Sealed"},
-	{"t": 0.8, "do": "kitchen_spot", "args": ["counter"]},
-	{"dt": 1.0, "do": "kitchen_pick", "args": ["brined_mushroom", "mushroom"]},
+	{"t": 1.2, "do": "kitchen_stock", "args": ["cabbage", 4]},
+	{"t": 1.6, "do": "kitchen_spot", "args": ["counter"]},
+	{"dt": 0.2, "do": "kitchen_stock", "args": ["cabbage", 4]},
+	{"dt": 0.8, "do": "kitchen_pick", "args": ["kraut", "cabbage"]},
 	{"dt": 1.0, "do": "kitchen_start", "args": [30.0]},
 	{"dt": 0.5, "do": "minigame_bot", "note": "the bot packs, pours and seals"},
-	{"dt": 3.0, "quit": true}
+	{"dt": 30.0, "quit": true}
 ]

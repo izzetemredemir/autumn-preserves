@@ -1,6 +1,7 @@
 [
 	{"t": 0.0, "locale": "tr", "scene": "res://scenes/kitchen/kitchen.tscn", "do": "festival_load", "args": [""], "note": "TRAILER: the dough board"},
-	{"t": 0.8, "do": "kitchen_spot", "args": ["board"]},
-	{"dt": 1.0, "do": "kitchen_start", "args": [30.0], "note": "the knead plays itself"},
-	{"dt": 24.0, "quit": true}
+	{"t": 1.6, "do": "kitchen_spot", "args": ["board"]},
+	{"dt": 1.0, "do": "kitchen_start_with", "args": [{"knead_time": 7.0, "trace_time": 5.0}], "note": "the knead plays itself"},
+	{"dt": 22.0, "do": "kitchen_finish", "args": [3], "note": "the rhythm is done: the result card (the crimp phase has no autoplay)"},
+	{"dt": 4.5, "quit": true}
 ]

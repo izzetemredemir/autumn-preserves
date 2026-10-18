@@ -1,6 +1,6 @@
 [
 	{"t": 0.0, "locale": "tr", "scene": "res://scenes/finale/finale.tscn", "do": "festival_load", "args": [""], "note": "TRAILER: the day-30 visit, cut before anyone appears"},
-	{"t": 0.0, "do": "finale_snow_clean"},
-	{"t": 7.5, "do": "finale_seek", "args": [19.0], "note": "after the knock: the snowy garden, empty of children"},
-	{"t": 11.0, "quit": true}
+	{"t": 0.3, "do": "finale_snow_clean"},
+	{"t": 7.5, "do": "finale_seek", "args": [23.0], "note": "after the knock: the snowy garden, empty of children"},
+	{"t": 11.5, "quit": true}
 ]

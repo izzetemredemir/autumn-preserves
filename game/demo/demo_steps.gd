@@ -734,6 +734,32 @@ func finale_seek(t: float) -> void:
 ## TRAILER · The snow beat without its spoilers: no children and no line, only the snowy garden, Granny and the cat.
 func finale_snow_clean() -> void:
 	var snow: Node = _scene().shot("snow")
-	for id in snow._figs:
-		snow._figs[id].visible = false
-	snow._snow._line_box.visible = false
+	for id in snow._figs.keys():
+		snow._figs[id].free()
+		snow._figs.erase(id)
+	snow._snow._line_box.modulate.a = 0.0
+
+
+## TRAILER · Like kitchen_start, with extra mini-game ctx (e.g. {"knead_time": 7, "trace_time": 5} for a shorter knead).
+func kitchen_start_with(extra: Dictionary) -> void:
+	var k := _scene()
+	var ctx := {"autoplay": true, "duration": 30.0}
+	ctx.merge(extra, true)
+	k.debug_ctx = ctx
+	k._panel._on_cook()
+
+
+## TRAILER · `count` fresh units of ingredient `type` into the temporary game's inbox (and a few jars and salt in the
+## cupboard), so a recipe that needs them can be cooked for the camera.
+func kitchen_stock(type: String, count: int = 4) -> void:
+	var d: Dictionary = _gs().data
+	var dev: GDScript = load("res://ui/dev_panel/dev_tools.gd")
+	d.inbox.append(State.fresh(dev.first_variety(d, type), count, int(Data.ingredients()[type].get("shelf_days", 5))))
+	for id in ["jar", "salt", "vinegar"]:
+		d.cupboard[id] = maxi(int(d.cupboard.get(id, 0)), 4)
+	_gs().notify(PackedStringArray(["inbox", "cupboard"]))
+func _dbg() -> void:
+	for i in 5:
+		await get_tree().create_timer(1.0).timeout
+		var mg: Variant = _scene().get("_mg")
+		print("DBG ", mg, " ", mg.phase if mg else -1, " piece=", mg._piece if mg else "", " fall=", mg._fall if mg else "")

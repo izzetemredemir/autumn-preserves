@@ -61,9 +61,7 @@ func _run() -> void:
 	_check(Rect2(0, 0, 480, 270).encloses(open_rect), "the expanded note stays on screen (%s)" % open_rect)
 	_check(open_rect.end.y <= 215, "the expanded note ends by y 215 (%s)" % open_rect.end.y)
 	_shot("hud_note_expanded")
-	todo._collapsed = true
-	todo._auto_pinned = false
-	todo._apply_fold()
+	todo._set_fold(0)
 	await process_frame
 
 	btn.pressed.emit()

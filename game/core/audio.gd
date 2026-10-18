@@ -23,8 +23,9 @@ var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	_rng.randomize()
-	# Dev and test runs start muted (user request); exported release builds play sound. "--sound" unmutes a dev run.
-	if OS.is_debug_build() and not "--sound" in OS.get_cmdline_user_args():
+	# Editor and test runs start muted (user request); every exported build (release or debug-signed, e.g. the Android
+	# APK) plays sound. "--sound" unmutes a dev run. (Was is_debug_build: the debug APK started silent.)
+	if OS.has_feature("editor") and not "--sound" in OS.get_cmdline_user_args():
 		AudioServer.set_bus_mute(0, true)
 	for i in SFX_VOICES:
 		_sfx_pool.append(_player("SFX"))

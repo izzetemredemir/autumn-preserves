@@ -23,20 +23,28 @@ const NOTE_WIDE := 232
 const NOTE_OPEN_W := 210  ## expanded (click to open): long lines wrap inside; human: "açılınca kocaman duruyor"
 const MODAL_GROUP := &"modal_card"  ## modal cards/panels outside the popup layers join this group (visible = note hides)
 const BODY_FONT := preload("res://assets/fonts/m5x7.ttf")
+const ICON_TEX := preload("res://assets/sprites/icons/icon_todo.png")
+const PEEK_SEC := 3.0  ## TODO-ICON: the one-line step shows this long after a step changes, then folds to the icon
+enum Fold { ICON, PEEK, OPEN }
 
 var _panel: PanelContainer
+var _solid: StyleBoxFlat
+var _bare := StyleBoxEmpty.new()  ## the icon fold has no paper of its own
 var _header: Label
 var _root: Control
 var _close: Control
-var _hover := false
 var _rows: VBoxContainer
 var _bits := -1
 var _step := ""
-var _collapsed := false
+var _fold := Fold.ICON
+var _icon: IconFold
+var _peek_left := 0.0
+var _shown_step := "\u0001"  ## the step last shown in a peek (or open): a scene entry peeks when it differs
 var _celebrating := false
 var _earned := 0
 var _orders := 0
 static var _suppressed := 0  ## GrannyTodo.suppress(true/false) from panels that open/close
+var _pending_peek := false  ## a step ticked: peek once _refresh knows the new step
 var _auto_pinned := false  ## pin_open() holds the note open until the next scene change
 
 
@@ -67,8 +75,7 @@ static func current_step() -> String:
 
 
 func _ready() -> void:
-	# Always a one-line note; hover peeks at the list, a click pins it open.
-	_collapsed = true
+	# TODO-ICON: an envelope icon with a "5/7" badge; the step peeks for a few seconds, a click opens the list.
 	layer = 11
 	add_to_group("granny_todo")
 	GuideArrow.ensure()
@@ -77,8 +84,10 @@ func _ready() -> void:
 	Router.scene_changed.connect(func(_id: String) -> void:
 		if _auto_pinned:
 			_auto_pinned = false
-			_collapsed = true
-		_evaluate(false))
+			_fold = Fold.ICON
+		_evaluate(false)
+		if visible and _step != _shown_step and _fold == Fold.ICON:
+			_peek())
 	_sync_money()
 	_evaluate(false)
 
@@ -103,6 +112,7 @@ func _build() -> void:
 	solid.content_margin_bottom = 6
 	solid.anti_aliasing = false
 	_panel.add_theme_stylebox_override("panel", solid)
+	_solid = solid
 	_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_panel.offset_left = -4
@@ -128,6 +138,10 @@ func _build() -> void:
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", 0)
 	box.add_child(_rows)
+	_icon = IconFold.new()
+	_icon.tooltip_text = tr("UI_TIP_TODO")
+	_icon.pressed.connect(_on_icon_pressed)
+	box.add_child(_icon)
 
 
 func _label(text: String, color: Color) -> Label:
@@ -185,6 +199,8 @@ func _evaluate(feedback: bool) -> void:
 	_bits = bits
 	if ticked:
 		Audio.play_ui("ui_confirm")
+		if _fold == Fold.ICON:
+			_pending_peek = true
 		if TodoRules.day_finished(d, bits):
 			_celebrate()
 	_refresh(ticked)
@@ -211,11 +227,17 @@ func _refresh(pop_new: bool) -> void:
 	var d: Dictionary = GameState.data
 	visible = not d.is_empty() and _visible_for(d, _bits)
 	var step := TodoRules.current_step(d, _bits) if visible else ""
+	var _step_before := _step
 	if step != _step:
 		_step = step
 		step_changed.emit(step)
 	for c in _rows.get_children():
 		c.queue_free()
+	if visible and _pending_peek and _fold == Fold.ICON:
+		_peek()
+	elif visible and step != _step_before and _fold == Fold.ICON and step != "":
+		_peek()  # a new step appears
+	_pending_peek = false
 	_apply_fold()
 	if not visible:
 		return
@@ -249,10 +271,11 @@ func _last_done(d: Dictionary) -> String:
 	return last
 
 
-## Folded: "n/5 <current step>" on one line. Open (a click on the header, or pinned): title, counter, full list.
-## Hover no longer opens it (human, 18 Oct 03:40: the note should open and close on purpose, never vanish).
+## icon (default): envelope + "n/m" badge. peek: "n/m <current step>" on one line for PEEK_SEC. open (a click, or
+## pinned): title, counter, full list. Hover does nothing (touch has none).
 func _apply_fold() -> void:
-	var open := not _collapsed
+	var open := _fold == Fold.OPEN
+	var icon := _fold == Fold.ICON
 	var d: Dictionary = GameState.data
 	var total := 0
 	var done := 0
@@ -268,14 +291,36 @@ func _apply_fold() -> void:
 		_header.text = "%s %s" % [count, tr(TodoRules.key_of(_step))]
 	else:
 		_header.text = "%s %s" % [count, tr("TUT_ALL_DONE")]
+	_icon.set_count(count)
+	_icon.visible = icon
+	_header.get_parent().visible = not icon
 	_rows.visible = open
 	_close.visible = open
+	_panel.add_theme_stylebox_override("panel", _bare if icon else _solid)
 	var w := NOTE_OPEN_W if open else NOTE_W
 	if not open and _lines_at(_header.text, NOTE_W - 14) > 2:
 		w = NOTE_WIDE
-	_panel.custom_minimum_size = Vector2(w, 0)
+	_panel.custom_minimum_size = Vector2(0 if icon else w, 0)
 	_fit()
 	_fit.call_deferred()  # wrapped labels know their height one frame later
+
+
+## Shows the current step for PEEK_SEC (when the note is folded), then folds back to the icon by itself.
+func _peek() -> void:
+	if _fold == Fold.OPEN:
+		return
+	_fold = Fold.PEEK
+	_peek_left = PEEK_SEC
+	_shown_step = _step
+	_apply_fold()
+
+
+func _set_fold(f: Fold) -> void:
+	_fold = f
+	_peek_left = 0.0
+	if f != Fold.ICON:
+		_shown_step = _step
+	_apply_fold()
 
 
 ## Resizes the note to its content and keeps its right edge at x = 476.
@@ -299,15 +344,14 @@ func _process(_delta: float) -> void:
 	if _root.visible == hide_now:
 		_root.visible = not hide_now
 	if hide_now:
-		_hover = false
 		return
 	_avoid_hud()
+	if _fold == Fold.PEEK:
+		_peek_left -= _delta
+		if _peek_left <= 0.0:
+			_set_fold(Fold.ICON)
 	if _panel.size.y > _panel.get_combined_minimum_size().y or _panel.position.x + _panel.size.x != 476.0:
 		_fit()  # wrapped labels settle over a couple of frames
-	var over := _panel.get_global_rect().has_point(_panel.get_viewport().get_mouse_position())
-	if over != _hover:
-		_hover = over
-		_apply_fold()
 
 
 ## True while a popup/overlay (plant menu, cook panel, book, letters, card) shows content.
@@ -334,30 +378,50 @@ func _popup_open() -> bool:
 ## Opens the note (after the festival's start card: the six steps show at once) until a click folds it or the
 ## scene changes.
 func pin_open() -> void:
-	_collapsed = false
 	_auto_pinned = true
-	_apply_fold()
+	_set_fold(Fold.OPEN)
 
 
 func is_open() -> bool:
-	return _rows != null and _rows.visible
+	return _fold == Fold.OPEN
+
+
+func fold_name() -> String:
+	return Fold.keys()[_fold].to_lower()
+
+
+func _on_icon_pressed() -> void:
+	Audio.play_ui("ui_click")
+	_set_fold(Fold.OPEN)
+
+
+## Esc or a click outside the open note folds it to the icon (the click still reaches what is under it).
+func _input(event: InputEvent) -> void:
+	if _fold != Fold.OPEN or _root == null or not _root.visible or not visible:
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+		_auto_pinned = false
+		_set_fold(Fold.ICON)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if not _panel.get_global_rect().has_point(event.position):
+			_auto_pinned = false
+			_set_fold(Fold.ICON)
 
 
 func _on_header_input(event: InputEvent) -> void:
 	var tap: bool = event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
 	if tap:
 		_auto_pinned = false
-		_collapsed = not _collapsed
 		Audio.play_ui("ui_click")
-		_apply_fold()
+		_set_fold(Fold.ICON if _fold == Fold.OPEN else Fold.OPEN)
 
 
-## The cross folds the note back to its one-line form; it never removes the note (the Tutorial setting does).
+## The cross folds the note back to the icon; it never removes the note (the Tutorial setting does).
 func _on_close() -> void:
 	Audio.play_ui("ui_back")
 	_auto_pinned = false
-	_collapsed = true
-	_apply_fold()
+	_set_fold(Fold.ICON)
 
 
 ## 9x9 notebook box: empty, ticked, or with a bobbing pointer for the current step.
@@ -394,6 +458,36 @@ class TickBox:
 			var dx := int(_t * 3.0) % 2
 			draw_rect(Rect2(3 + dx, y + 3, 1, 3), Color("a22512"))
 			draw_rect(Rect2(4 + dx, y + 4, 1, 1), Color("a22512"))
+
+
+## TODO-ICON: the "n/m" badge (TEXT on a 1-px PAPER plate) left of the 16x16 envelope; one click target, <= 44x16.
+class IconFold:
+	extends Control
+	signal pressed
+	var _text := ""
+	var _tw := 0
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_STOP
+		mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+	func set_count(t: String) -> void:
+		_text = t
+		_tw = int(BODY_FONT.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x)
+		custom_minimum_size = Vector2(_tw + 2 + 1 + 16, 16)
+		queue_redraw()
+
+	func _gui_input(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			pressed.emit()
+			accept_event()
+
+	func _draw() -> void:
+		var h := BODY_FONT.get_height(16)
+		var top := int((16 - h) / 2)
+		draw_rect(Rect2(0, top, _tw + 2, h), PAPER)
+		draw_string(BODY_FONT, Vector2(1, top + BODY_FONT.get_ascent(16)), _text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, TEXT)
+		draw_texture(ICON_TEX, Vector2(_tw + 3, 0))
 
 
 ## 16x16 close button (UI kit icon_close, lifts 1 px on hover): closes the note.
