@@ -6,7 +6,7 @@ extends RefCounted
 
 const PATH := "user://settings.cfg"
 const DEFAULTS := {
-	"audio": {"music": 0.8, "sfx": 0.8, "ambient": 0.8},
+	"audio": {"music": 0.5, "sfx": 0.6, "ambient": 0.5},  # human (18 Oct): quieter by default, the player can turn it up
 	"display": {"fullscreen": false},
 	"game": {"show_seed_corner": false, "tutorial": true, "language": "en", "show_grow": true, "intro_seen": false, "lang_chosen": false},
 }
