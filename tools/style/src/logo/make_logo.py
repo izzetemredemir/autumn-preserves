@@ -75,7 +75,7 @@ def main():
     for n in (144, 180, 512):
         save(big.resize((n, n), Image.NEAREST), f"game/web_icons/icon_{n}.png")
 
-    font = ImageFont.truetype(f"{G}/assets/fonts/m6x11plus.ttf", 16)
+    font = ImageFont.truetype(f"{G}/assets/fonts/m6x11plus.ttf", 18)  # 18 is the font's clean size; 16 garbled the letters
 
     def text_img(txt, col):
         m = Image.new("L", (200, 24), 0); dd = ImageDraw.Draw(m); dd.fontmode = "1"
