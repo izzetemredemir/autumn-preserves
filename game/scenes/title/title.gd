@@ -212,6 +212,25 @@ func _build_lang_toggle() -> void:
 	_toggle = HBoxContainer.new()
 	_toggle.name = "LangToggle"
 	_toggle.add_theme_constant_override("separation", 0)
+	# Sound on/off at the left of the language toggle (human, 18 Oct 05:30): same icons and mute as the HUD's button.
+	var snd := Button.new()  # a plank button like EN|TR so the icon reads on the sky
+	snd.name = "SoundButton"
+	snd.focus_mode = Control.FOCUS_NONE
+	snd.expand_icon = false
+	var refresh := func() -> void:
+		var muted: bool = Audio.is_muted()
+		snd.icon = load("res://assets/sprites/ui/" + ("icon_sound_off" if muted else "icon_sound_on") + ".png")
+		snd.tooltip_text = tr("UI_TIP_SOUND_OFF" if muted else "UI_TIP_SOUND_ON")
+	snd.pressed.connect(func() -> void:
+		Audio.set_muted(not Audio.is_muted())
+		Audio.play_ui("ui_click"))
+	Audio.muted_changed.connect(func(_m: bool) -> void: refresh.call())
+	refresh.call()
+	_toggle.add_child(snd)
+	var gap := Control.new()
+	gap.custom_minimum_size = Vector2(6, 0)
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_toggle.add_child(gap)
 	for code: String in GameSettings.LANGUAGES:
 		var b := Button.new()
 		b.text = code.to_upper()
