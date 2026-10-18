@@ -138,14 +138,10 @@ Every system draws from its own random stream, seeded with `hash(save seed, day,
 
 <table align="center">
   <tr>
-    <td align="center" width="50%"><img src="shots/forest_regrow.gif" alt="The same seed grows the same forest twice, a new seed grows a new one" width="460"><br><sub>Same seed, same forest. New seed, new forest.</sub></td>
     <td align="center" width="50%"><img src="shots/jar_wall.gif" alt="A wall filling up with generated jars and their names" width="460"><br><sub>Every jar is generated: name, label, taste and value.</sub></td>
+    <td align="center" width="50%"><img src="shots/species.gif" alt="Generated forest species, each with its name and icon" width="460"><br><sub>New wild species, named and drawn from the seed.</sub></td>
   </tr>
 </table>
-<p align="center">
-  <img src="shots/species.gif" alt="Generated forest species, each with its name and icon" width="960"><br>
-  <sub>New wild species, named and drawn from the seed.</sub>
-</p>
 
 <details>
 <summary><b>Watch it happen: the Forest Lab</b></summary>
