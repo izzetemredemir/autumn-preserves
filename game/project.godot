@@ -13,6 +13,11 @@ config_version=5
 config/name="Autumn Preserves"
 run/main_scene="res://scenes/title/title.tscn"
 config/features=PackedStringArray("4.7")
+config/icon="res://icon.png"
+boot_splash/bg_color=Color(0.164706, 0.101961, 0.121569, 1)
+boot_splash/image="res://splash.png"
+boot_splash/fullsize=true
+boot_splash/use_filter=false
 
 [autoload]
 
