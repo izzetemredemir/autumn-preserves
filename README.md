@@ -18,13 +18,15 @@
 <p align="center">
   <b>Play:</b> <a href="https://izzetemredemir.github.io/autumn-preserves/">in your browser</a> (plays in the browser on desktop; on a phone hold it landscape)<br>
   <b>Download:</b>
-  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/AutumnPreserves.zip">macOS (zip)</a> ·
-  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/AutumnPreserves.exe">Windows (exe)</a>
+  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/autumn-preserves-macos.zip">macOS (zip)</a> ·
+  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/autumn-preserves-windows.zip">Windows (zip)</a> ·
+  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/autumn-preserves-linux.tar.gz">Linux (tar.gz)</a>
 </p>
 
 <p align="center">
   <sub><b>macOS 15+:</b> the app is not notarised: System Settings → Privacy &amp; Security → Open Anyway (or <code>xattr -cr "Autumn Preserves.app"</code>).<br>
-  <b>Windows:</b> SmartScreen: More info → Run anyway.</sub>
+  <b>Windows:</b> SmartScreen: More info → Run anyway.<br>
+  <b>Linux:</b> autumn-preserves-linux.tar.gz, <code>chmod +x AutumnPreserves.x86_64</code> if needed.</sub>
 </p>
 
 <p align="center">

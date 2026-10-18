@@ -58,8 +58,8 @@ func test_neighbour_lines_once_at_two_hearts_and_rosie_on_festival_day() -> void
 	assert_eq(Story.npc_line_due(s, "vintner", 2, false), "STORY_NPC_VINTNER")
 	Story.mark_npc_said(s, "vintner")
 	assert_eq(Story.npc_line_due(s, "vintner", 5, false), "", "once")
-	assert_eq(Story.npc_line_due(s, "baker", 5, false), "", "Rosie waits for the festival")
-	assert_eq(Story.npc_line_due(s, "baker", 0, true), "STORY_NPC_BAKER")
+	assert_eq(Story.npc_line_due(s, "baker", 1, false), "", "Rosie: not yet at 2 hearts")
+	assert_eq(Story.npc_line_due(s, "baker", 2, false), "STORY_NPC_BAKER", "Rosie like the others")
 	assert_eq(Story.npc_line_due(s, "librarian", 3, false), "STORY_NPC_LIBRARIAN")
 
 

@@ -128,17 +128,11 @@ func test_note_names_the_best_jar_and_the_rare_find() -> void:
 	assert_eq(lines[2].args, [12])
 	assert_eq(lines[4].key, "FINALE_NOTE_RARE")
 	var tr_lines := FinaleRules.note(s, "tr")
-	assert_true(String(tr_lines[3].args[0]).contains("'"), "Turkish: the jar takes the accusative")
-
-
-func test_turkish_accusative() -> void:
-	assert_eq(FinaleRules.accusative_tr("Elma Reçeli"), "Elma Reçeli'ni")
-	assert_eq(FinaleRules.accusative_tr("Armut Şurubu"), "Armut Şurubu'nu")
-	assert_eq(FinaleRules.accusative_tr("Kızıl Turşu"), "Kızıl Turşu'nu")
-	assert_eq(FinaleRules.accusative_tr("Ceviz Ezmesi"), "Ceviz Ezmesi'ni")
-	assert_eq(FinaleRules.accusative_tr("Erik Sos"), "Erik Sos'u")
-
-
+	assert_eq(tr_lines[3].args[0], ProductGen.product_name(key, s.varieties, "tr"), "Turkish: the plain jar name, no suffix")
+	assert_eq(tr_lines.filter(func(l): return l.key == "FINALE_NOTE_KNIFE").size(), 0, "no knife line before the find")
+	Story.mark_knife_found(s)
+	var knife := FinaleRules.note(s, "en").map(func(l: Dictionary) -> String: return String(l.key))
+	assert_eq(knife.find("FINALE_NOTE_KNIFE"), knife.find("FINALE_NOTE_TEO") + 1, "the knife line follows Teo's")
 func test_nora_writes_again_on_day_10_once() -> void:
 	for sd in SEEDS:
 		var s := State.new_game(sd)

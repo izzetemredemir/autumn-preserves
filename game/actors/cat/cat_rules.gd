@@ -9,7 +9,7 @@ const SPOTS := [
 	{"id": "compost", "cell": Vector2i(12, 11)},  ## on the compost lid
 	{"id": "bed_edge", "cell": Vector2i(9, 8)},  ## the sunny gap between the first two beds
 	{"id": "gate_post", "cell": Vector2i(12, 15)},
-	## GARDEN-LIFE: up on the hood of Walter's truck and on the bench; the garden seats the cat at the feet point of
+	## GARDEN-LIFE: up on the hood of Teo's truck and on the bench; the garden seats the cat at the feet point of
 	## garden_props.json (cat_spot_px), drawn over the prop, and it stays put there.
 	{"id": "truck_hood", "cell": Vector2i(24, 7), "prop": "truck"},
 	{"id": "bench", "cell": Vector2i(17, 6), "prop": "bench"},

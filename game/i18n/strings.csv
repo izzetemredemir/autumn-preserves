@@ -427,8 +427,8 @@ LET_BOX_BAD,That does not fit in the box.
 LET_NOT_READY,That jar is still waiting.
 LET_ONLY_JARS,Only jars go in a parcel.
 LET_NOTE_MIA_1,School started again. I sit next to a girl who has a pet snail!
-LET_NOTE_MIA_2,I lost my first tooth! Mum says the tooth fairy is very busy this autumn.
-LET_NOTE_MIA_3,We made leaf crowns in class. Mine was the reddest one.
+LET_NOTE_MIA_2,I lost my first tooth! Mum says the tooth fairy is very busy this winter.
+LET_NOTE_MIA_3,We made paper snowflakes in class. Mine was the biggest one.
 LET_NOTE_MIA_4,"It rained all week, so I read three whole books."
 LET_NOTE_MIA_5,I am learning the recorder. Leo says it sounds like a sad goose.
 LET_NOTE_MIA_6,I drew your garden from memory. The apple tree is as tall as a house.
@@ -484,7 +484,7 @@ UI_REWARD_ADDIN,"Edith gave you three sprigs of mint!"
 CAT_PET_1,Purrrr...
 CAT_PET_2,Mrrp. Right on the spot.
 CAT_PET_3,The cat leans into your hand.
-CAT_PET_4,"A very warm, very orange cat."
+CAT_PET_4,Teo always fed her first. I do too.
 UI_MARKET_TITLE,Market Day
 UI_MARKET_TODAY,Market today!
 UI_MARKET_YOUR_JARS,Your jars
@@ -569,7 +569,7 @@ UI_UPGRADE_FX_BIG_POT,Stir-pot recipes fill 2 jars
 UI_UPGRADE_FX_CELLAR,12 cool pantry shelf spaces
 FAREWELL_LETTER_DEAR_TWO,"My dear %s and %s,"
 FAREWELL_LETTER_DEAR,"My dear grandchildren,"
-FAREWELL_LETTER_DAYS,"%d days in Everfall, and not one of them was dull."
+FAREWELL_LETTER_DAYS,"%d days this autumn, and not one of them was dull."
 FAREWELL_LETTER_JARS,I filled %d jars with these two old hands.
 FAREWELL_LETTER_JARS_ONE,"I filled only one jar, but it was a good one."
 FAREWELL_LETTER_JARS_NONE,I never filled as many jars as I meant to. Fill one for me.
@@ -605,7 +605,7 @@ FAREWELL_WORRY_MIA_1,"Granny, are you resting enough? Mum says you sounded tired
 FAREWELL_WORRY_MIA_2,Please put your feet up after supper. Promise me!
 FAREWELL_WORRY_MIA_3,"I dreamt of your kitchen last night. Are you keeping warm, Granny?"
 FAREWELL_WORRY_LEO_1,"Granny, are you resting enough? Don't carry the heavy baskets!"
-FAREWELL_WORRY_LEO_2,"Dad says we will visit soon. Wait for us, okay?"
+FAREWELL_WORRY_LEO_2,"Dad says we can come up again soon. Wait for us, okay?"
 FAREWELL_WORRY_LEO_3,Your last letter was so short. Are you sleeping well?
 UI_MEMORY_OPEN,Memory
 UI_MEMORY_TITLE,Memory
@@ -644,7 +644,7 @@ UI_WEATHER_WINDY,Windy
 UI_WEATHER_FOGGY,Foggy
 UI_FAMILY_TAB,Family recipes
 UI_FAMILY_BASE,Base recipes
-UI_FAMILY_TIP,Granny's own recipes. The grandkids sent them back with their love.
+UI_FAMILY_TIP,Pages from Teo's notebook. Mia and Leo send them with their love.
 UI_FAMILY_HEADING,Family recipes %d/%d
 UI_FAMILY_FROM,"From %s, %d hearts"
 UI_FAMILY_HOW_ADJ,Family recipe: always %s
@@ -695,7 +695,7 @@ FESTIVAL_END_SEED,Your Everfall grew from seed %s.
 FESTIVAL_END_MAP,"Today's forest: %d trees, %d clearings, %d paths"
 FESTIVAL_END_FOUND,%d varieties found. New recipes today: %d.
 FESTIVAL_END_COINS,The market paid %d coins.
-FESTIVAL_END_BYE,Mia and Leo can't wait for next autumn!
+FESTIVAL_END_BYE,Mia and Leo will be back for the snow holiday!
 FESTIVAL_KEEP,Keep playing
 FESTIVAL_TO_TITLE,Back to title
 FESTIVAL_THOUSANDS,","
@@ -879,7 +879,7 @@ HOWTO_SHARE_3,Esc: menu. B: recipe book. M: sound.
 TODO_HINT_D1_SHAKE,"Let's shake the apple tree: walk up to it and press E, or click it."
 TODO_HINT_D1_JAM,Lovely apples! Into the kitchen: let's cook a jam at the stove.
 TODO_HINT_D1_PANTRY,Now the jar goes on a pantry shelf. The pantry door is in the kitchen.
-TODO_HINT_D1_ORDER,"The baker ordered a jar. Let's take it to town, past the road sign."
+TODO_HINT_D1_ORDER,"One jar on the shelf, just as Nora said. Now the baker's order: to town, past the sign."
 TODO_HINT_D1_BED,"What a day! Time for bed, dear: the bed nook is in the parlour."
 TODO_HINT_D2_FOREST,Let's go foraging: out the garden gate to the forest.
 TODO_HINT_D2_MUSHROOM,Mushrooms hide on the forest floor. Let's pick one!
@@ -906,8 +906,8 @@ PARLOR_TO_KITCHEN,Kitchen
 PARLOR_KITCHEN_HINT,Back to the kitchen.
 PARLOR_BOOK,Recipe book
 PARLOR_LETTERS,Letters
-PARLOR_LETTERS_HINT,Letters from the grandchildren.
-PARLOR_LETTERS_NEW,Letters: %d new from the grandchildren!
+PARLOR_LETTERS_HINT,Letters from the family.
+PARLOR_LETTERS_NEW,Letters: %d new!
 PARLOR_CAT,Cat
 PARLOR_CAT_HINT,The cat naps in her basket. Give her a pet?
 PARLOR_CAT_PURR,Purrr... she loves that.
@@ -923,10 +923,10 @@ STORY_LETTER_NORA_SIGN,"Love, Nora"
 TUT_D1_MAIL,Check the mailbox
 TODO_HINT_D1_MAIL,"Something is in the mailbox, dear. Let's see who wrote."
 FINALE_KNOCK,"Knock, knock."
-FINALE_SNOW_LINE,The first snow in Everfall. She had given all of her autumn away.
+FINALE_SNOW_LINE,First snow in Everfall: the children brought a little winter up the road.
 FINALE_THANKS,Thank you for playing.
 FINALE_NOTE_DEAR_TWO,"My dear %s and %s,"
-FINALE_NOTE_DAYS,"%d days in Everfall, and not one of them was dull."
+FINALE_NOTE_DAYS,"%d days this autumn, and not one of them was dull."
 FINALE_NOTE_JARS,I filled %d jars with these two old hands.
 FINALE_NOTE_TOP,Open the %s first; it is my best.
 FINALE_NOTE_RARE,I once found a %s in the woods. Imagine that!
@@ -939,19 +939,19 @@ STORY_LETTER_NORA2_2,"If the road is open, we are coming up."
 STORY_LETTER_NORA2_3,Do not tidy. The children want to see the jars where they live.
 STORY_LETTER_NORA2_SIGN,"Love, Nora"
 LET_PS_STORY_5,P.S. I am crossing the days off on the calendar. Mum says stop. I will not stop.
-LET_PS_STORY_6,P.S. I packed the rabbit. He has never seen autumn.
-UI_VISITED,Visited - %d days
+LET_PS_STORY_6,"P.S. The bags are packed, even the rabbit's little brother. He has never seen autumn."
+UI_VISITED,The visit - day %d
 UI_DEV_DAY29,Day 29
 UI_DEV_DAY29_DONE,This save is already past the visit.
 LET_PS_STORY_1,P.S. Does Grandpa's pear tree still have pears? Mum says the forest moves. I don't believe her.
 LET_PS_STORY_2,P.S. I drew Grandpa's hat. It is on the fridge. The fridge is cold like outside.
-LET_PS_STORY_3,"P.S. Mum found Grandpa's notebook in the attic. She cried, then laughed, then made soup."
+LET_PS_STORY_3,"P.S. Mum reads Grandpa's notebook every night. She cried, then laughed, then made soup."
 LET_PS_STORY_4,"P.S. When it is winter here, is it still autumn at your house? Leo says yes because you are there."
 STORY_NPC_VINTNER,"The vineyard was Teo's idea, you know. 'Grapes keep better in a bottle,' he said. He was wrong, but we planted it."
 STORY_NPC_POSTMAN,"He used to meet me at the gate every morning, rain or not. Said the post tasted better with tea."
 STORY_NPC_LIBRARIAN,He borrowed the same mushroom book every autumn and never once read it. He just liked the pictures.
 STORY_NPC_GROCER,Your Teo paid his bill in jars for thirty years. I still have one I never opened.
-STORY_NPC_BAKER,"He turned the press at every festival. This year it is your turn, Tonty."
+STORY_NPC_BAKER,"He turned the press every harvest. This year it is your turn, Tonty."
 STORY_LETTER_TEO_1,"Tonty,"
 STORY_LETTER_TEO_2,"If you are reading this, you opened the book, which means you are filling jars again. Good."
 STORY_LETTER_TEO_3,"The forest will not give you the same day twice. Go anyway. Take the stick, it knows the way."
@@ -1009,3 +1009,6 @@ UI_REWARD_GIFT_JAR,Pip gave you %d jars!
 UI_REWARD_GIFT_SUGAR,Edith gave you %d bags of sugar!
 TITLE_QUIT,Quit
 TITLE_OVERWRITE_ASK,This replaces your saved autumn. Start over?
+FINALE_NOTE_KNIFE,"Grandpa's knife is back on the mantel. Leo, ask me first."
+FAREWELL_LETTER_VISIT,Your boots left a mark by the door. I never scrubbed it.
+UI_NIGHT_KIDS_HOME,"Mia and Leo went home. They left the rabbit, so they must come back."

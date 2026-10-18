@@ -146,7 +146,7 @@ func _run() -> void:
 	_check(_scene.get("menu") == null, "letters closed, Granny walks again")
 	_check(int(mailbox.get("unread")) == 0, "mailbox flag is down after reading")
 
-	# 3b. GARDEN-LIFE: the props block their cells; Granny walks to Walter's truck (a line), then to the hens' run
+	# 3b. GARDEN-LIFE: the props block their cells; Granny walks to Teo's truck (a line), then to the hens' run
 	# (they scatter, a hen line); the garden at rest first
 	for id in ["truck", "coop", "hive_1", "hive_2", "clothesline", "scarecrow", "bench"]:
 		var pr: Node = _scene.find_prop(id)

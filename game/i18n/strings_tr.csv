@@ -223,7 +223,7 @@ TUT_TITLE,Nine'nin İşleri
 TUT_D1_SHAKE,Elma ağacını silkele
 TUT_D1_JAM,Ocakta reçel yap
 TUT_D1_PANTRY,Kavanozu kilere koy
-TUT_D1_ORDER,Siparişi kasabaya götür
+TUT_D1_ORDER,Fırıncının siparişini kasabaya götür
 TUT_D1_BED,Yatmaya git
 TUT_D2_FOREST,Kapıdan çıkıp ormana git
 TUT_D2_MUSHROOM,Bir mantar topla
@@ -427,8 +427,8 @@ LET_BOX_BAD,Bu kutuya sığmıyor.
 LET_NOT_READY,O kavanoz daha bekliyor.
 LET_ONLY_JARS,Pakete yalnız kavanoz girer.
 LET_NOTE_MIA_1,Okul yeniden başladı. Yanımda oturan kızın evcil bir salyangozu var!
-LET_NOTE_MIA_2,İlk dişim düştü! Annem bu sonbahar diş perisinin çok meşgul olduğunu söylüyor.
-LET_NOTE_MIA_3,Sınıfta yapraktan taç yaptık. En kırmızısı benimkiydi.
+LET_NOTE_MIA_2,İlk dişim düştü! Annem bu kış diş perisinin çok meşgul olduğunu söylüyor.
+LET_NOTE_MIA_3,Sınıfta kâğıttan kar tanesi yaptık. En büyüğü benimkiydi.
 LET_NOTE_MIA_4,"Bütün hafta yağmur yağdı, ben de koca üç kitap okudum."
 LET_NOTE_MIA_5,Blok flüt öğreniyorum. Leo sesinin üzgün bir kaz gibi çıktığını söylüyor.
 LET_NOTE_MIA_6,Bahçeni aklımdan çizdim. Elma ağacı ev kadar uzun.
@@ -484,7 +484,7 @@ UI_REWARD_ADDIN,Edith sana üç dal nane verdi!
 CAT_PET_1,Mırrrr...
 CAT_PET_2,Mırrp. Tam da orası.
 CAT_PET_3,Kedi eline sokuluyor.
-CAT_PET_4,"Pek sıcak, pek turuncu bir kedi."
+CAT_PET_4,Teo hep önce onu doyururdu. Ben de öyle yapıyorum.
 UI_MARKET_TITLE,Pazar Günü
 UI_MARKET_TODAY,Bugün pazar var!
 UI_MARKET_YOUR_JARS,Kavanozların
@@ -569,7 +569,7 @@ UI_UPGRADE_FX_BIG_POT,Tencere tarifleri 2 kavanoz
 UI_UPGRADE_FX_CELLAR,Kilere 12 serin raf yeri
 FAREWELL_LETTER_DEAR_TWO,"Canım %s ve %s,"
 FAREWELL_LETTER_DEAR,"Canım torunlarım,"
-FAREWELL_LETTER_DAYS,"Everfall'da %d gün geçti, hiçbiri sıkıcı değildi."
+FAREWELL_LETTER_DAYS,"Bu sonbahar %d gün geçti, hiçbiri sıkıcı değildi."
 FAREWELL_LETTER_JARS,Bu iki yaşlı elle %d kavanoz doldurdum.
 FAREWELL_LETTER_JARS_ONE,"Yalnız bir kavanoz doldurdum, ama çok güzeldi."
 FAREWELL_LETTER_JARS_NONE,İstediğim kadar kavanoz dolduramadım. Benim için bir tane doldurun.
@@ -605,7 +605,7 @@ FAREWELL_WORRY_MIA_1,"Nineciğim, yeterince dinleniyor musun? Annem sesinin yorg
 FAREWELL_WORRY_MIA_2,Akşam yemeğinden sonra ayaklarını uzat lütfen. Söz ver!
 FAREWELL_WORRY_MIA_3,"Dün gece mutfağını gördüm rüyamda. Sıcak tutuyor musun kendini, Nineciğim?"
 FAREWELL_WORRY_LEO_1,"Nineciğim, yeterince dinleniyor musun? Ağır sepetleri taşıma!"
-FAREWELL_WORRY_LEO_2,"Babam yakında geleceğimizi söylüyor. Bizi bekle, tamam mı?"
+FAREWELL_WORRY_LEO_2,"Babam yakında yine gelebileceğimizi söylüyor. Bizi bekle, tamam mı?"
 FAREWELL_WORRY_LEO_3,Son mektubun çok kısaydı. İyi uyuyor musun?
 UI_MEMORY_OPEN,Anı
 UI_MEMORY_TITLE,Anı
@@ -644,7 +644,7 @@ UI_WEATHER_WINDY,Rüzgârlı
 UI_WEATHER_FOGGY,Sisli
 UI_FAMILY_TAB,Aile tarifleri
 UI_FAMILY_BASE,Temel tarifler
-UI_FAMILY_TIP,Nine'nin kendi tarifleri. Torunlar onları sevgiyle geri yolladı.
+UI_FAMILY_TIP,Teo'nun defterinden sayfalar. Mia ile Leo sevgiyle yolluyor.
 UI_FAMILY_HEADING,Aile tarifleri %d/%d
 UI_FAMILY_FROM,"Gönderen %s, %d kalp"
 UI_FAMILY_HOW_ADJ,Aile tarifi: hep %s
@@ -664,7 +664,7 @@ MARKET_CALL_GROCER_1,Balkabağı ve elma!
 MARKET_CALL_GROCER_2,Tarladan taze!
 MARKET_CALL_LIBRARIAN_1,Yağmurlu günlere kitap!
 MARKET_CALL_LIBRARIAN_2,Çiçekler ve hikayeler!
-MARKET_CALL_POSTMAN_1,Mektup ve koli!
+MARKET_CALL_POSTMAN_1,Mektup ve paket!
 MARKET_CALL_POSTMAN_2,Postası olan var mı?
 MARKET_CHAT_1,Ne güzel bir gün!
 MARKET_CHAT_2,Nine'nin reçelini denedin mi?
@@ -685,17 +685,17 @@ TUT_F_JAM,Yeni bir reçel yap
 TUT_F_JUICE,Meyve suyu sık
 TUT_F_PANTRY,Kiler 3 yıldız olsun
 TUT_F_MARKET,Pazarda sat
-TUT_F_LETTER,Mia'nın mektubu
+TUT_F_LETTER,Mia'nın mektubunu oku
 FESTIVAL_START_TITLE,Hasat Şenliği!
 FESTIVAL_START_1,Everfall'da Hasat Şenliği! Mia ile Leo ziyarete geldi ve bugün kasabada pazar var.
-FESTIVAL_START_2,"Bugün yedi küçük iş var, her biri bir iki dakika. Ninenin notu yolu gösterir."
+FESTIVAL_START_2,"Bugün yedi küçük iş var, her biri bir iki dakika. Nine'nin İşleri yolu gösterir."
 FESTIVAL_GO,Hadi başlayalım!
 FESTIVAL_END_TITLE,Ne güzel bir şenlik!
 FESTIVAL_END_SEED,Senin Everfall'un %s tohumundan büyüdü.
 FESTIVAL_END_MAP,"Bugünün ormanı: %d ağaç, %d açıklık, %d patika"
 FESTIVAL_END_FOUND,%d çeşit bulundu. Bugün yeni tarif: %d.
 FESTIVAL_END_COINS,Pazardan %d altın geldi.
-FESTIVAL_END_BYE,Mia ile Leo gelecek sonbaharı iple çekiyor!
+FESTIVAL_END_BYE,Mia ile Leo kar tatilinde yine gelecek!
 FESTIVAL_KEEP,Oynamaya devam
 FESTIVAL_TO_TITLE,Ana menüye dön
 FESTIVAL_THOUSANDS,.
@@ -806,7 +806,7 @@ UI_PAUSE_SAVE_TITLE,Kaydet ve ana menüye dön
 UI_PAUSE_TO_TITLE,Ana menüye dön
 UI_PAUSE_QUIT,Oyundan çık
 UI_PAUSE_QUIT_SAVED,Günün kaydedilecek.
-UI_PAUSE_QUIT_FESTIVAL,Festival sona erecek.
+UI_PAUSE_QUIT_FESTIVAL,Şenlik sona erecek.
 UI_PAUSE_QUIT_TEMP,Bu gün kaydedilmeyecek.
 UI_PAUSE_QUIT_YES,Çık
 UI_PAUSE_QUIT_NO,Kal
@@ -834,7 +834,7 @@ MG_PACK_LINE,dolum çizgisi
 MG_PRESS_JUICE,Meyve suyu
 UI_TIP_ENERGY,Enerji
 UI_TIP_BAG,Çanta
-UI_TIP_COINS,Para
+UI_TIP_COINS,Altın
 PANTRY_PERFECT,Kusursuz kiler!
 PANTRY_TRAY_EMPTY,Hepsi yerinde!
 PANTRY_TIP_START,Sepetten bir kavanozu rafa sürükle
@@ -862,7 +862,7 @@ HOWTO_AUTUMN_2,Kışın çoktan geldiği şehirdeki torunları Mia ile Leo için
 HOWTO_AUTUMN_3,"Hiçbir şey seni aceleye getirmez. Gün, Nine yatağa gidince biter."
 HOWTO_FORAGE,Toplama
 HOWTO_FORAGE_1,Bahçe kapısının ötesindeki orman her sabah yeniden büyür; aynı günü iki kez vermez.
-HOWTO_FORAGE_2,"Yürü (WASD / tıkla), ağaçları salla ve topla (E / tıkla)."
+HOWTO_FORAGE_2,"Yürü (WASD / tıkla), ağaçları silkele ve topla (E / tıkla)."
 HOWTO_FORAGE_3,Her gün yeni türler çıkar. Nine'nin İşleri notu (sağ üst) sıradaki adımı gösterir.
 HOWTO_COOK,Pişirme
 HOWTO_COOK_1,"Ocakta tarif seç, Pişir'e bas."
@@ -874,12 +874,12 @@ HOWTO_PANTRY_2,Güzel bir raf diz.
 HOWTO_PANTRY_3,"Üç yıldız, Nine'ye yarın daha çok enerji verir."
 HOWTO_SHARE,Paylaşma
 HOWTO_SHARE_1,Komşuların siparişleri ve her yedinci gün kurulan pazar altın getirir.
-HOWTO_SHARE_2,Torunların mektupları oturma odasında bekler; koliyi postane gönderir.
+HOWTO_SHARE_2,Torunların mektupları oturma odasında bekler; paketi postane gönderir.
 HOWTO_SHARE_3,Esc: menü. B: tarif defteri. M: ses.
 TODO_HINT_D1_SHAKE,"Hadi elma ağacını silkeleyelim: yanına git, E'ye bas ya da ağaca tıkla."
 TODO_HINT_D1_JAM,Ne güzel elmalar! Mutfağa girip ocakta reçel pişirelim.
 TODO_HINT_D1_PANTRY,Şimdi kavanoz kilerdeki rafa. Kilerin kapısı mutfakta.
-TODO_HINT_D1_ORDER,Fırıncı bir kavanoz istemiş. Yol tabelasından kasabaya götürelim.
+TODO_HINT_D1_ORDER,"Rafta bir kavanoz, Nora'nın dediği gibi. Şimdi fırıncının siparişi: tabeladan kasabaya."
 TODO_HINT_D1_BED,Ne gündü ama! Yatma vakti canım: yatak oturma odasında.
 TODO_HINT_D2_FOREST,Hadi toplamaya: bahçe kapısından ormana çıkalım.
 TODO_HINT_D2_MUSHROOM,Mantarlar orman zemininde saklanır. Bir tane toplayalım!
@@ -906,8 +906,8 @@ PARLOR_TO_KITCHEN,Mutfak
 PARLOR_KITCHEN_HINT,Mutfağa dön.
 PARLOR_BOOK,Tarif defteri
 PARLOR_LETTERS,Mektuplar
-PARLOR_LETTERS_HINT,Torunlardan gelen mektuplar.
-PARLOR_LETTERS_NEW,Mektuplar: torunlardan %d yeni mektup!
+PARLOR_LETTERS_HINT,Aileden gelen mektuplar.
+PARLOR_LETTERS_NEW,Mektuplar: %d yeni!
 PARLOR_CAT,Kedi
 PARLOR_CAT_HINT,Kedi sepetinde uyuyor. Bir sevelim mi?
 PARLOR_CAT_PURR,Mırrr... buna bayılıyor.
@@ -915,20 +915,20 @@ UI_TIP_SOUND_ON,Ses açık (M)
 UI_TIP_SOUND_OFF,Ses kapalı (M)
 STORY_LETTER_NORA_DEAR,"Sevgili anne,"
 STORY_LETTER_NORA_1,Bu sabah burada kar yağdı. Mia botlarını ters giydi ve kavanozların ne zaman geleceğini sordu.
-STORY_LETTER_NORA_2,"Leo, ormanın dedem için şimdiye yeni bir ağaç büyütmüş olması lazım diyor."
-STORY_LETTER_NORA_3,Babamdan beri bahçe kapısının kapalı olduğunu biliyorum. Rafların boş olduğunu da.
+STORY_LETTER_NORA_2,"Leo, ormanın şimdiye dedesi için yeni bir ağaç büyüttüğünü söylüyor."
+STORY_LETTER_NORA_3,Babamdan sonra bahçe kapısının hiç açılmadığını biliyorum. Rafların boş olduğunu da.
 STORY_LETTER_NORA_4,"Ama o rafların dolu olmasını isterdi, ben de."
 STORY_LETTER_NORA_5,Bize biraz sonbahar gönder. Başlamak için bir kavanoz yeter.
 STORY_LETTER_NORA_SIGN,"Sevgiyle, Nora"
 TUT_D1_MAIL,Posta kutusuna bak
 TODO_HINT_D1_MAIL,"Posta kutusunda bir şey var, canım. Kim yazmış bakalım."
 FINALE_KNOCK,"Tak, tak."
-FINALE_SNOW_LINE,Everfall'a ilk kar. Sonbaharının hepsini dağıtmıştı.
+FINALE_SNOW_LINE,Everfall'a ilk kar: çocuklar yoldan biraz kış getirmiş.
 FINALE_THANKS,Oynadığın için teşekkürler.
 FINALE_NOTE_DEAR_TWO,"Sevgili %s ve %s,"
-FINALE_NOTE_DAYS,"Everfall'da %d gün, hiçbiri sıkıcı değildi."
+FINALE_NOTE_DAYS,"Bu sonbahar %d gün geçti, hiçbiri sıkıcı değildi."
 FINALE_NOTE_JARS,Bu iki yaşlı elle %d kavanoz doldurdum.
-FINALE_NOTE_TOP,Önce %s açın; en iyisi o.
+FINALE_NOTE_TOP,Önce şunu açın: %s. En iyisi o.
 FINALE_NOTE_RARE,Bir kere ormanda %s buldum. Düşünsenize!
 FINALE_NOTE_TEO,Dedeniz bu vadinin sonbaharını dağıtana kaldığını söylerdi. Bugün kalanını size veriyorum.
 FINALE_NOTE_BOOTS,Botlar kapıda çıkar.
@@ -936,22 +936,22 @@ FINALE_NOTE_SIGN,Nine
 STORY_LETTER_NORA2_DEAR,"Sevgili anne,"
 STORY_LETTER_NORA2_1,Okul ay sonunda kar tatiline giriyor.
 STORY_LETTER_NORA2_2,Yol açıksa yukarı geliyoruz.
-STORY_LETTER_NORA2_3,Toplamaya kalkma. Çocuklar kavanozları yaşadıkları yerde görmek istiyor.
+STORY_LETTER_NORA2_3,Ortalığı toplamaya kalkma. Çocuklar kavanozları yaşadıkları yerde görmek istiyor.
 STORY_LETTER_NORA2_SIGN,"Sevgiyle, Nora"
 LET_PS_STORY_5,Not: Takvimde günlerin üstünü çiziyorum. Annem bırak diyor. Bırakmayacağım.
-LET_PS_STORY_6,Not: Tavşanı valize koydum. Hiç sonbahar görmedi.
-UI_VISITED,Ziyaret edildi - %d gün
+LET_PS_STORY_6,"Not: Valizler hazır, tavşanın küçük kardeşi bile. O hiç sonbahar görmedi."
+UI_VISITED,Ziyaret - %d. gün
 UI_DEV_DAY29,29. gün
 UI_DEV_DAY29_DONE,Bu kayıt ziyareti çoktan geçti.
 LET_PS_STORY_1,Not: Dedemin armut ağacında hâlâ armut var mı? Annem orman yer değiştiriyor diyor. İnanmıyorum.
 LET_PS_STORY_2,Not: Dedemin şapkasını çizdim. Buzdolabında. Buzdolabı dışarısı gibi soğuk.
-LET_PS_STORY_3,"Not: Annem tavan arasında dedemin defterini buldu. Ağladı, sonra güldü, sonra çorba yaptı."
+LET_PS_STORY_3,"Not: Annem her akşam dedemin defterini okuyor. Ağladı, sonra güldü, sonra çorba yaptı."
 LET_PS_STORY_4,"Not: Burada kışken sizin evde hâlâ sonbahar mı? Leo evet diyor, çünkü sen oradasın."
 STORY_NPC_VINTNER,"Bağ Teo'nun fikriydi, biliyorsun. 'Üzüm şişede daha iyi durur,' demişti. Yanılıyordu ama diktik."
 STORY_NPC_POSTMAN,"Her sabah, yağmur olsun olmasın, beni kapıda karşılardı. Posta çayla daha güzel derdi."
 STORY_NPC_LIBRARIAN,"Her sonbahar aynı mantar kitabını alır, bir kez bile okumazdı. Resimleri severdi."
-STORY_NPC_GROCER,Senin Teo otuz yıl hesabını kavanozla ödedi. Hâlâ açmadığım bir tane duruyor.
-STORY_NPC_BAKER,"Her şenlikte presi o çevirirdi. Bu yıl sıra sende, Tonty."
+STORY_NPC_GROCER,Senin Teo'n otuz yıl hesabını kavanozla ödedi. Hâlâ açmadığım bir tane duruyor.
+STORY_NPC_BAKER,"Her hasatta presi o çevirirdi. Bu yıl sıra sende, Tonty."
 STORY_LETTER_TEO_1,"Tonty,"
 STORY_LETTER_TEO_2,"Bunu okuyorsan defteri açmışsın, yani yine kavanoz dolduruyorsun. İyi."
 STORY_LETTER_TEO_3,"Orman sana aynı günü iki kez vermez. Yine de git. Bastonu al, yolu bilir."
@@ -985,7 +985,7 @@ TODO_HINT_D1_PICK,"Kapıdan ormana, canım: üç şey toplayalım, böğürtlen 
 STORY_FIND_KNIFE,Teo'nun çakısı. Bir dalı silkelemek için bırakmış olmalı... Her sonbahar yapardı bunu.
 STORY_OBJ_KNIFE,"Yine şömine rafında. Sapında bir armut, oyduğu her sapta olduğu gibi."
 CAP_KNIFE,Çakı
-TUT_F_INVENT,Bir yemek icat et
+TUT_F_INVENT,Bir buluş yap
 TODO_HINT_F_INVENT,Hadi kimsenin yapmadığı bir yemek icat edelim: Buluş yap'a bas!
 WILD_LAB_DAY_TIP,"Aynı tohum, başka gün: orman her gece yeniden büyür"
 WILD_LAB_NEXT_DAY,"Aynı tohum, ertesi gün"
@@ -1002,10 +1002,13 @@ GROW_LINE_4,Patikalar açılır...
 GROW_LINE_5,Mantarlar ve meyveler yerleşir...
 GROW_LINE_6,Bugünün ormanı hazır.
 GROW_FIRST_TEO,Teo derdi ki: orman aynı günü iki kez vermez.
-GROW_DAY,Gün %d
+GROW_DAY,%d. gün
 GROW_SEED,tohum %d
 GARDEN_COMPOST_BIN,Kompost kutusu. Burada çürüyenler tarhları besler.
 UI_REWARD_GIFT_JAR,Pip sana %d kavanoz verdi!
 UI_REWARD_GIFT_SUGAR,Edith sana %d paket şeker verdi!
 TITLE_QUIT,Çık
 TITLE_OVERWRITE_ASK,Kayıtlı sonbaharının yerine geçer. Baştan başlansın mı?
+FINALE_NOTE_KNIFE,"Dedenizin çakısı yine şömine rafında. Leo, önce bana sor."
+FAREWELL_LETTER_VISIT,Botlarınız kapının yanında iz bıraktı. Hiç silmedim.
+UI_NIGHT_KIDS_HOME,Mia ile Leo evlerine döndü. Tavşanı bıraktılar; demek geri gelecekler.

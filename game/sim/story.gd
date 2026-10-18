@@ -32,14 +32,11 @@ static func take_ps(state: Dictionary, kid: String) -> int:
 	return n
 
 
-## The neighbour's Teo line key, "" when there is none to show now (not yet at 2 hearts, already said, Rosie off festival day).
-static func npc_line_due(state: Dictionary, npc_id: String, hearts: int, festival_today: bool) -> String:
+## The neighbour's Teo line key, "" when there is none to show now (not yet at 2 hearts, already said).
+static func npc_line_due(state: Dictionary, npc_id: String, hearts: int, _festival_today: bool = false) -> String:
 	if npc_id in flags(state).get("npc_said", []):
 		return ""
-	if npc_id == FESTIVAL_NPC:
-		if not festival_today:
-			return ""
-	elif hearts < NPC_HEARTS:
+	if hearts < NPC_HEARTS:
 		return ""
 	return "STORY_NPC_" + _npc_key(npc_id)
 

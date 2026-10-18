@@ -1,5 +1,5 @@
 extends RefCounted
-## GARDEN-LIFE · The garden's props (Walter's truck, the hen house and its run, the hives, the clothesline, the
+## GARDEN-LIFE · The garden's props (Teo's truck, the hen house and its run, the hives, the clothesline, the
 ## scarecrow, the bench) from assets/sprites/garden/garden_props.json (ART-GARDEN2). Pure data and lookups, no
 ## autoloads, like garden_layout.gd. Without the file the garden simply has no props.
 ## Cells are [col, row] on the 30x17 garden map; pixels are garden pixels (16 px cells).

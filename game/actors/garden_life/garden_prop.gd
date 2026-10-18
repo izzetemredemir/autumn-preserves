@@ -1,6 +1,6 @@
 class_name GardenProp
 extends Node2D
-## GARDEN-LIFE · One prop of garden_props.json (ART-GARDEN2): Walter's truck and its gravel, the hen house and the two
+## GARDEN-LIFE · One prop of garden_props.json (ART-GARDEN2): Teo's truck and its gravel, the hen house and the two
 ## halves of its run, a hive, the clothesline, the scarecrow, the bench. Position is its feet (the bottom of its
 ## blocked cells, else of its cell) so the y-sorted objects layer orders it against Granny. Moves the ones that move by
 ## themselves (clothesline flutter, scarecrow sway, bees at the hive door) and carries the truck's load for the week.

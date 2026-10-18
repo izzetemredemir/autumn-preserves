@@ -224,7 +224,11 @@ func _build_lang_toggle() -> void:
 	snd.pressed.connect(func() -> void:
 		Audio.set_muted(not Audio.is_muted())
 		Audio.play_ui("ui_click"))
-	Audio.muted_changed.connect(func(_m: bool) -> void: refresh.call())
+	var on_muted := func(_m: bool) -> void: refresh.call()
+	Audio.muted_changed.connect(on_muted)
+	snd.tree_exiting.connect(func() -> void:  # the autoload outlives the title: drop the lambda with the button
+		if Audio.muted_changed.is_connected(on_muted):
+			Audio.muted_changed.disconnect(on_muted))
 	refresh.call()
 	_toggle.add_child(snd)
 	var gap := Control.new()
@@ -369,11 +373,13 @@ func _show_card(text: String) -> PanelContainer:
 	var card := PanelContainer.new()
 	card.theme_type_variation = &"PaperPanel"
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var row := CenterContainer.new()
+	var row := CenterContainer.new()  # bottom-left corner: clear of the menu (six buttons reach y 260) and the edge
 	row.anchor_left = 0.0
-	row.anchor_right = 1.0
-	row.offset_top = 76  # between the slogan and the menu (the menu is six buttons tall now)
-	row.offset_bottom = 95
+	row.anchor_right = 0.0
+	row.offset_left = 8
+	row.offset_right = 152
+	row.offset_top = 234
+	row.offset_bottom = 266
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(row)
 	row.add_child(card)

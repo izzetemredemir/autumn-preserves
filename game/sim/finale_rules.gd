@@ -135,8 +135,6 @@ static func note(state: Dictionary, lang_code: String = "") -> Array:
 		out.append(_l("FAREWELL_LETTER_TOP_NONE", []))
 	else:
 		var jar_name := ProductGen.product_name(String(top[0].key), state.get("varieties", {}), lang_code)
-		if ProductGen.lang(lang_code) == "tr":
-			jar_name = accusative_tr(jar_name)
 		out.append(_l("FINALE_NOTE_TOP", [jar_name]))
 	var rare := Farewell.rarest_variety(state)
 	if rare.is_empty():
@@ -144,17 +142,11 @@ static func note(state: Dictionary, lang_code: String = "") -> Array:
 	else:
 		out.append(_l("FINALE_NOTE_RARE", [VarietyGen.display_name(rare, lang_code)]))
 	out.append(_l("FINALE_NOTE_TEO", []))
+	if Story.knife_found(state):
+		out.append(_l("FINALE_NOTE_KNIFE", []))
 	out.append(_l("FINALE_NOTE_BOOTS", []))
 	out.append(_l("FINALE_NOTE_SIGN", []))
 	return out
-
-
-## Turkish accusative of a name, with an apostrophe: "Elma Reçeli" -> "Elma Reçeli'ni", "Kızıl Şurup" -> "Kızıl Şurup'u".
-static func accusative_tr(word: String) -> String:
-	if word == "":
-		return word
-	var buffer := "n" if Turkish.is_vowel(word[word.length() - 1]) else ""
-	return "%s'%s%s" % [word, buffer, Turkish.harmony4(word)]
 
 
 static func _l(key: String, args: Array) -> Dictionary:

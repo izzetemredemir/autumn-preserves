@@ -107,6 +107,8 @@ static func calendar_lines(state: Dictionary) -> Array:
 			names.append(type_name(String(t)).to_lower())
 		out.append(_l("UI_WEEK_BEGINS" if Calendar.first_day_of_week(day) else "UI_WEEK_NOW",
 			[week_name(day), ", ".join(names)]))
+	if day == FinaleRules.DAY + FinaleRules.VISIT_DAYS + 1 and FinaleRules.seen(state):
+		out.append(_l("UI_NIGHT_KIDS_HOME", []))
 	if Market.is_market_day(day):
 		out.append(_l("UI_MARKET_TODAY", []))
 	return out

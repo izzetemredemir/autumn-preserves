@@ -4,7 +4,7 @@ extends Node2D
 ## draws, walks Granny and answers every action (motion, sound, bubble or toast).
 ## Router.params: "from" ("wild" | "town" | else the house door) picks where Granny appears (the scene also
 ## remembers which exit she left by); "seed" only when no game is running (scene run alone -> start_temp).
-## GARDEN-LIFE: the props of garden_props.json (Walter's truck, the hens and their run, hives, clothesline, scarecrow,
+## GARDEN-LIFE: the props of garden_props.json (Teo's truck, the hens and their run, hives, clothesline, scarecrow,
 ## bench) stand y-sorted with Granny and block their cells; clicking one walks her to it and she says a line. Hens,
 ## bees, crows, butterflies, squirrels, chimney smoke and leaf piles are cosmetic and never saved.
 
