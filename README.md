@@ -16,19 +16,40 @@
 </p>
 
 <p align="center">
+  <b>Play:</b> <a href="https://izzetemredemir.github.io/autumn-preserves/">in your browser</a> (plays in the browser on desktop; on a phone hold it landscape)<br>
   <b>Download:</b>
   <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/AutumnPreserves.zip">macOS (zip)</a> ·
-  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/AutumnPreserves.exe">Windows (exe)</a> ·
-  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest">Web build</a>
+  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/AutumnPreserves.exe">Windows (exe)</a>
+</p>
+
+<p align="center">
+  <sub><b>macOS 15+:</b> the app is not notarised: System Settings → Privacy &amp; Security → Open Anyway (or <code>xattr -cr "Autumn Preserves.app"</code>).<br>
+  <b>Windows:</b> SmartScreen: More info → Run anyway.</sub>
+</p>
+
+<p align="center">
+  <img src="shots/fun_mg.gif" alt="Gameplay: stirring a pot of jam in the kitchen" width="960">
 </p>
 
 <table align="center">
-  <tr>
-    <td align="center" width="33%"><img src="shots/forest_regrow.gif" alt="The same seed grows the same forest twice, a new seed grows a new one" width="300"><br><sub>Same seed, same forest. New seed, new forest.</sub></td>
-    <td align="center" width="33%"><img src="shots/jar_wall.gif" alt="A wall filling up with generated jars and their names" width="300"><br><sub>Every jar is generated: name, label, taste, value.</sub></td>
-    <td align="center" width="33%"><img src="shots/species.gif" alt="Generated forest species, each with its name and icon" width="300"><br><sub>New wild species, named and drawn from the seed.</sub></td>
-  </tr>
+  <tr><th align="left">Made for the KODTÜ 7 constraints</th></tr>
+  <tr><td><b>Pixelated</b>: everything is pixel art at 480×270, scaled by whole numbers only.<br>
+  <b>Autumn palette</b>: one 31-colour palette; every sprite is checked against it automatically.<br>
+  <b>Procedural generation</b>: the same seed grows the same forest twice; every jar is generated (see below).</td></tr>
 </table>
+
+<p align="center">
+  <img src="shots/forest_regrow.gif" alt="The same seed grows the same forest twice, a new seed grows a new one" width="960"><br>
+  <sub><b>Same seed, same forest. New seed, new forest.</b></sub>
+</p>
+<p align="center">
+  <img src="shots/jar_wall.gif" alt="A wall filling up with generated jars and their names" width="960"><br>
+  <sub><b>Every jar is generated: name, label, taste and value.</b></sub>
+</p>
+<p align="center">
+  <img src="shots/species.gif" alt="Generated forest species, each with its name and icon" width="960"><br>
+  <sub><b>New wild species, named and drawn from the seed.</b></sub>
+</p>
 
 ## The story
 
