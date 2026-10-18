@@ -758,8 +758,12 @@ func kitchen_stock(type: String, count: int = 4) -> void:
 	for id in ["jar", "salt", "vinegar"]:
 		d.cupboard[id] = maxi(int(d.cupboard.get(id, 0)), 4)
 	_gs().notify(PackedStringArray(["inbox", "cupboard"]))
-func _dbg() -> void:
-	for i in 5:
-		await get_tree().create_timer(1.0).timeout
-		var mg: Variant = _scene().get("_mg")
-		print("DBG ", mg, " ", mg.phase if mg else -1, " piece=", mg._piece if mg else "", " fall=", mg._fall if mg else "")
+
+
+## TRAILER · Drives a mini-game that has no autoplay ctx (pack_jar's bot is private and quits the game): calls its
+## bot every frame until it closes.
+func minigame_bot() -> void:
+	var mg: Variant = _scene().get("_mg")
+	while is_instance_valid(mg) and mg.is_inside_tree():
+		mg._bot(get_process_delta_time())
+		await get_tree().process_frame

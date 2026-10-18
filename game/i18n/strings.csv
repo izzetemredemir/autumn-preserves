@@ -833,7 +833,7 @@ MG_PACK_FULL,Full!
 MG_PACK_LINE,fill line
 MG_PRESS_JUICE,Juice
 UI_TIP_ENERGY,Energy
-UI_TIP_BAG,Bag
+UI_TIP_BAG,"Bag: click to look inside"
 UI_TIP_COINS,Coins
 PANTRY_PERFECT,Perfect pantry!
 PANTRY_TRAY_EMPTY,All put away!
@@ -1013,3 +1013,6 @@ FINALE_NOTE_KNIFE,"Grandpa's knife is back on the mantel. Leo, ask me first."
 FAREWELL_LETTER_VISIT,Your boots left a mark by the door. I never scrubbed it.
 UI_NIGHT_KIDS_HOME,"Mia and Leo went home. They left the rabbit, so they must come back."
 UI_TIP_TODO,Granny's note
+UI_BAG_TITLE,Bag
+UI_BAG_EMPTY,Nothing in the bag yet.
+UI_BAG_HINT,"Empties into the pantry basket when you go indoors."

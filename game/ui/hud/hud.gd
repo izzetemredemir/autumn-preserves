@@ -37,6 +37,8 @@ var _bar: PanelContainer  ## the full-width status bar (Granny's To-Do note sits
 var _sound_btn: TextureButton
 var _toast_holder: Control
 var _toast_tween: Tween
+var _ui_root: Control
+var _bag_panel: BagPanel  ## BAG-VIEW: the contents panel under the bar (null while closed)
 
 
 ## Static helper: shows tr(key) (formatted with args if given) for 2 s on the active HUD.
@@ -63,6 +65,7 @@ func _build() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.theme = load("res://ui/theme/theme.tres")
 	add_child(root)
+	_ui_root = root
 	var panel := PanelContainer.new()
 	panel.theme_type_variation = &"DarkPanel"
 	panel.position = Vector2(4, 4)
@@ -85,6 +88,11 @@ func _build() -> void:
 	row.add_child(_bag_icon)
 	_bag_label = Label.new()
 	row.add_child(_bag_label)
+	for c: Control in [_bag_icon, _bag_label]:  # BAG-VIEW: icon and count are one button
+		c.mouse_filter = Control.MOUSE_FILTER_STOP
+		c.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		c.tooltip_text = tr("UI_TIP_BAG")
+		c.gui_input.connect(_on_bag_input)
 	row.add_child(_icon("icon_coin", "UI_TIP_COINS"))
 	_coins_label = Label.new()
 	row.add_child(_coins_label)
@@ -130,6 +138,47 @@ func _refresh_sound() -> void:
 	_sound_btn.tooltip_text = tr("UI_TIP_SOUND_OFF" if muted else "UI_TIP_SOUND_ON")
 
 
+## BAG-VIEW: click or tap on the bag icon or its count toggles the panel; the I key too; Esc or a click outside closes.
+func _on_bag_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		toggle_bag()
+
+
+func toggle_bag() -> void:
+	if _bag_panel != null:
+		close_bag()
+		return
+	if GameState.data.is_empty() or _ui_root == null:
+		return
+	_bag_panel = BagPanel.new()
+	_ui_root.add_child(_bag_panel)
+	_bag_panel.position = Vector2(4, maxi(24, int(_bar.get_global_rect().end.y) + 2))
+
+
+func close_bag() -> void:
+	if _bag_panel != null:
+		_bag_panel.queue_free()
+		_bag_panel = null
+
+
+func is_bag_open() -> bool:
+	return _bag_panel != null
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_I \
+			and not event.ctrl_pressed and not event.alt_pressed and not event.meta_pressed:
+		if not get_tree().paused and not (get_viewport().gui_get_focus_owner() is LineEdit):
+			get_viewport().set_input_as_handled()
+			toggle_bag()
+	elif _bag_panel != null and event.is_action_pressed("cancel"):
+		get_viewport().set_input_as_handled()
+		close_bag()
+	elif _bag_panel != null and event is InputEventMouseButton and event.pressed:
+		if not _bag_panel.get_global_rect().has_point(event.position):
+			close_bag()
+
+
 func _on_changed(_keys: PackedStringArray) -> void:
 	_refresh()
 
@@ -146,6 +195,12 @@ func _refresh() -> void:
 	_energy_bar.max_value = emax
 	_energy_bar.value = e
 	_bag_label.text = str(Forage.bag_count(d))
+	if BagPanel.is_full(d):  # BAG-VIEW: the number itself says "full"
+		_bag_label.add_theme_color_override("font_color", C_GOLD)
+	else:
+		_bag_label.remove_theme_color_override("font_color")
+	if _bag_panel != null:
+		_bag_panel.refresh()
 	_coins_label.text = str(int(d.get("coins", 0)))
 	_day_label.text = "%s %d" % [tr("UI_DAY"), int(d.get("day", 1))]
 	var w := String(d.get("weather", "sunny"))

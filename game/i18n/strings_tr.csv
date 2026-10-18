@@ -833,7 +833,7 @@ MG_PACK_FULL,Dolu!
 MG_PACK_LINE,dolum çizgisi
 MG_PRESS_JUICE,Meyve suyu
 UI_TIP_ENERGY,Enerji
-UI_TIP_BAG,Çanta
+UI_TIP_BAG,"Çanta: içine bakmak için tıkla"
 UI_TIP_COINS,Altın
 PANTRY_PERFECT,Kusursuz kiler!
 PANTRY_TRAY_EMPTY,Hepsi yerinde!
@@ -1013,3 +1013,6 @@ FINALE_NOTE_KNIFE,"Dedenizin çakısı yine şömine rafında. Leo, önce bana s
 FAREWELL_LETTER_VISIT,Botlarınız kapının yanında iz bıraktı. Hiç silmedim.
 UI_NIGHT_KIDS_HOME,Mia ile Leo evlerine döndü. Tavşanı bıraktılar; demek geri gelecekler.
 UI_TIP_TODO,Büyükannenin notu
+UI_BAG_TITLE,Çanta
+UI_BAG_EMPTY,Çantada henüz bir şey yok.
+UI_BAG_HINT,"İçeri girince kilerdeki sepete boşalır."
