@@ -683,3 +683,31 @@ func intro_end() -> void:
 	var premise: Node = title.get_node_or_null("VideoPremise") if title != null else null
 	if premise != null:
 		premise.queue_free()
+
+
+# ---------------------------------------------------------------- video (VIDEO-02)
+
+## VIDEO-02 · A click on a parlour object ("teo" the photo, "hat", "cat", "shelf", ...), as a click would.
+func parlor_spot(kind: String) -> void:
+	_scene()._on_spot(kind)
+
+
+## VIDEO-02 · Granny walks to the garden cat and pets it, as a click on it would.
+func garden_pet_cat() -> void:
+	var g := _scene()
+	g.tap_world(g.cat.hit_rect().get_center())
+
+
+## VIDEO-02 · Cooks one jar of `recipe` from the first rarity-`rarity` variety of `type` in stock, straight into the
+## inbox (no mini-game, no card): a recording that starts in the pantry then has a new jar to shelve.
+func pantry_stock(recipe: String = "jam", type: String = "crabapple", rarity: String = "rare") -> void:
+	var d: Dictionary = _gs().data
+	var ids: Array = d.varieties.keys()
+	ids.sort()
+	for vid: String in ids:
+		if State.type_of_variety(vid) != type or (rarity != "" and String(d.varieties[vid].get("rarity", "")) != rarity):
+			continue
+		if bool(Kitchen.cook(d, recipe, vid, "", "", 2).get("ok", false)):
+			_gs().notify(PackedStringArray(["inbox", "pantry", "cupboard", "energy", "book", "stats"]))
+			return
+	push_warning("demo: could not stock a %s %s" % [rarity, type])

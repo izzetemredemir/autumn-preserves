@@ -21,13 +21,15 @@
   <b>Download:</b>
   <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/autumn-preserves-macos.zip">macOS (zip)</a> ·
   <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/autumn-preserves-windows.zip">Windows (zip)</a> ·
-  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/autumn-preserves-linux.tar.gz">Linux (tar.gz)</a>
+  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/autumn-preserves-linux.tar.gz">Linux (tar.gz)</a> ·
+  <a href="https://github.com/izzetemredemir/autumn-preserves/releases/latest/download/autumn-preserves-android.apk">Android (apk)</a>
 </p>
 
 <p align="center">
   <sub><b>macOS 15+:</b> the app is not notarised: System Settings → Privacy &amp; Security → Open Anyway (or <code>xattr -cr "Autumn Preserves.app"</code>).<br>
   <b>Windows:</b> SmartScreen: More info → Run anyway.<br>
-  <b>Linux:</b> autumn-preserves-linux.tar.gz, <code>chmod +x AutumnPreserves.x86_64</code> if needed.</sub>
+  <b>Linux:</b> autumn-preserves-linux.tar.gz, <code>chmod +x AutumnPreserves.x86_64</code> if needed.<br>
+  <b>Android:</b> allow installs from this source when asked; the game runs landscape, touch works like the mouse.</sub>
 </p>
 
 <p align="center">

@@ -1,0 +1,6 @@
+[
+	{"t": 0.0, "scene": "res://scenes/parlor/parlor.tscn", "do": "festival_load", "args": [""]},
+	{"t": 1.0, "do": "parlor_spot", "args": ["teo"], "note": "the photo"},
+	{"dt": 3.2, "do": "parlor_spot", "args": ["hat"], "note": "the hat"},
+	{"dt": 3.2, "quit": true}
+]

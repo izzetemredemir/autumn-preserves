@@ -1,0 +1,7 @@
+[
+	{"t": 0.0, "scene": "res://scenes/pantry/pantry.tscn", "do": "festival_load", "args": [""], "note": "VIDEO-02: the festival pantry"},
+	{"t": 0.0, "do": "pantry_stock", "args": ["jam", "apple", ""], "note": "a fresh jar in the inbox"},
+	{"t": 1.5, "do": "pantry_drag_to", "args": [2, 3, "", 1.4], "note": "the jar into the Room shelf gap"},
+	{"dt": 3.5, "do": "pantry_auto", "note": "Auto-arrange"},
+	{"dt": 3.5, "quit": true}
+]
