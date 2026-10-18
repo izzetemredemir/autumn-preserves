@@ -6,7 +6,8 @@
 
 <p align="center">
   <b>A cozy pixel-art game about a grandma who puts autumn in jars for the ones living through winter.</b><br>
-  Every forest, every ingredient and every jar is procedurally generated from one seed.
+  Forage, cook, arrange, share. Four kitchen mini-games, five neighbours with opinions, letters from the grandchildren,<br>
+  and a forest that grows anew every morning: every jar you make is one nobody has made before.
 </p>
 
 <p align="center">
@@ -30,28 +31,84 @@
 </p>
 
 <p align="center">
-  <img src="shots/fun_mg.gif" alt="Gameplay: stirring a pot of jam in the kitchen" width="960">
+  <img src="shots/trailer.gif" alt="Gameplay: the forest, the kitchen, the pantry and the market" width="960">
 </p>
 
+**You are Granny Tonty.** Every morning the forest outside your gate grows anew. You pick what it gives, cook it into jams, pickles, juices, pies and bread in short kitchen mini-games, arrange the jars on your pantry shelves, and share them: with the neighbours who send orders, with the market crowd, and with your grandchildren in the city, who write back. No death, no penalties, no clock. A day ends when Granny goes to bed.
+
 <table align="center">
-  <tr><th align="left">Made for the KODTÜ 7 constraints</th></tr>
-  <tr><td><b>Pixelated</b>: everything is pixel art at 480×270, scaled by whole numbers only.<br>
-  <b>Autumn palette</b>: one 31-colour palette; every sprite is checked against it automatically.<br>
-  <b>Procedural generation</b>: the same seed grows the same forest twice; every jar is generated (see below).</td></tr>
+  <tr>
+    <td align="center" width="25%"><img src="shots/forage.png" alt="Shaking a rare tree in the forest" width="230"><br><b>Forage</b><br><sub>Shake trees, pick mushrooms, find new species.</sub></td>
+    <td align="center" width="25%"><img src="shots/stove.png" alt="The stove panel: pick a recipe and cook" width="230"><br><b>Cook</b><br><sub>Four mini-games. Every jar gets its own name, taste and value.</sub></td>
+    <td align="center" width="25%"><img src="shots/pantry.png" alt="Arranging the pantry shelves" width="230"><br><b>Arrange</b><br><sub>Dry, cool and floor shelves; kinds together; a pretty shelf earns stars.</sub></td>
+    <td align="center" width="25%"><img src="shots/neighbours.png" alt="Talking to a neighbour in the village" width="230"><br><b>Share</b><br><sub>Orders, gifts, market day and parcels for the grandchildren.</sub></td>
+  </tr>
+</table>
+
+## Four kitchen mini-games
+
+Each takes twenty seconds or so and sets the stars on the jar. Combos, splashes and foam pops keep your hands busy; nothing punishes a miss.
+
+<table align="center">
+  <tr>
+    <td align="center" width="50%"><img src="shots/mg_stir.png" alt="Stir the pot: keep the thickness in the green band, skim the foam" width="460"><br><b>Stir the pot</b> · circle the pot, skim the foam<br><sub>jam, fruit butter, chutney, syrup</sub></td>
+    <td align="center" width="50%"><img src="shots/mg_press.png" alt="Fruit press: press the lever on the beat" width="460"><br><b>Fruit press</b> · press the lever on the beat<br><sub>juice, vinegar</sub></td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><img src="shots/mg_knead.png" alt="Knead the dough: left and right on the beat, then crimp the pie" width="460"><br><b>Knead the dough</b> · left, right, then crimp the crust<br><sub>pie, bread</sub></td>
+    <td align="center" width="50%"><img src="shots/mg_pack.png" alt="Pack the jar: fit the slices, pour the brine, seal the lid" width="460"><br><b>Pack the jar</b> · fit the slices, pour the brine, seal the lid<br><sub>pickles, brined mushrooms, sauerkraut</sub></td>
+  </tr>
 </table>
 
 <p align="center">
-  <img src="shots/forest_regrow.gif" alt="The same seed grows the same forest twice, a new seed grows a new one" width="960"><br>
-  <sub><b>Same seed, same forest. New seed, new forest.</b></sub>
+  <img src="shots/fun_mg.gif" alt="Combos, juice splashes and foam pops in the kitchen mini-games" width="960"><br>
+  <sub>Combos stack, juice splashes, foam pops, the lid goes on with a pop.</sub>
 </p>
+
+**Invent your own.** At the stove, press **Invent** and throw anything you own into the pot: four ingredients, two add-ins, any method you have unlocked. The game names the dish, draws its jar, works out its taste and value, and keeps every creation in your recipe book.
+
 <p align="center">
-  <img src="shots/jar_wall.gif" alt="A wall filling up with generated jars and their names" width="960"><br>
-  <sub><b>Every jar is generated: name, label, taste and value.</b></sub>
+  <img src="shots/invent.png" alt="The Invent panel: combine any ingredients into a new dish with a live preview" width="960">
 </p>
+
+## A village that remembers you
+
+Five neighbours live down the road, each with tastes of their own: **Barnaby** the grocer likes salty and sour, **Rosie** the baker sweet and spicy, **Pip** the postman sour and salty, **Vito** the vintner sweet and earthy, **Edith** the librarian earthy and spicy. They post orders on the board, taste the jars you bring and tell you what they think, by name. Deliver and gift to win hearts: Vito's opens the vineyard, Rosie's teaches you to knead pies and bread, Pip's brings a parcel of jars, and at the second heart each of them tells you something about Teo.
+
+<table align="center">
+  <tr>
+    <td align="center" width="50%"><img src="shots/town.gif" alt="The village square: neighbours walk by, the weather changes, bubbles say what they think" width="460"></td>
+    <td align="center" width="50%"><img src="shots/orders.png" alt="The orders board: what the neighbours want this week" width="460"></td>
+  </tr>
+</table>
+
+**Market day.** Every seventh day the stall goes up in the square. Lay the jars out so the stand looks good, then watch the crowd come past: everyone wants a taste, has a budget, and says it out loud. *"Ooh, ginger!"*
+
 <p align="center">
-  <img src="shots/species.gif" alt="Generated forest species, each with its name and icon" width="960"><br>
-  <sub><b>New wild species, named and drawn from the seed.</b></sub>
+  <img src="shots/market.gif" alt="Market day: the crowd walks past Granny's stall and buys what they like" width="960">
 </p>
+
+## Letters from the city
+
+Your daughter Nora and the grandchildren, **Mia** and **Leo**, live over the mountain where it is already winter. Pack them a parcel from the pantry and they write back: what they loved, what they want next, no mushrooms please. Leo sends crayon drawings for the kitchen wall. And when the snow holiday comes, they come up the mountain road to see the jars where they live.
+
+<table align="center">
+  <tr>
+    <td align="center" width="50%"><img src="shots/letters.png" alt="A letter from Mia, with hearts for the parcel" width="460"></td>
+    <td align="center" width="50%"><img src="shots/drawing.png" alt="A crayon drawing from Leo, hung on the kitchen wall" width="460"></td>
+  </tr>
+</table>
+
+## Small things
+
+<table align="center">
+  <tr>
+    <td align="center" width="25%"><img src="shots/cat.png" alt="Petting the cat in the garden" width="230"><br><sub>The cat. Teo always fed her first.</sub></td>
+    <td align="center" width="25%"><img src="shots/parlour.png" alt="The parlour: Teo's hat, the photos, the recipe book, the cat's basket" width="230"><br><sub>The parlour: his hat, the photos, the book.</sub></td>
+    <td align="center" width="25%"><img src="shots/weather.png" alt="A foggy morning in the forest" width="230"><br><sub>Sun, wind, fog or rain, every day.</sub></td>
+    <td align="center" width="25%"><img src="shots/festival.png" alt="The Harvest Festival: Mia and Leo visit, six small jobs" width="230"><br><sub>Harvest Festival: a ready ten-minute day.</sub></td>
+  </tr>
+</table>
 
 ## The story
 
@@ -79,6 +136,17 @@ Every system draws from its own random stream, seeded with `hash(save seed, day,
 - **Jars:** name, label, jar art, five-axis taste, harmony stars and value come from the recipe, the variety and the add-in. *Cinnamon Ember Crabapple Jam* is sweet and sour, scores five stars and is worth 233 coins; nobody wrote that by hand. Turkish names follow vowel harmony.
 - **Weather, orders and the village:** sunny, windy, foggy or rainy days, neighbours' orders, the market crowd assembled from hand-drawn parts, and the children's drawings.
 
+<table align="center">
+  <tr>
+    <td align="center" width="50%"><img src="shots/forest_regrow.gif" alt="The same seed grows the same forest twice, a new seed grows a new one" width="460"><br><sub>Same seed, same forest. New seed, new forest.</sub></td>
+    <td align="center" width="50%"><img src="shots/jar_wall.gif" alt="A wall filling up with generated jars and their names" width="460"><br><sub>Every jar is generated: name, label, taste and value.</sub></td>
+  </tr>
+</table>
+<p align="center">
+  <img src="shots/species.gif" alt="Generated forest species, each with its name and icon" width="960"><br>
+  <sub>New wild species, named and drawn from the seed.</sub>
+</p>
+
 <details>
 <summary><b>Watch it happen: the Forest Lab</b></summary>
 
@@ -90,10 +158,10 @@ Press **L** on the title screen to open the Forest Lab. Type any number or word 
 
 | | |
 |---|---|
-| ![The title screen](shots/title.png) | ![Mia and Leo visit the garden](shots/garden.png) |
-| ![Today's forest grows from its seed](shots/grow.png) | ![Shaking a rare tree in the forest](shots/wild.png) |
-| ![A new jam: name, taste and value](shots/jam.png) | ![The pantry shelves](shots/pantry.png) |
-| ![The weekly market](shots/market.png) | ![A letter from Mia](shots/letters.png) |
+| ![The title screen](shots/title.png) | ![Granny's garden, the cat and the truck](shots/garden.png) |
+| ![A new species found in the forest](shots/species.png) | ![A new recipe: name, taste and value, and Granny's comment](shots/jam.png) |
+| ![The village square on a rainy day](shots/rain.png) | ![Market day at Granny's stall](shots/market.png) |
+| ![The parlour: Teo's hat, the photos, the recipe book](shots/parlour.png) | ![A letter from Mia, four hearts](shots/letters_hearts.png) |
 
 ## How to play
 
